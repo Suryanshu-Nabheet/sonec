@@ -39,8 +39,21 @@ SONEC_BASE_URL=http://127.0.0.1:8080/v1 sonec run "Fix the failing test" -w .
 Reuse an existing mlx corpus:
 
 ```bash
-sonec train --step --corpus artifacts/enterprise/sft_corpus/mlx_data --sft-iters 80
+sonec train --step --corpus artifacts/train/sft_corpus/mlx_data --sft-iters 80
 ```
+
+## Prove LoRA > base
+
+```bash
+# terminal A
+sonec serve-llm --port 8080
+# terminal B — base weights only (no adapter)
+python -m mlx_lm server --model mlx-community/Qwen3.5-2B-4bit --port 8081
+# terminal C
+sonec compare --suite examples/benchmarks/ab_agent_v1.json --out docs/results
+```
+
+Reports land in `docs/results/COMPARE_REPORT.md` (committed proof, not raw weights).
 
 ## Surfaces
 

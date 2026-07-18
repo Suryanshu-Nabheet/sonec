@@ -1,17 +1,18 @@
 # NOT THE PRODUCT
 # A SYSTEM prompt on top of qwen3.5:2b is a wrapper, not sonec.
-# sonec = trained LoRA adapter under artifacts/train/checkpoints/sonec-sft-mlx
+# sonec = LoRA adapter weights under: artifacts/train/checkpoints/sonec-sft-mlx
+# Ready: True — adapter weights: 0000040_adapters.safetensors, 0000080_adapters.safetensors, adapters.safetensors
 #
-# Specialize:  sonec train --step
-# Check:       sonec weights
-# Serve:       sonec serve-llm
-#              → SONEC_BASE_URL=http://127.0.0.1:8080/v1
+# Serve specialized weights:
+#   sonec serve-llm
+#   # or: python -m mlx_lm server --model mlx-community/Qwen3.5-2B-4bit --adapter-path artifacts/train/checkpoints/sonec-sft-mlx --port 8080
+#
+# Do not treat this file as a specialized model.
 
 FROM qwen3.5:2b
 
 PARAMETER temperature 0.2
 PARAMETER top_p 0.9
-PARAMETER presence_penalty 0.0
 PARAMETER num_ctx 32768
 
 SYSTEM """You are sonec — a coding-agent model on Qwen 3.5.

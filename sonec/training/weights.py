@@ -86,17 +86,22 @@ def write_product_manifest(
     """Record what product sonec actually is (weights), not a Modelfile."""
     root = root or Path.cwd()
     status = weight_status(adapter_dir)
+    resolved = adapter_dir.expanduser().resolve()
+    try:
+        adapter_rel = str(resolved.relative_to(root.resolve()))
+    except ValueError:
+        adapter_rel = str(resolved)
     payload = {
         "product": PRODUCT_MODEL,
         "kind": "mlx_lora_adapter",
         "base_tag": BASE_MODEL,
         "base_mlx": mlx_base,
-        "adapter_dir": str(adapter_dir.resolve()),
+        "adapter_dir": adapter_rel,
         "ready": status.ready,
         "weights": [p.name for p in adapter_weight_files(adapter_dir)],
         "serve": (
-            f"python -m mlx_lm server --model {mlx_base} "
-            f"--adapter-path {adapter_dir} --port 8080"
+            f"sonec serve-llm  # or: python -m mlx_lm server --model {mlx_base} "
+            f"--adapter-path {adapter_rel} --port 8080"
         ),
         "note": (
             "sonec is this LoRA adapter on the Qwen 3.5 2B base. "

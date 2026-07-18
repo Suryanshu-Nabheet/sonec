@@ -25,8 +25,8 @@ class LLMProvider(Protocol):
 
 def _message_to_openai(message: Message) -> dict[str, Any]:
     payload: dict[str, Any] = {"role": message.role.value}
-    if message.content is not None:
-        payload["content"] = message.content
+    # mlx_lm / Qwen chat templates require content keys on every turn.
+    payload["content"] = message.content if message.content is not None else ""
     if message.name:
         payload["name"] = message.name
     if message.tool_call_id:
@@ -43,8 +43,7 @@ def _message_to_openai(message: Message) -> dict[str, Any]:
             }
             for call in message.tool_calls
         ]
-    if message.reasoning_content:
-        payload["reasoning_content"] = message.reasoning_content
+    # Do not forward reasoning into the next request — mlx_lm rejects odd shapes.
     return payload
 
 
@@ -110,18 +109,35 @@ class OpenAICompatibleProvider:
             body["stop"] = request.stop
 
         client = await self._get_client()
-        try:
-            response = await client.post(
-                f"{self.base_url}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json",
-                },
-                json=body,
-            )
-        except httpx.HTTPError as exc:
-            raise LLMError(f"LLM request failed: {exc}") from exc
+        last_error: Exception | None = None
+        response: httpx.Response | None = None
+        for attempt in range(3):
+            try:
+                response = await client.post(
+                    f"{self.base_url}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json=body,
+                )
+            except httpx.HTTPError as exc:
+                last_error = exc
+                continue
+            if response.status_code == 404 and "No user query" in response.text:
+                # mlx_lm intermittent template glitch — retry once or twice
+                last_error = LLMError(
+                    f"LLM HTTP {response.status_code}: {response.text[:500]}",
+                    status_code=response.status_code,
+                )
+                continue
+            break
+        else:
+            if last_error:
+                raise LLMError(f"LLM request failed: {last_error}") from last_error
+            raise LLMError("LLM request failed after retries")
 
+        assert response is not None
         if response.status_code >= 400:
             raise LLMError(
                 f"LLM HTTP {response.status_code}: {response.text[:500]}",
@@ -152,7 +168,8 @@ class OpenAICompatibleProvider:
             role=Role.ASSISTANT,
             content=raw_message.get("content"),
             tool_calls=tool_calls,
-            reasoning_content=raw_message.get("reasoning_content"),
+            reasoning_content=raw_message.get("reasoning_content")
+            or raw_message.get("reasoning"),
         )
         usage = data.get("usage") or {}
         return CompletionResponse(

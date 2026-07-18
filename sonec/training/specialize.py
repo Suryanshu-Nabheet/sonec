@@ -33,25 +33,187 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
+def _qwen_tool_call(name: str, params: dict[str, str]) -> str:
+    """Qwen 3.5 native tool-call markup (what mlx_lm / chat template emit)."""
+    parts = ["<tool_call>", f"<function={name}>"]
+    for key, value in params.items():
+        parts.append(f"<parameter={key}>")
+        parts.append(str(value))
+        parts.append("</parameter>")
+    parts.extend(["</function>", "</tool_call>"])
+    return "\n".join(parts)
+
+
 def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 40) -> int:
-    """Compact tool-use curriculum for agentic coding."""
+    """Compact tool-use curriculum with real Qwen tool-call markup (not 'Calling tool')."""
     templates = [
         (
-            "localize-then-patch",
-            "Fix the off-by-one in util.py and verify with pytest.",
+            "nested-path-write",
+            "Create notes/hello.txt containing exactly: hello sonec",
             [
-                {"role": "user", "content": "Fix the off-by-one in util.py and verify with pytest."},
-                {"role": "assistant", "content": "Calling tool index_search", "name": "index_search"},
-                {"role": "tool", "name": "index_search", "content": "util.py:12 count_to"},
-                {"role": "assistant", "content": "Calling tool fs_read", "name": "fs_read"},
-                {"role": "tool", "name": "fs_read", "content": "return list(range(n+1))"},
-                {"role": "assistant", "content": "Calling tool fs_edit", "name": "fs_edit"},
-                {"role": "tool", "name": "fs_edit", "content": "patched range(n)"},
-                {"role": "assistant", "content": "Calling tool terminal_run", "name": "terminal_run"},
-                {"role": "tool", "name": "terminal_run", "content": "exit_code: 0\n1 passed"},
+                {
+                    "role": "user",
+                    "content": "Create notes/hello.txt containing exactly: hello sonec",
+                },
                 {
                     "role": "assistant",
-                    "content": "Fixed util.py off-by-one. Verification: pytest exit 0, 1 passed.",
+                    "content": _qwen_tool_call(
+                        "fs_write",
+                        {"path": "notes/hello.txt", "content": "hello sonec"},
+                    ),
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "content": "Wrote 11 characters to notes/hello.txt",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "Created notes/hello.txt with exact content hello sonec. "
+                        "Evidence: fs_write to notes/hello.txt."
+                    ),
+                },
+            ],
+        ),
+        (
+            "py-util-main",
+            "Create src/util.py as valid Python that defines a main function.",
+            [
+                {
+                    "role": "user",
+                    "content": "Create src/util.py as valid Python that defines a main function.",
+                },
+                {
+                    "role": "assistant",
+                    "content": _qwen_tool_call(
+                        "fs_write",
+                        {
+                            "path": "src/util.py",
+                            "content": "def main():\n    return 0\n\nif __name__ == '__main__':\n    main()\n",
+                        },
+                    ),
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "content": "Wrote src/util.py",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Created src/util.py with def main. Path is src/util.py (not util.py).",
+                },
+            ],
+        ),
+        (
+            "localize-then-patch",
+            "Fix the off-by-one in util.py so count_to(n) returns list(range(n)).",
+            [
+                {
+                    "role": "user",
+                    "content": "Fix the off-by-one in util.py so count_to(n) returns list(range(n)).",
+                },
+                {
+                    "role": "assistant",
+                    "content": _qwen_tool_call("fs_read", {"path": "util.py"}),
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_read",
+                    "content": "def count_to(n):\n    return list(range(n + 1))\n",
+                },
+                {
+                    "role": "assistant",
+                    "content": _qwen_tool_call(
+                        "fs_write",
+                        {
+                            "path": "util.py",
+                            "content": "def count_to(n):\n    return list(range(n))\n",
+                        },
+                    ),
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "content": "Wrote util.py",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Fixed util.py to list(range(n)). Removed n + 1.",
+                },
+            ],
+        ),
+        (
+            "verify-before-done",
+            "Create scripts/verify.sh that echoes ok, and VERIFY.md that mentions scripts/verify.sh.",
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "Create scripts/verify.sh that echoes ok, and VERIFY.md "
+                        "that mentions scripts/verify.sh."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": _qwen_tool_call(
+                        "fs_write",
+                        {"path": "scripts/verify.sh", "content": "#!/bin/sh\necho ok\n"},
+                    ),
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "content": "Wrote scripts/verify.sh",
+                },
+                {
+                    "role": "assistant",
+                    "content": _qwen_tool_call(
+                        "fs_write",
+                        {
+                            "path": "VERIFY.md",
+                            "content": "Run scripts/verify.sh to verify.\n",
+                        },
+                    ),
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "content": "Wrote VERIFY.md",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Added scripts/verify.sh and VERIFY.md mentioning scripts/verify.sh.",
+                },
+            ],
+        ),
+        (
+            "pkg-greet",
+            "Create pkg/__init__.py and pkg/core.py with a function greet that returns hello.",
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "Create pkg/__init__.py and pkg/core.py with a function greet "
+                        "that returns hello."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": _qwen_tool_call("fs_write", {"path": "pkg/__init__.py", "content": ""}),
+                },
+                {"role": "tool", "name": "fs_write", "content": "Wrote pkg/__init__.py"},
+                {
+                    "role": "assistant",
+                    "content": _qwen_tool_call(
+                        "fs_write",
+                        {"path": "pkg/core.py", "content": "def greet():\n    return \"hello\"\n"},
+                    ),
+                },
+                {"role": "tool", "name": "fs_write", "content": "Wrote pkg/core.py"},
+                {
+                    "role": "assistant",
+                    "content": "Created pkg/__init__.py and pkg/core.py with def greet.",
                 },
             ],
         ),
@@ -66,23 +228,6 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 40) -> int:
                         "A regression test checks that previously working behavior "
                         "still passes after a change. No files edited."
                     ),
-                },
-            ],
-        ),
-        (
-            "verify-before-done",
-            "Add scripts/verify.sh and document it in VERIFY.md.",
-            [
-                {"role": "user", "content": "Add scripts/verify.sh and document it in VERIFY.md."},
-                {"role": "assistant", "content": "Calling tool fs_write", "name": "fs_write"},
-                {"role": "tool", "name": "fs_write", "content": "wrote scripts/verify.sh"},
-                {"role": "assistant", "content": "Calling tool fs_write", "name": "fs_write"},
-                {"role": "tool", "name": "fs_write", "content": "wrote VERIFY.md"},
-                {"role": "assistant", "content": "Calling tool terminal_run", "name": "terminal_run"},
-                {"role": "tool", "name": "terminal_run", "content": "exit_code: 0\nOK"},
-                {
-                    "role": "assistant",
-                    "content": "Added verify script and docs. Verification: ./scripts/verify.sh exit 0.",
                 },
             ],
         ),
@@ -319,14 +464,19 @@ def write_product_modelfile(*, adapter_path: Path, modelfile_out: Path) -> Path:
     from sonec.training.weights import weight_status
 
     status = weight_status(adapter_path)
+    try:
+        rel = adapter_path.resolve().relative_to(Path.cwd().resolve())
+        adapter_display = str(rel)
+    except ValueError:
+        adapter_display = str(adapter_path)
     body = f"""# NOT THE PRODUCT
 # A SYSTEM prompt on top of {BASE_MODEL} is a wrapper, not sonec.
-# sonec = LoRA adapter weights under: {adapter_path}
+# sonec = LoRA adapter weights under: {adapter_display}
 # Ready: {status.ready} — {status.detail}
 #
 # Serve specialized weights:
 #   sonec serve-llm
-#   # or: python -m mlx_lm server --model {BASE_HF_MLX} --adapter-path {adapter_path} --port 8080
+#   # or: python -m mlx_lm server --model {BASE_HF_MLX} --adapter-path {adapter_display} --port 8080
 #
 # Do not treat this file as a specialized model.
 
@@ -466,5 +616,4 @@ def run_train_step(
     return reports
 
 
-# Back-compat name
-run_enterprise_train = run_train_step
+# Back-compat alias removed — use run_train_step.

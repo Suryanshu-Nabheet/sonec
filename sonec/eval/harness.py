@@ -185,7 +185,19 @@ class EvalHarness:
         results: list[EvalResult] = []
         for task in tasks:
             agent = agent_factory(task)
-            results.append(await self.run_task(task, agent))
+            try:
+                results.append(await self.run_task(task, agent))
+            except Exception as exc:  # noqa: BLE001 — live eval must continue arms
+                results.append(
+                    EvalResult(
+                        task_id=task.id,
+                        passed=False,
+                        score=0.0,
+                        details=[f"ERROR: {exc}"],
+                        difficulty=task.difficulty,
+                        tags=list(task.tags),
+                    )
+                )
         return build_report(name, results)
 
 

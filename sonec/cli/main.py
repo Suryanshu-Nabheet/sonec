@@ -579,6 +579,73 @@ def corpora_cmd(
             console.print(f"  error: {row['error']}")
 
 
+@app.command("compare")
+def compare_cmd(
+    suite: Path = typer.Option(
+        Path("examples/benchmarks/ab_agent_v1.json"),
+        "--suite",
+        "-s",
+        exists=True,
+    ),
+    lora_url: str = typer.Option(
+        "http://127.0.0.1:8080/v1",
+        "--lora-url",
+        help="OpenAI-compatible URL for specialized sonec (serve-llm)",
+    ),
+    base_url: str = typer.Option(
+        "http://127.0.0.1:8081/v1",
+        "--base-url",
+        help="OpenAI-compatible URL for base Qwen 3.5 2B (no adapter)",
+    ),
+    lora_model: str = typer.Option(
+        "mlx-community/Qwen3.5-2B-4bit",
+        "--lora-model",
+        help="Model id as advertised by the LoRA server",
+    ),
+    base_model: str = typer.Option(
+        "mlx-community/Qwen3.5-2B-4bit",
+        "--base-model",
+        help="Model id as advertised by the base server",
+    ),
+    out: Path = typer.Option(Path("docs/results"), "--out", "-o"),
+) -> None:
+    """Live A/B: LoRA sonec vs base Qwen 3.5 2B (same harness)."""
+    from sonec.eval.compare import run_compare_sync
+    from sonec.training.weights import weight_status
+
+    status = weight_status()
+    if not status.ready:
+        console.print(f"[red]{status.detail}[/]")
+        console.print("Specialize first: sonec train --step && sonec serve-llm")
+        raise typer.Exit(code=1)
+
+    console.print(
+        Panel.fit(
+            f"suite={suite}\nlora={lora_url} ({lora_model})\n"
+            f"base={base_url} ({base_model})\n"
+            "Same harness; only weights/endpoint differ.",
+            title="sonec compare",
+            border_style="cyan",
+        )
+    )
+    summary = run_compare_sync(
+        suite=suite,
+        lora_url=lora_url,
+        base_url=base_url,
+        lora_model=lora_model,
+        base_model=base_model,
+        out_dir=out,
+    )
+    for arm in summary.arms:
+        color = "green" if arm["kind"] == "lora" else "white"
+        console.print(
+            f"[{color}]{arm['name']}[/]: pass_rate={arm['pass_rate']:.0%} "
+            f"({arm['passed']}/{arm['total']}) mean_score={arm['mean_score']:.2f}"
+        )
+    console.print(f"winner={summary.winner or 'tie'} delta={summary.delta_pass_rate:+.0%}")
+    console.print(f"Wrote {out / 'COMPARE_REPORT.json'} and COMPARE_REPORT.md")
+
+
 @app.command("train")
 def train_cmd(
     export: bool = typer.Option(False, "--export", help="Export trainer shards from rollouts"),

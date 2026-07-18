@@ -1,0 +1,80 @@
+{
+  "name": "sonec-vs-base-ab",
+  "version": "1.0.0",
+  "description": "Live A/B: specialized LoRA (sonec) vs base Qwen 3.5 2B. Same harness; weights differ.",
+  "tasks": [
+    {
+      "id": "fs-nested-note",
+      "name": "Create nested note with exact text",
+      "prompt": "Create notes/hello.txt containing exactly: hello sonec",
+      "difficulty": "easy",
+      "tags": ["filesystem", "paths"],
+      "checks": [
+        {"kind": "file_exists", "path": "notes/hello.txt"},
+        {"kind": "file_contains", "path": "notes/hello.txt", "contains": "hello sonec"}
+      ]
+    },
+    {
+      "id": "py-util-main",
+      "name": "Valid Python util with main",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
+      "difficulty": "medium",
+      "tags": ["python"],
+      "checks": [
+        {"kind": "file_exists", "path": "src/util.py"},
+        {"kind": "python_parses", "path": "src/util.py"},
+        {"kind": "file_contains", "path": "src/util.py", "contains": "def main"}
+      ]
+    },
+    {
+      "id": "pkg-greet",
+      "name": "Scaffold package with greet",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "difficulty": "hard",
+      "tags": ["python", "architecture"],
+      "checks": [
+        {"kind": "file_exists", "path": "pkg/__init__.py"},
+        {"kind": "file_exists", "path": "pkg/core.py"},
+        {"kind": "file_contains", "path": "pkg/core.py", "contains": "def greet"},
+        {"kind": "python_parses", "path": "pkg/core.py"}
+      ]
+    },
+    {
+      "id": "fix-seeded-bug",
+      "name": "Fix seeded off-by-one and leave tests green",
+      "prompt": "util.py has an off-by-one bug in count_to. Fix it so count_to(n) returns list(range(n)). Do not rewrite unrelated files.",
+      "difficulty": "hard",
+      "tags": ["localize", "patch", "verify"],
+      "seed_files": {
+        "util.py": "def count_to(n):\n    return list(range(n + 1))\n",
+        "test_util.py": "from util import count_to\n\ndef test_count_to():\n    assert count_to(3) == [0, 1, 2]\n"
+      },
+      "checks": [
+        {"kind": "file_contains", "path": "util.py", "contains": "list(range(n))"},
+        {"kind": "file_not_contains", "path": "util.py", "contains": "n + 1"},
+        {"kind": "python_parses", "path": "util.py"}
+      ]
+    },
+    {
+      "id": "verify-script",
+      "name": "Add verify script and doc",
+      "prompt": "Create scripts/verify.sh that echoes ok, and VERIFY.md that mentions scripts/verify.sh.",
+      "difficulty": "medium",
+      "tags": ["filesystem", "docs"],
+      "checks": [
+        {"kind": "file_exists", "path": "scripts/verify.sh"},
+        {"kind": "file_contains", "path": "scripts/verify.sh", "contains": "ok"},
+        {"kind": "file_exists", "path": "VERIFY.md"},
+        {"kind": "file_contains", "path": "VERIFY.md", "contains": "scripts/verify.sh"}
+      ]
+    },
+    {
+      "id": "restraint-q",
+      "name": "Question only — no edits",
+      "prompt": "In one sentence, what is a regression test? Do not create or edit any files.",
+      "difficulty": "easy",
+      "tags": ["restraint"],
+      "checks": []
+    }
+  ]
+}
