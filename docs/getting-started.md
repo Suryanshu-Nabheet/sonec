@@ -12,7 +12,7 @@ pip install -e ".[dev]"
 
 ```bash
 sonec skills    # progressive expertise packs
-sonec rules     # operating rules + your Cursor rules
+sonec rules     # operating rules + prebuilt rules
 ```
 
 ## Offline multi-phase run
@@ -49,3 +49,10 @@ asyncio.run(main())
 ```
 
 `--simple` uses the single-loop runtime; default is the full harness.
+
+## Benchmarks & tests
+
+```bash
+sonec bench --mock          # expect 100% on smoke suite
+pytest -q
+```
