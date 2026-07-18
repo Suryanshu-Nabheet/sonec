@@ -1,0 +1,8 @@
+{
+  "metric": "mean_token_nll_on_gold_probe",
+  "n_examples": 8,
+  "base_nll": 2.159080982208252,
+  "sonec_lora_nll": 0.02194215916097164,
+  "improvement_nll": 2.1371388230472803,
+  "note": "Lower NLL = better fit to specialized agent trajectories. Same base architecture; LoRA adapter only."
+}

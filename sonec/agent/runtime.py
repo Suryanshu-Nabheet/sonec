@@ -105,7 +105,7 @@ class AgentRuntime:
 
         messages: list[Message] = [
             Message(role=Role.SYSTEM, content=self.system_prompt),
-            Message(role=Role.USER, content=f"Goal:\n{goal}"),
+            Message(role=Role.USER, content=goal),
         ]
         if self.enable_phase_hints:
             messages.append(

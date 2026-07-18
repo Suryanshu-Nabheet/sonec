@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-18T17:45:47Z",
+  "generated_at": "2026-07-18T18:07:20Z",
   "summary": {
     "suite": "examples/benchmarks/ab_agent_v1.json",
     "arms": [
@@ -8,26 +8,26 @@
         "kind": "lora",
         "base_url": "http://127.0.0.1:8080/v1",
         "model": "mlx-community/Qwen3.5-2B-4bit",
-        "pass_rate": 0.16666666666666666,
-        "passed": 1,
+        "pass_rate": 0.5,
+        "passed": 3,
         "total": 6,
-        "mean_score": 0.16666666666666666,
-        "mean_duration_s": 4.829883784833025,
+        "mean_score": 0.5,
+        "mean_duration_s": 9.910633187332374,
         "by_difficulty": {
-          "easy": 0.5,
-          "hard": 0.0,
+          "easy": 1.0,
+          "hard": 0.5,
           "medium": 0.0
         },
         "by_tag": {
           "architecture": 0.0,
           "docs": 0.0,
-          "filesystem": 0.0,
-          "localize": 0.0,
-          "patch": 0.0,
-          "paths": 0.0,
+          "filesystem": 0.5,
+          "localize": 1.0,
+          "patch": 1.0,
+          "paths": 1.0,
           "python": 0.0,
           "restraint": 1.0,
-          "verify": 0.0
+          "verify": 1.0
         }
       },
       {
@@ -35,26 +35,26 @@
         "kind": "base",
         "base_url": "http://127.0.0.1:8081/v1",
         "model": "mlx-community/Qwen3.5-2B-4bit",
-        "pass_rate": 0.16666666666666666,
-        "passed": 1,
+        "pass_rate": 0.5,
+        "passed": 3,
         "total": 6,
-        "mean_score": 0.16666666666666666,
-        "mean_duration_s": 10.043174173499816,
+        "mean_score": 0.5,
+        "mean_duration_s": 8.80067861816618,
         "by_difficulty": {
-          "easy": 0.5,
-          "hard": 0.0,
+          "easy": 1.0,
+          "hard": 0.5,
           "medium": 0.0
         },
         "by_tag": {
           "architecture": 0.0,
           "docs": 0.0,
-          "filesystem": 0.0,
-          "localize": 0.0,
-          "patch": 0.0,
-          "paths": 0.0,
+          "filesystem": 0.5,
+          "localize": 1.0,
+          "patch": 1.0,
+          "paths": 1.0,
           "python": 0.0,
           "restraint": 1.0,
-          "verify": 0.0
+          "verify": 1.0
         }
       }
     ],
@@ -66,8 +66,8 @@
     "sonec_lora": [
       {
         "task_id": "fs-nested-note",
-        "passed": false,
-        "score": 0.0
+        "passed": true,
+        "score": 1.0
       },
       {
         "task_id": "py-util-main",
@@ -81,8 +81,8 @@
       },
       {
         "task_id": "fix-seeded-bug",
-        "passed": false,
-        "score": 0.0
+        "passed": true,
+        "score": 1.0
       },
       {
         "task_id": "verify-script",
@@ -98,8 +98,8 @@
     "qwen35_2b_base": [
       {
         "task_id": "fs-nested-note",
-        "passed": false,
-        "score": 0.0
+        "passed": true,
+        "score": 1.0
       },
       {
         "task_id": "py-util-main",
@@ -113,8 +113,8 @@
       },
       {
         "task_id": "fix-seeded-bug",
-        "passed": false,
-        "score": 0.0
+        "passed": true,
+        "score": 1.0
       },
       {
         "task_id": "verify-script",

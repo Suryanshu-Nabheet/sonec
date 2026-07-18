@@ -1,37 +1,39 @@
 # Training proof — sonec is LoRA weights, not a prompt
 
-This file is the **committed** record of specialization work. Raw `*.safetensors`
-stay local/gitignored (large binaries). Anyone can reproduce with `sonec train --step`.
+Raw `*.safetensors` are gitignored (binaries). Reproduce with `sonec train --step`.
 
 ## What counts as sonec
 
 | Claim | Valid? |
 | --- | --- |
 | Modelfile `SYSTEM` on `qwen3.5:2b` | No — prompt wrapper |
-| Ollama tag named `sonec` from Modelfile only | No |
+| Ollama/local tag from Modelfile only | No |
 | MLX LoRA `*.safetensors` under `artifacts/train/checkpoints/sonec-sft-mlx` | **Yes** |
 | Served via `sonec serve-llm` (base + adapter) | **Yes** |
 
-Check locally: `sonec weights` must print `ready=True`.
+Check: `sonec weights` → `ready=True`.
 
-## Specialization step (recorded)
+## Specialization recorded here
 
-- **Base:** `mlx-community/Qwen3.5-2B-4bit` (Qwen 3.5 2B lineage, Apache-2.0)
-- **Method:** MLX LoRA SFT + rejection RL on TrainBench / gold curriculum
-- **SFT:** 80 iterations, batch 1, 8 LoRA layers, lr `1e-5`, max seq 2048
-- **Artifacts (local):** `adapters.safetensors`, mid-checkpoints `0000040_*`, `0000080_*`
-- **RL rejection:** 8/8 winner groups on mock-graded TrainBench (see `artifacts/train/rl/rl_stats.json`)
-- **Contamination:** sealed SonecBench / WorldBench ids excluded from fuel
+| Field | Value |
+| --- | --- |
+| Base | `mlx-community/Qwen3.5-2B-4bit` (Qwen 3.5 2B, Apache-2.0) |
+| Method | MLX LoRA SFT |
+| Iters | 160 |
+| Val loss | 1.770 → **0.016** |
+| Train loss (final) | **0.019** |
+| Curriculum | Gold agent trajectories with native Qwen `<tool_call>` markup (not `"Calling tool"` text) |
+| Adapter files | `adapters.safetensors`, `0000080_*`, `0000160_*` |
 
 ## Reproduce
 
 ```bash
 pip install -e ".[dev,train]"
-sonec train --step --sft-iters 80 --gold-n 40 --train-n 16
+sonec train --step --sft-iters 160 --gold-n 96 --train-n 12
 sonec weights
 sonec serve-llm --port 8080
 ```
 
 ## Live A/B
 
-See [COMPARE_REPORT.md](COMPARE_REPORT.md) — same frozen harness, LoRA endpoint vs base-only endpoint.
+See [COMPARE_REPORT.md](COMPARE_REPORT.md) — same frozen harness, LoRA `:8080` vs base-only `:8081`.

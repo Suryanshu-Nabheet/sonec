@@ -59,6 +59,14 @@ class ToolRegistry:
     def names(self) -> list[str]:
         return sorted(self._tools)
 
+    def restrict(self, allow: set[str]) -> ToolRegistry:
+        """Return a new registry with only the named tools (for small-model eval)."""
+        narrowed = ToolRegistry()
+        for name in sorted(allow):
+            if name in self._tools:
+                narrowed.register(self._tools[name])
+        return narrowed
+
     async def execute(
         self,
         *,

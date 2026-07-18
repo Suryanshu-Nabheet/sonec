@@ -1,7 +1,7 @@
 # NOT THE PRODUCT
 # A SYSTEM prompt on top of qwen3.5:2b is a wrapper, not sonec.
 # sonec = LoRA adapter weights under: artifacts/train/checkpoints/sonec-sft-mlx
-# Ready: True — adapter weights: 0000040_adapters.safetensors, 0000080_adapters.safetensors, adapters.safetensors
+# Ready: True — adapter weights: 0000080_adapters.safetensors, 0000160_adapters.safetensors, adapters.safetensors
 #
 # Serve specialized weights:
 #   sonec serve-llm

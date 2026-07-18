@@ -18,6 +18,15 @@ from sonec.app import build_runtime
 from sonec.core.config import load_settings
 from sonec.eval.harness import BenchmarkReport, EvalHarness
 
+# Focused tool surface for 2B-class A/B (matches gold curriculum).
+COMPARE_TOOL_ALLOWLIST = {
+    "fs_write",
+    "fs_read",
+    "fs_edit",
+    "fs_list",
+    "terminal_run",
+}
+
 
 @dataclass
 class ArmSpec:
@@ -80,6 +89,7 @@ async def run_arm(
                 persist_memory=False,
                 log_dir=_ws / ".trajectories",
                 goal_for_prompt=t.prompt,
+                tool_allowlist=COMPARE_TOOL_ALLOWLIST,
             )
             return runtime
 
@@ -98,6 +108,7 @@ async def run_arm(
                     tags=list(task.tags),
                 )
             )
+        await asyncio.sleep(0.75)
 
     from sonec.eval.harness import build_report
 

@@ -13,12 +13,22 @@ cp .env.example .env
 ## Specialize then serve
 
 ```bash
-sonec train --step --sft-iters 80
+sonec train --step --sft-iters 160 --gold-n 96
 sonec weights          # READY only when *.safetensors exist
 sonec serve-llm        # base + adapter on :8080
 export SONEC_BASE_URL=http://127.0.0.1:8080/v1
 sonec run "Add a unit test and verify" -w .
 ```
+
+## Prove specialization
+
+```bash
+# terminal B — base only
+python -m mlx_lm server --model mlx-community/Qwen3.5-2B-4bit --port 8081
+sonec compare --out docs/results
+```
+
+See [docs/results/TRAIN_PROOF.md](results/TRAIN_PROOF.md) and [COMPARE_REPORT.md](results/COMPARE_REPORT.md).
 
 ## Agent / IDE
 

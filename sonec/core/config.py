@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     model: str = DEFAULT_MODEL
     api_key: str | None = None
     base_url: str | None = None
-    temperature: float = 0.2
+    temperature: float = 0.1
     max_tokens: int = 8192
     max_iterations: int = 32
     request_timeout_s: float = 120.0

@@ -29,6 +29,7 @@ def build_runtime(
     log_dir: Path | None = None,
     enable_phase_hints: bool = False,
     goal_for_prompt: str = "",
+    tool_allowlist: set[str] | None = None,
 ) -> tuple[AgentRuntime, Settings, Workspace, ToolRegistry]:
     """Assemble the frozen Phase-0 production runtime."""
     cfg = settings or load_settings(**({"workspace": workspace} if workspace else {}))
@@ -48,6 +49,8 @@ def build_runtime(
     registry = build_default_registry(
         ws, cfg, memory=mem, index=index, skills=skills, rules=rules
     )
+    if tool_allowlist is not None:
+        registry = registry.restrict(tool_allowlist)
     assembler = ContextAssembler(skills, index=index)
     model_id = cfg.model if not isinstance(llm, MockProvider) else "mock"
     default_log = cfg.workspace / ".sonec" / "trajectories" if log_dir is None else log_dir

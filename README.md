@@ -68,6 +68,7 @@ sonec doctor     # fails until LoRA weights exist
 - [Getting started](docs/getting-started.md)
 - [Architecture](docs/architecture.md)
 - [Training gate](docs/GATE_REPORT_MODEL_STACK.md)
+- [Results / proof](docs/results/TRAIN_PROOF.md) — LoRA NLL + live A/B
 - [NOTICE](NOTICE) — Qwen Apache-2.0 + MIT
 
 ## License

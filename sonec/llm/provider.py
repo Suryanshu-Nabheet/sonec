@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from typing import Any, Protocol, runtime_checkable
 
@@ -16,6 +17,7 @@ from sonec.core.types import (
     Role,
     ToolCall,
 )
+from sonec.llm.tool_parse import parse_qwen_tool_calls
 
 
 @runtime_checkable
@@ -111,7 +113,7 @@ class OpenAICompatibleProvider:
         client = await self._get_client()
         last_error: Exception | None = None
         response: httpx.Response | None = None
-        for attempt in range(3):
+        for attempt in range(4):
             try:
                 response = await client.post(
                     f"{self.base_url}/chat/completions",
@@ -123,13 +125,14 @@ class OpenAICompatibleProvider:
                 )
             except httpx.HTTPError as exc:
                 last_error = exc
+                await asyncio.sleep(0.4 * (attempt + 1))
                 continue
             if response.status_code == 404 and "No user query" in response.text:
-                # mlx_lm intermittent template glitch — retry once or twice
                 last_error = LLMError(
                     f"LLM HTTP {response.status_code}: {response.text[:500]}",
                     status_code=response.status_code,
                 )
+                await asyncio.sleep(0.5 * (attempt + 1))
                 continue
             break
         else:
@@ -163,10 +166,15 @@ class OpenAICompatibleProvider:
                         arguments=_parse_tool_arguments(function.get("arguments", "{}")),
                     )
                 )
+        content = raw_message.get("content")
+        if not tool_calls:
+            parsed = parse_qwen_tool_calls(content if isinstance(content, str) else None)
+            if parsed:
+                tool_calls = parsed
 
         message = Message(
             role=Role.ASSISTANT,
-            content=raw_message.get("content"),
+            content=content,
             tool_calls=tool_calls,
             reasoning_content=raw_message.get("reasoning_content")
             or raw_message.get("reasoning"),
