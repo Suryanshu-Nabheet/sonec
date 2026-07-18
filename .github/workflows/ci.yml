@@ -24,3 +24,5 @@ jobs:
         run: ruff check sonec tests
       - name: Pytest
         run: pytest -q
+      - name: Benchmark
+        run: sonec bench --mock --out artifacts/benchmarks/ci.json

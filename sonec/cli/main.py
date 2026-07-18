@@ -19,7 +19,7 @@ from sonec.analysis.refactor import RefactorAnalyzer
 from sonec.analysis.review import CodeReviewer, findings_to_markdown
 from sonec.app import build_agent
 from sonec.core.config import load_settings
-from sonec.core.types import AgentEvent, AgentEventKind, Message, Role, ToolCall
+from sonec.core.types import AgentEvent, AgentEventKind
 from sonec.docsgen.generator import DocGenerator
 from sonec.eval.harness import EvalHarness
 from sonec.indexing.index import RepositoryIndex
@@ -276,56 +276,46 @@ def docs_cmd(
 def eval_cmd(
     tasks: Path = typer.Argument(..., exists=True, help="JSON task suite"),
     workspace: Path = typer.Option(Path("."), "--workspace", "-w"),
-    mock: bool = typer.Option(True, "--mock/--live", help="Mock agent responses by default"),
+    mock: bool = typer.Option(True, "--mock/--live", help="Task-aware mock solver by default"),
+    out: Path | None = typer.Option(None, "--out", help="Write BenchmarkReport JSON"),
 ) -> None:
-    """Run an evaluation suite."""
+    """Run an evaluation suite with deterministic grading."""
 
     async def _eval() -> None:
-        settings = load_settings(workspace=workspace.resolve(), provider="mock" if mock else "moonshot")
+        from sonec.eval.harness import mock_provider_for_task
+
+        ws = workspace.expanduser().resolve()
+        ws.mkdir(parents=True, exist_ok=True)
+        settings = load_settings(workspace=ws, provider="mock" if mock else "moonshot")
         harness = EvalHarness(workspace=settings.workspace)
         task_list = EvalHarness.load_tasks(tasks)
 
-        def factory():
-            llm = None
-            if mock:
-                # Offline demo: perform a representative write, then finish.
-                llm = MockProvider(
-                    [
-                        Message(
-                            role=Role.ASSISTANT,
-                            content=None,
-                            tool_calls=[
-                                ToolCall(
-                                    id="eval_write",
-                                    name="fs_write",
-                                    arguments={
-                                        "path": "notes/hello.txt",
-                                        "content": "hello sonec",
-                                    },
-                                )
-                            ],
-                        ),
-                        Message(
-                            role=Role.ASSISTANT,
-                            content="Created notes/hello.txt and completed the evaluation task.",
-                        ),
-                    ]
-                )
+        def factory(task):
+            llm = mock_provider_for_task(task) if mock else None
             runtime, *_ = build_agent(settings=settings, provider=llm, persist_memory=False)
             return runtime
 
         report = await harness.run_suite(task_list, factory, name=tasks.stem)
+        if out:
+            report.save(out)
+            console.print(f"Wrote {out}")
         console.print(
             json.dumps(
                 {
                     "name": report.name,
                     "pass_rate": report.pass_rate,
+                    "mean_score": report.mean_score,
+                    "passed": report.passed,
+                    "total": report.total,
                     "mean_duration_s": report.mean_duration_s,
+                    "by_difficulty": report.by_difficulty,
+                    "by_tag": report.by_tag,
                     "results": [
                         {
                             "task_id": r.task_id,
                             "passed": r.passed,
                             "score": r.score,
+                            "difficulty": r.difficulty,
                             "details": r.details,
                         }
                         for r in report.results
@@ -336,6 +326,62 @@ def eval_cmd(
         )
 
     asyncio.run(_eval())
+
+
+@app.command("bench")
+def bench_cmd(
+    suite: Path = typer.Option(
+        Path("examples/benchmarks/smoke.json"),
+        "--suite",
+        "-s",
+        help="Benchmark suite JSON",
+        exists=True,
+    ),
+    workspace: Path = typer.Option(Path(".sonec/bench-workspace"), "--workspace", "-w"),
+    mock: bool = typer.Option(True, "--mock/--live"),
+    out: Path = typer.Option(Path("artifacts/benchmarks/latest.json"), "--out"),
+) -> None:
+    """Run the SONEC agentic benchmark suite and write a leaderboard report."""
+
+    async def _bench() -> None:
+        from sonec.eval.harness import mock_provider_for_task
+
+        ws = workspace.expanduser().resolve()
+        if ws.exists():
+            # Fresh workspace per bench run for isolation
+            import shutil
+
+            shutil.rmtree(ws)
+        ws.mkdir(parents=True, exist_ok=True)
+        settings = load_settings(workspace=ws, provider="mock" if mock else "moonshot")
+        harness = EvalHarness(workspace=ws)
+        data = json.loads(suite.read_text(encoding="utf-8"))
+        name = data.get("name", suite.stem) if isinstance(data, dict) else suite.stem
+        task_list = EvalHarness.load_tasks(suite)
+
+        def factory(task):
+            llm = mock_provider_for_task(task) if mock else None
+            runtime, *_ = build_agent(settings=settings, provider=llm, persist_memory=False)
+            return runtime
+
+        report = await harness.run_suite(task_list, factory, name=str(name))
+        report.save(out)
+        console.print(
+            Panel.fit(
+                f"[bold]{report.name}[/]\n"
+                f"pass_rate={report.pass_rate:.0%} ({report.passed}/{report.total})\n"
+                f"mean_score={report.mean_score:.2f}\n"
+                f"mean_duration_s={report.mean_duration_s:.4f}\n"
+                f"by_difficulty={report.by_difficulty}\n"
+                f"report={out}",
+                title="SONEC bench",
+                border_style="green" if report.pass_rate == 1.0 else "yellow",
+            )
+        )
+        if report.pass_rate < 1.0:
+            raise typer.Exit(code=1)
+
+    asyncio.run(_bench())
 
 
 @app.command("dataset")

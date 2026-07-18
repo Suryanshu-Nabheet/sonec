@@ -1,18 +1,19 @@
-"""Evaluation harness and benchmarking."""
+"""Evaluation harness and benchmarking — deterministic grading for agentic SE."""
 
 from __future__ import annotations
 
+import ast
 import json
 import time
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 from pydantic import BaseModel, Field
 
-from sonec.agent.runtime import AgentRuntime
 from sonec.core.errors import EvalError
-from sonec.core.types import AgentRunResult, utc_now
+from sonec.core.types import AgentRunResult, Message, Role, ToolCall, utc_now
+from sonec.llm.provider import MockProvider
 
 
 class EvalCheck(BaseModel):
@@ -20,6 +21,7 @@ class EvalCheck(BaseModel):
     path: str | None = None
     contains: str | None = None
     command_exit_zero: bool | None = None
+    pattern: str | None = None
 
 
 class EvalTask(BaseModel):
@@ -29,6 +31,7 @@ class EvalTask(BaseModel):
     checks: list[EvalCheck] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
     timeout_s: float = 300.0
+    difficulty: str = "easy"
 
 
 class EvalResult(BaseModel):
@@ -37,6 +40,8 @@ class EvalResult(BaseModel):
     score: float
     details: list[str] = Field(default_factory=list)
     duration_s: float = 0.0
+    difficulty: str = "easy"
+    tags: list[str] = Field(default_factory=list)
     agent: AgentRunResult | None = None
     created_at: str = Field(default_factory=lambda: utc_now().isoformat())
 
@@ -46,9 +51,19 @@ class BenchmarkReport(BaseModel):
     results: list[EvalResult]
     pass_rate: float
     mean_duration_s: float
+    mean_score: float = 0.0
+    passed: int = 0
+    total: int = 0
+    by_difficulty: dict[str, float] = Field(default_factory=dict)
+    by_tag: dict[str, float] = Field(default_factory=dict)
+
+    def save(self, path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(self.model_dump_json(indent=2), encoding="utf-8")
 
 
-AgentFactory = Callable[[], Awaitable[AgentRuntime] | AgentRuntime]
+class RunnableAgent(Protocol):
+    async def run(self, goal: str) -> AgentRunResult: ...
 
 
 class EvalHarness:
@@ -61,6 +76,7 @@ class EvalHarness:
         run_command: Callable[[str], Awaitable[dict[str, Any]]] | None = None,
     ) -> None:
         self.workspace = workspace.resolve()
+        self.workspace.mkdir(parents=True, exist_ok=True)
         self.run_command = run_command
 
     @staticmethod
@@ -77,13 +93,13 @@ class EvalHarness:
         passed_checks = 0
         for check in task.checks:
             ok = await self._check(check)
+            label = check.path or check.contains or check.pattern or ""
             if ok:
                 passed_checks += 1
-                details.append(f"PASS {check.kind}: {check.path or check.contains or ''}")
+                details.append(f"PASS {check.kind}: {label}")
             else:
-                details.append(f"FAIL {check.kind}: {check.path or check.contains or ''}")
+                details.append(f"FAIL {check.kind}: {label}")
         total = max(len(task.checks), 1)
-        # If no checks, fall back to agent success
         if not task.checks:
             score = 1.0 if agent_result.success else 0.0
             passed = agent_result.success
@@ -96,6 +112,8 @@ class EvalHarness:
             passed=passed,
             score=score,
             details=details,
+            difficulty=task.difficulty,
+            tags=list(task.tags),
             agent=agent_result,
         )
 
@@ -111,6 +129,24 @@ class EvalHarness:
             if not path.exists():
                 return False
             return check.contains in path.read_text(encoding="utf-8", errors="replace")
+        if check.kind == "file_not_contains":
+            if not check.path or check.contains is None:
+                return False
+            path = self.workspace / check.path
+            if not path.exists():
+                return False
+            return check.contains not in path.read_text(encoding="utf-8", errors="replace")
+        if check.kind == "python_parses":
+            if not check.path:
+                return False
+            path = self.workspace / check.path
+            if not path.exists():
+                return False
+            try:
+                ast.parse(path.read_text(encoding="utf-8"))
+                return True
+            except SyntaxError:
+                return False
         if check.kind == "command":
             if self.run_command is None or not check.path:
                 return False
@@ -120,7 +156,7 @@ class EvalHarness:
             return True
         raise EvalError(f"Unknown check kind: {check.kind}")
 
-    async def run_task(self, task: EvalTask, agent: AgentRuntime) -> EvalResult:
+    async def run_task(self, task: EvalTask, agent: RunnableAgent) -> EvalResult:
         started = time.perf_counter()
         agent_result = await agent.run(task.prompt)
         graded = await self.grade(task, agent_result)
@@ -130,19 +166,113 @@ class EvalHarness:
     async def run_suite(
         self,
         tasks: list[EvalTask],
-        agent_factory: Callable[[], AgentRuntime],
+        agent_factory: Callable[[EvalTask], RunnableAgent],
         *,
         name: str = "suite",
     ) -> BenchmarkReport:
         results: list[EvalResult] = []
         for task in tasks:
-            agent = agent_factory()
+            agent = agent_factory(task)
             results.append(await self.run_task(task, agent))
-        pass_rate = sum(1 for r in results if r.passed) / max(len(results), 1)
-        mean_duration = sum(r.duration_s for r in results) / max(len(results), 1)
-        return BenchmarkReport(
-            name=name,
-            results=results,
-            pass_rate=pass_rate,
-            mean_duration_s=mean_duration,
+        return build_report(name, results)
+
+
+def build_report(name: str, results: list[EvalResult]) -> BenchmarkReport:
+    total = len(results)
+    passed = sum(1 for r in results if r.passed)
+    pass_rate = passed / max(total, 1)
+    mean_duration = sum(r.duration_s for r in results) / max(total, 1)
+    mean_score = sum(r.score for r in results) / max(total, 1)
+
+    by_diff: dict[str, list[bool]] = {}
+    by_tag: dict[str, list[bool]] = {}
+    for r in results:
+        by_diff.setdefault(r.difficulty, []).append(r.passed)
+        for tag in r.tags:
+            by_tag.setdefault(tag, []).append(r.passed)
+
+    def rate(vals: list[bool]) -> float:
+        return sum(1 for v in vals if v) / max(len(vals), 1)
+
+    return BenchmarkReport(
+        name=name,
+        results=results,
+        pass_rate=pass_rate,
+        mean_duration_s=mean_duration,
+        mean_score=mean_score,
+        passed=passed,
+        total=total,
+        by_difficulty={k: rate(v) for k, v in sorted(by_diff.items())},
+        by_tag={k: rate(v) for k, v in sorted(by_tag.items())},
+    )
+
+
+def mock_provider_for_task(task: EvalTask) -> MockProvider:
+    """Build a scripted provider that satisfies deterministic file checks offline.
+
+    Used for CI / harness self-tests. Live runs use the real model + tools.
+    """
+    targets: dict[str, dict[str, Any]] = {}
+    for check in task.checks:
+        if not check.path:
+            continue
+        if check.kind not in {
+            "file_exists",
+            "file_contains",
+            "file_not_contains",
+            "python_parses",
+        }:
+            continue
+        meta = targets.setdefault(check.path, {})
+        if check.kind == "file_contains" and check.contains is not None:
+            meta["contains"] = check.contains
+        if check.kind == "file_not_contains" and check.contains is not None:
+            meta["not_contains"] = check.contains
+        if check.kind == "python_parses":
+            meta["python"] = True
+        meta["exists"] = True
+
+    scripted: list[Message] = []
+    for index, (path, meta) in enumerate(targets.items(), start=1):
+        contains = meta.get("contains")
+        not_contains = meta.get("not_contains")
+        if meta.get("python"):
+            if contains and contains.startswith("def "):
+                name = contains.removeprefix("def ").split("(")[0].strip() or "main"
+                content = f"def {name}() -> str:\n    return 'hello'\n"
+            elif contains:
+                content = f"# {contains}\ndef main() -> None:\n    return None\n"
+            else:
+                content = "def main() -> None:\n    return None\n"
+        elif contains is not None:
+            content = contains if contains.endswith("\n") else f"{contains}\n"
+        else:
+            content = "sonec\n"
+        if not_contains and not_contains in content:
+            content = content.replace(not_contains, "")
+            if not content.strip():
+                content = "clean\n"
+        scripted.append(
+            Message(
+                role=Role.ASSISTANT,
+                content=None,
+                tool_calls=[
+                    ToolCall(
+                        id=f"bench_{index}",
+                        name="fs_write",
+                        arguments={"path": path, "content": content},
+                    )
+                ],
+            )
         )
+
+    scripted.append(
+        Message(
+            role=Role.ASSISTANT,
+            content=f"Benchmark task `{task.id}` completed with verification evidence.",
+        )
+    )
+    return MockProvider(
+        scripted,
+        default=Message(role=Role.ASSISTANT, content="Benchmark phase complete."),
+    )

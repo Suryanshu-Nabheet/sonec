@@ -8,7 +8,12 @@ import pytest
 from sonec.app import build_agent
 from sonec.core.config import load_settings
 from sonec.core.types import AgentRunResult, Message, Role
-from sonec.eval.harness import EvalCheck, EvalHarness, EvalTask
+from sonec.eval.harness import (
+    EvalCheck,
+    EvalHarness,
+    EvalTask,
+    mock_provider_for_task,
+)
 from sonec.llm.provider import MockProvider
 from sonec.training.pipeline import DatasetGenerator, TrainingPipeline
 
@@ -48,13 +53,32 @@ async def test_eval_suite_mock_agent(tmp_path: Path) -> None:
     harness = EvalHarness(workspace=tmp_path)
     tasks = EvalHarness.load_tasks(tasks_path)
 
-    def factory():
+    def factory(task: EvalTask):
+        del task
         provider = MockProvider([Message(role=Role.ASSISTANT, content="hi")])
         agent, *_ = build_agent(settings=settings, provider=provider, persist_memory=False)
         return agent
 
     report = await harness.run_suite(tasks, factory)
     assert report.pass_rate == 1.0
+
+
+@pytest.mark.asyncio
+async def test_smoke_benchmark_suite(tmp_path: Path) -> None:
+    suite = Path(__file__).resolve().parents[1] / "examples" / "benchmarks" / "smoke.json"
+    settings = load_settings(workspace=tmp_path, provider="mock")
+    harness = EvalHarness(workspace=tmp_path)
+    tasks = EvalHarness.load_tasks(suite)
+
+    def factory(task: EvalTask):
+        provider = mock_provider_for_task(task)
+        agent, *_ = build_agent(settings=settings, provider=provider, persist_memory=False)
+        return agent
+
+    report = await harness.run_suite(tasks, factory, name="smoke")
+    assert report.total == 8
+    assert report.pass_rate == 1.0
+    assert report.mean_score == 1.0
 
 
 def test_dataset_export(tmp_path: Path) -> None:

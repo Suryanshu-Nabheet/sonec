@@ -1,0 +1,96 @@
+{
+  "name": "sonec-smoke-benchmark",
+  "version": "1.0.0",
+  "description": "Offline + live-capable agentic SE benchmark suite for SONEC harness quality.",
+  "tasks": [
+    {
+      "id": "fs-create-note",
+      "name": "Create a note file",
+      "prompt": "Create notes/hello.txt containing exactly: hello sonec",
+      "difficulty": "easy",
+      "tags": ["filesystem", "write"],
+      "checks": [
+        {"kind": "file_exists", "path": "notes/hello.txt"},
+        {"kind": "file_contains", "path": "notes/hello.txt", "contains": "hello sonec"}
+      ]
+    },
+    {
+      "id": "fs-config-json",
+      "name": "Write valid config JSON content",
+      "prompt": "Write config/app.json containing the substring \"sonec\": true",
+      "difficulty": "easy",
+      "tags": ["filesystem", "config"],
+      "checks": [
+        {"kind": "file_exists", "path": "config/app.json"},
+        {"kind": "file_contains", "path": "config/app.json", "contains": "\"sonec\": true"}
+      ]
+    },
+    {
+      "id": "py-module-parses",
+      "name": "Create a parsing Python module",
+      "prompt": "Create src/util.py as valid Python with a main function.",
+      "difficulty": "medium",
+      "tags": ["python", "syntax"],
+      "checks": [
+        {"kind": "file_exists", "path": "src/util.py"},
+        {"kind": "python_parses", "path": "src/util.py"}
+      ]
+    },
+    {
+      "id": "py-fix-secret",
+      "name": "Remove hardcoded password",
+      "prompt": "Create secrets.py without any password= assignment; use env lookup instead.",
+      "difficulty": "medium",
+      "tags": ["security", "python"],
+      "checks": [
+        {"kind": "file_exists", "path": "secrets.py"},
+        {"kind": "file_not_contains", "path": "secrets.py", "contains": "password="},
+        {"kind": "python_parses", "path": "secrets.py"}
+      ]
+    },
+    {
+      "id": "readme-presence",
+      "name": "Author a project README",
+      "prompt": "Create README.md that mentions SONEC.",
+      "difficulty": "easy",
+      "tags": ["docs"],
+      "checks": [
+        {"kind": "file_exists", "path": "README.md"},
+        {"kind": "file_contains", "path": "README.md", "contains": "SONEC"}
+      ]
+    },
+    {
+      "id": "test-file",
+      "name": "Add a pytest-style test file",
+      "prompt": "Create tests/test_smoke.py with a function test_ok that asserts True.",
+      "difficulty": "medium",
+      "tags": ["testing", "python"],
+      "checks": [
+        {"kind": "file_exists", "path": "tests/test_smoke.py"},
+        {"kind": "file_contains", "path": "tests/test_smoke.py", "contains": "def test_ok"},
+        {"kind": "python_parses", "path": "tests/test_smoke.py"}
+      ]
+    },
+    {
+      "id": "multi-file-feature",
+      "name": "Scaffold a tiny package",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet returning hello.",
+      "difficulty": "hard",
+      "tags": ["python", "architecture"],
+      "checks": [
+        {"kind": "file_exists", "path": "pkg/__init__.py"},
+        {"kind": "file_exists", "path": "pkg/core.py"},
+        {"kind": "file_contains", "path": "pkg/core.py", "contains": "def greet"},
+        {"kind": "python_parses", "path": "pkg/core.py"}
+      ]
+    },
+    {
+      "id": "agent-completes",
+      "name": "Agent completes a reasoning turn",
+      "prompt": "State in one sentence the purpose of the SONEC verification gate.",
+      "difficulty": "easy",
+      "tags": ["smoke", "reasoning"],
+      "checks": []
+    }
+  ]
+}

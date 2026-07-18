@@ -54,8 +54,12 @@ sonec skills
 sonec rules
 sonec run "Summarize this repository" --mock
 
+# Full offline harness benchmark (must be 100%)
+sonec bench --mock
+
 export MOONSHOT_API_KEY=sk-...
 sonec run "Fix the failing tests and verify" -w .
+sonec bench --live   # real model against the suite
 ```
 
 ## Prebuilt rules
