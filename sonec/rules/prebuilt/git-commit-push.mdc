@@ -1,0 +1,312 @@
+---
+description: Git commit and push safety: never auto-commit or auto-push; require explicit approval and Conventional Commits.
+alwaysApply: true
+---
+
+# Cursor Rules - Git Commit & Push Policy
+
+## Core Principle
+
+Git history is valuable. Never perform Git operations automatically without explicit user approval. Every commit must be intentional, descriptive, and traceable.
+
+---
+
+# Commit Rules
+
+## Never auto commit
+
+- NEVER create a commit automatically.
+- NEVER commit after finishing a task.
+- Only create a commit when the user explicitly says things like:
+  - "commit"
+  - "create a commit"
+  - "git commit"
+  - "commit these changes"
+
+If the user did not explicitly request a commit:
+- Stage changes if requested.
+- Prepare a commit message if helpful.
+- Do NOT execute `git commit`.
+
+---
+
+## Commit Message Requirements
+
+Every commit message must clearly describe:
+
+1. What changed
+2. Why it changed
+3. Major files/components affected
+4. Any refactoring performed
+5. Breaking changes (if any)
+6. Migration steps (if any)
+
+Never use vague commit messages such as:
+
+- update
+- fix
+- changes
+- work
+- misc
+- stuff
+- final
+- temp
+
+Bad Example:
+
+fix bug
+
+Good Example:
+
+fix(auth): resolve JWT refresh token expiration handling
+
+- Fixed refresh token validation logic
+- Added automatic token rotation
+- Improved error handling for expired sessions
+- Updated authentication middleware
+- Added regression tests
+
+---
+
+## Commit Message Format
+
+Use Conventional Commits whenever applicable.
+
+Format:
+
+type(scope): short summary
+
+Followed by:
+
+- Detailed list of changes
+- Important implementation notes
+- Any migration or breaking changes
+
+Example:
+
+feat(api): add user profile caching
+
+- Added Redis caching layer for profile requests
+- Reduced repeated database queries
+- Added cache invalidation on profile update
+- Updated API documentation
+- Added unit tests
+
+---
+
+# Push Rules
+
+## Never auto push
+
+Never run:
+
+git push
+
+unless the user explicitly requests it.
+
+Examples of valid requests:
+
+- push
+- git push
+- push to origin
+- push branch
+- upload changes
+
+Completing work DOES NOT imply permission to push.
+
+---
+
+## Never Force Push
+
+Never execute:
+
+git push --force
+
+or
+
+git push -f
+
+unless the user explicitly requests a force push.
+
+Even if:
+
+- rebase was performed
+- history changed
+- push is rejected
+- branch diverged
+
+Do NOT force push automatically.
+
+Instead explain why force push would be required and wait for user approval.
+
+---
+
+## Safe Push Policy
+
+Before pushing:
+
+- Verify current branch.
+- Verify remote.
+- Verify there are commits to push.
+- Inform the user what will be pushed.
+- Push only after explicit confirmation.
+
+---
+
+# Git Safety Rules
+
+Never:
+
+- reset --hard
+- push --force
+- push --force-with-lease
+- rebase published commits
+- delete branches
+- delete tags
+- amend commits
+- rewrite history
+
+unless the user explicitly requests it.
+
+---
+
+# Status Verification
+
+Before any commit or push:
+
+Check:
+
+- git status
+- current branch
+- staged files
+- unstaged files
+
+If something unexpected exists, inform the user before continuing.
+
+---
+
+# Large Changes
+
+For commits touching many files:
+
+Generate a structured summary including:
+
+- Features added
+- Bugs fixed
+- Refactoring
+- Performance improvements
+- Documentation updates
+- Tests added
+- Configuration changes
+
+Use this summary to build the commit message.
+
+---
+
+# Breaking Changes
+
+If changes introduce breaking behavior:
+
+Include:
+
+BREAKING CHANGE:
+
+followed by a detailed explanation.
+
+Example:
+
+BREAKING CHANGE:
+
+Authentication tokens now expire after 24 hours instead of 30 days.
+
+Clients must refresh tokens using the new endpoint.
+
+---
+
+# Commit Granularity
+
+Prefer multiple focused commits over one large commit.
+
+Each commit should represent one logical unit of work.
+
+Do not combine unrelated changes into a single commit.
+
+---
+
+# Untracked Files
+
+Before committing:
+
+Review all untracked files.
+
+Never automatically include:
+
+- .env
+- secrets
+- API keys
+- credentials
+- build artifacts
+- temporary files
+- logs
+- IDE settings
+- node_modules
+- dist (unless explicitly intended)
+- coverage reports
+
+---
+
+# Generated Files
+
+Only commit generated files if:
+
+- the project convention requires them
+- or the user explicitly requests it
+
+---
+
+# Commit Confirmation
+
+Before executing a commit, present:
+
+- Files being committed
+- Summary of changes
+- Proposed commit message
+
+Then wait for user confirmation if confirmation has not already been provided.
+
+---
+
+# Push Confirmation
+
+Before pushing, present:
+
+- Branch name
+- Remote name
+- Number of commits being pushed
+- Commit summaries
+
+Wait for explicit approval before executing `git push`.
+
+---
+
+# Error Handling
+
+If a Git command fails:
+
+- Explain the reason.
+- Suggest safe fixes.
+- Never use destructive Git commands automatically.
+
+---
+
+# Priority
+
+These Git safety rules take precedence over convenience.
+
+When uncertain, do not commit.
+
+When uncertain, do not push.
+
+When uncertain, ask the user.
+
+Data safety is more important than automation.

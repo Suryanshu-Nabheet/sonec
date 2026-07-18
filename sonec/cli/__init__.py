@@ -1,0 +1,5 @@
+"""CLI package."""
+
+from sonec.cli.main import app
+
+__all__ = ["app"]
