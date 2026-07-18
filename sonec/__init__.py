@@ -1,7 +1,7 @@
 """SONEC — Senior Open-source Neural Engineering Companion.
 
-An open-source AI software engineering system designed around Kimi K3
-and OpenAI-compatible providers.
+Apex open-source agentic software-engineering system.
+Default reasoning engine: Kimi K3. Extensible to OpenAI-compatible providers.
 """
 
 from __future__ import annotations

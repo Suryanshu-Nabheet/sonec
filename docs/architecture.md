@@ -2,9 +2,13 @@
 
 ## Purpose
 
-SONEC turns a strong base model (default: Kimi K3) into a **benchmark-oriented coding agent** by surrounding it with a real harness: rules, skills, phased control, verification, and critique.
+SONEC is the apex open-source agentic software-engineering system: an operating
+layer of prebuilt rules, progressive skills, multi-phase orchestration,
+verification gates, critique, and sandboxed tools — with Kimi K3 as the default
+reasoning engine.
 
-The model is a dependency. The harness is the product.
+The harness is the product. It assembles staff-level engineering execution
+end to end.
 
 ## Layout
 

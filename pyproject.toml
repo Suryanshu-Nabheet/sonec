@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "sonec"
 version = "0.2.0"
-description = "SONEC — advanced open-source agentic software engineering system (Kimi K3–powered harness, not a thin API wrapper)"
+description = "SONEC — apex open-source agentic software-engineering system powered by Kimi K3"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"

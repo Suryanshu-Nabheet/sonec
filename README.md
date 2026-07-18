@@ -6,36 +6,36 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-SONEC is an **advanced agentic software-engineering system**.  
-[Kimi K3](https://www.moonshot.ai/) is the reasoning engine — **SONEC is the harness** that converts it into a production coding agent: prebuilt rules, skills, multi-phase orchestration, verification gates, and critique.
+SONEC is the **apex open-source agentic software-engineering system** — the operating layer that turns frontier models into staff-level engineering partners.
 
-> Not a thin API wrapper. The model reasons; the harness wins.
+Built to lead the agentic era: prebuilt operator rules, progressive skills, multi-phase orchestration, verification gates, critique, sandboxed tools, and benchmark posture — end to end.
+
+Powered by [Kimi K3](https://www.moonshot.ai/) as the default reasoning engine. Extensible to any OpenAI-compatible provider.
 
 **Repository:** [github.com/Suryanshu-Nabheet/sonec](https://github.com/Suryanshu-Nabheet/sonec)
+
+## What SONEC is
+
+| Layer | Capability |
+| --- | --- |
+| **Prebuilt rules** | Production operator standards — constitution, process, git, design, security |
+| **Skills** | Progressive expertise — SE, debug, TDD, review, security, design-eng, SWE benchmarks |
+| **Context assembler** | Goal-conditioned intelligence assembly for every run |
+| **Orchestrator** | `RECON → PLAN → EXECUTE → VERIFY → CRITIQUE → DELIVER` |
+| **Critic** | Evidence-gated completion — verified work only |
+| **Tools** | Sandboxed filesystem, terminal, git, index, memory, skills/rules meta tools |
+| **Eval & training** | Task suites, grading, trajectory datasets for continuous ascent |
 
 ## Package layout
 
 ```
-sonec/                 ← installable package (flat — no empty src/)
-  harness/             ← multi-phase orchestrator (product core)
-  rules/
-    prebuilt/          ← shipped operating rules (constitution, design, security, …)
-    engine.py
+sonec/
+  harness/             ← multi-phase orchestrator (core)
+  rules/prebuilt/      ← shipped operating rules
   skills/              ← progressive expertise packs
   agent/ tools/ …      ← runtime primitives
 tests/ docs/ examples/
 ```
-
-## Harness (what turns Kimi into SONEC)
-
-| Layer | Role |
-| --- | --- |
-| **Prebuilt rules** | Always-on SE protocol + production operator standards |
-| **Skills** | SE, debug, TDD, review, security, design-eng, benchmark-SWE, … |
-| **Context assembler** | Goal-conditioned system prompt |
-| **Orchestrator** | `RECON → PLAN → EXECUTE → VERIFY → CRITIQUE → DELIVER` |
-| **Critic** | Blocks hollow “done” without verification evidence |
-| **Tools** | Sandboxed fs / terminal / git / index / memory + skills/rules meta tools |
 
 ## Install
 
@@ -60,11 +60,12 @@ sonec run "Fix the failing tests and verify" -w .
 
 ## Prebuilt rules
 
-Shipped under `sonec/rules/prebuilt/` as first-class product assets (ids like `prebuilt/engineering-constitution`).  
-Always-on: engineering constitution, Suryanshu guidelines, git safety.  
-Conditional: design, animation, enterprise web, security — activated by goal.
+First-class product assets under `sonec/rules/prebuilt/` (`prebuilt/<id>`).
 
-Agents load full bodies via `rules_load`.
+- **Always-on:** engineering constitution, Suryanshu guidelines, git safety  
+- **Conditional:** design, animation, enterprise web, security — activated by goal  
+
+Full bodies via `rules_load`.
 
 ## Docs
 
