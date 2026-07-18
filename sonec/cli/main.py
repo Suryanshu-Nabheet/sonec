@@ -591,6 +591,10 @@ def train_cmd(
     gold_n: int = typer.Option(40, "--gold-n"),
     train_n: int = typer.Option(16, "--train-n", help="TrainBench tasks this step"),
     skip_sft: bool = typer.Option(False, "--skip-sft"),
+    skip_fuel: bool = typer.Option(False, "--skip-fuel", help="Reuse existing fuel rollouts"),
+    corpus: Path | None = typer.Option(
+        None, "--corpus", help="Reuse existing mlx_data dir (skip fuel+assemble)"
+    ),
     live_rl: bool = typer.Option(False, "--live-rl"),
     reset: bool = typer.Option(False, "--reset", help="Wipe artifacts/train before step"),
     mlx_model: str = typer.Option(
@@ -599,14 +603,16 @@ def train_cmd(
         help="HF/MLX base for LoRA (Qwen 3.5 2B lineage)",
     ),
 ) -> None:
-    """Specialize sonec in small steps (SFT + rejection RL). Start small, iterate."""
+    """Specialize sonec via real LoRA weight updates (not a Modelfile wrapper)."""
     if step or full:
         from sonec.training.specialize import run_train_step
+        from sonec.training.weights import weight_status
 
         console.print(
             Panel.fit(
                 f"Specialize step — SFT iters={sft_iters} gold={gold_n} train_n={train_n}\n"
-                f"mlx={mlx_model}",
+                f"mlx={mlx_model}\n"
+                "Product = adapter *.safetensors (prompt wrapper ≠ sonec)",
                 title="sonec train",
                 border_style="cyan",
             )
@@ -617,22 +623,29 @@ def train_cmd(
             gold_n=gold_n,
             train_n=train_n,
             skip_sft=skip_sft,
+            skip_fuel=skip_fuel,
             live_rl=live_rl,
             mlx_model=mlx_model,
             reset=reset,
+            corpus_dir=corpus,
         )
         for r in reports:
             color = "green" if r.ok else "red"
             console.print(f"[{color}]{r.phase}[/]: {r.detail}")
-        console.print("Report: artifacts/train/TRAIN_REPORT.json")
-        if any(not r.ok for r in reports):
+        status = weight_status()
+        console.print(f"Report: artifacts/train/TRAIN_REPORT.json")
+        console.print(f"Weights: {'READY' if status.ready else 'NOT READY'} — {status.detail}")
+        if status.ready:
+            console.print("Serve specialized model: sonec serve-llm")
+        if any(not r.ok for r in reports) or not status.ready:
             raise typer.Exit(code=1)
         return
 
     from sonec.training.export import export_from_rollouts
 
     if not export:
-        console.print("sonec train --step                 # small SFT+RL step (repeat)")
+        console.print("sonec train --step                 # LoRA SFT + RL (writes *.safetensors)")
+        console.print("sonec train --step --corpus …      # reuse mlx_data, skip fuel")
         console.print("sonec train --export -r …          # export shards only")
         raise typer.Exit(code=0)
     sealed: set[str] = set()
@@ -651,6 +664,53 @@ def train_cmd(
     console.print(f"manifest: {out / 'manifest.json'}")
 
 
+@app.command("weights")
+def weights_cmd() -> None:
+    """Show whether product LoRA weights exist (not a Modelfile)."""
+    from sonec.training.weights import weight_status
+
+    status = weight_status()
+    table = Table("Field", "Value")
+    for k, v in status.to_dict().items():
+        table.add_row(str(k), str(v))
+    console.print(table)
+    if not status.ready:
+        console.print("[red]sonec is NOT specialized — Modelfile/prompt alone does not count.[/]")
+        raise typer.Exit(code=1)
+
+
+@app.command("serve-llm")
+def serve_llm_cmd(
+    host: str = typer.Option("127.0.0.1", "--host"),
+    port: int = typer.Option(8080, "--port"),
+    adapter: Path = typer.Option(
+        Path("artifacts/train/checkpoints/sonec-sft-mlx"), "--adapter"
+    ),
+    model: str = typer.Option("mlx-community/Qwen3.5-2B-4bit", "--model", "-m"),
+) -> None:
+    """Serve specialized sonec = base Qwen 3.5 2B + trained LoRA adapter (OpenAI-compatible)."""
+    import subprocess
+
+    from sonec.training.weights import mlx_server_command, weight_status
+
+    status = weight_status(adapter)
+    if not status.ready:
+        console.print(f"[red]{status.detail}[/]")
+        console.print("Run: sonec train --step")
+        raise typer.Exit(code=1)
+    cmd = mlx_server_command(adapter_dir=adapter, model=model, host=host, port=port)
+    console.print(
+        Panel.fit(
+            f"Serving specialized sonec\nbase={model}\nadapter={adapter}\n"
+            f"OpenAI API: http://{host}:{port}/v1\n"
+            f"Set SONEC_BASE_URL=http://{host}:{port}/v1",
+            title="sonec serve-llm",
+            border_style="green",
+        )
+    )
+    raise SystemExit(subprocess.call(cmd))
+
+
 @app.command("serve")
 def serve_cmd(
     host: str = typer.Option("127.0.0.1", "--host"),
@@ -659,7 +719,7 @@ def serve_cmd(
     provider: str = typer.Option("local", "--provider"),
     model: str = typer.Option("sonec", "--model", "-m"),
 ) -> None:
-    """IDE/CLI gateway — OpenAI-compatible agent HTTP server."""
+    """IDE/CLI agent gateway (harness). Point SONEC_BASE_URL at serve-llm for specialized weights."""
     from sonec.serve import serve_blocking
 
     serve_blocking(host=host, port=port, workspace=workspace, provider=provider, model=model)
@@ -675,14 +735,16 @@ def mcp_cmd() -> None:
 
 @app.command("doctor")
 def doctor_cmd() -> None:
-    """Check inference endpoint + harness readiness."""
+    """Check specialized weights + inference endpoint + harness."""
     import httpx
 
     from sonec.core.config import load_settings
     from sonec.harness.versioning import HARNESS_VERSION
     from sonec.models import BASE_HF, BASE_MODEL, PRODUCT_MODEL
+    from sonec.training.weights import weight_status
 
     settings = load_settings()
+    status = weight_status()
     rows: list[tuple[str, str]] = [
         ("sonec", __version__),
         ("harness", HARNESS_VERSION),
@@ -691,6 +753,8 @@ def doctor_cmd() -> None:
         ("base_hf", BASE_HF),
         ("provider", settings._normalized_provider()),
         ("base_url", settings.resolved_base_url()),
+        ("weights", "READY" if status.ready else "MISSING"),
+        ("weights_detail", status.detail),
     ]
     base = settings.resolved_base_url()
     try:
@@ -700,6 +764,13 @@ def doctor_cmd() -> None:
             ids = [m.get("id", "") for m in data.get("data", [])] if isinstance(data, dict) else []
             rows.append(("inference", "ok"))
             rows.append(("models", ", ".join(ids[:8]) or "(empty list)"))
+            if not status.ready:
+                rows.append(
+                    (
+                        "warning",
+                        "endpoint may be base+prompt only — no LoRA *.safetensors yet",
+                    )
+                )
         else:
             rows.append(("inference", f"http {r.status_code} at {base}/models"))
     except Exception as exc:  # noqa: BLE001
@@ -707,6 +778,7 @@ def doctor_cmd() -> None:
     for p in (
         Path("NOTICE"),
         Path("LICENSE"),
+        Path("artifacts/train/PRODUCT.json"),
         Path("examples/benchmarks/worldbench_v1.json"),
         Path("configs/sft/mlx_lora.yaml"),
     ):
@@ -716,13 +788,15 @@ def doctor_cmd() -> None:
         table.add_row(k, v)
     console.print(table)
     console.print(
-        "\nIterate:\n"
-        "1) Point SONEC_BASE_URL at any OpenAI-compatible server serving qwen3.5:2b / sonec\n"
-        "2) sonec train --step\n"
-        "3) sonec run \"…\" -w .\n"
-        "4) sonec worldbench --run --live --limit 5\n"
-        "5) Repeat --step with higher --sft-iters / --train-n over time"
+        "\nSpecialize (real weights):\n"
+        "1) sonec train --step\n"
+        "2) sonec weights\n"
+        "3) sonec serve-llm   # OpenAI-compatible on :8080 with LoRA\n"
+        "4) SONEC_BASE_URL=http://127.0.0.1:8080/v1 sonec run \"…\"\n"
+        "A Modelfile SYSTEM prompt is NOT specialization."
     )
+    if not status.ready:
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

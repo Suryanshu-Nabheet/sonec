@@ -1,6 +1,11 @@
-# Optional runner recipe for product tag `sonec` (FROM Qwen 3.5 2B).
-# Use with any tooling that understands this format — not required for sonec itself.
-# Serve the same weights via mlx_lm, llama.cpp, vLLM, or any OpenAI-compatible API.
+# NOT THE PRODUCT
+# A SYSTEM prompt on top of qwen3.5:2b is a wrapper, not sonec.
+# sonec = trained LoRA adapter under artifacts/train/checkpoints/sonec-sft-mlx
+#
+# Specialize:  sonec train --step
+# Check:       sonec weights
+# Serve:       sonec serve-llm
+#              → SONEC_BASE_URL=http://127.0.0.1:8080/v1
 
 FROM qwen3.5:2b
 
@@ -10,6 +15,5 @@ PARAMETER presence_penalty 0.0
 PARAMETER num_ctx 32768
 
 SYSTEM """You are sonec — a coding-agent model on Qwen 3.5.
-Inspect with tools, apply minimal diffs, verify with commands/tests before finishing.
-Never invent unread file contents. Question-only asks: answer without edits.
+This prompt is harness identity only. Specialized behavior requires trained adapter weights.
 """

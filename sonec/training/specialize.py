@@ -315,10 +315,20 @@ def run_rl_rejection_round(
 
 
 def write_product_modelfile(*, adapter_path: Path, modelfile_out: Path) -> Path:
-    """Optional Modelfile for runners that support FROM tags (not required)."""
-    body = f"""# Optional local runner recipe for sonec (Qwen 3.5 2B base)
-# Adapter (MLX): {adapter_path}
-# Serve specialized weights with mlx_lm, or any OpenAI-compatible server.
+    """Write an explicit non-product note. Modelfile alone is never sonec."""
+    from sonec.training.weights import weight_status
+
+    status = weight_status(adapter_path)
+    body = f"""# NOT THE PRODUCT
+# A SYSTEM prompt on top of {BASE_MODEL} is a wrapper, not sonec.
+# sonec = LoRA adapter weights under: {adapter_path}
+# Ready: {status.ready} — {status.detail}
+#
+# Serve specialized weights:
+#   sonec serve-llm
+#   # or: python -m mlx_lm server --model {BASE_HF_MLX} --adapter-path {adapter_path} --port 8080
+#
+# Do not treat this file as a specialized model.
 
 FROM {BASE_MODEL}
 
@@ -327,8 +337,7 @@ PARAMETER top_p 0.9
 PARAMETER num_ctx 32768
 
 SYSTEM \"\"\"You are sonec — a coding-agent model on Qwen 3.5.
-Inspect with tools, apply minimal diffs, verify with commands/tests before finishing.
-Never invent unread file contents. Question-only asks: answer without edits.
+This prompt is harness identity only. Specialized behavior requires trained adapter weights.
 \"\"\"
 """
     modelfile_out.write_text(body, encoding="utf-8")
@@ -345,38 +354,76 @@ def run_train_step(
     rl_group: int = 2,
     rl_limit: int = 8,
     skip_sft: bool = False,
+    skip_fuel: bool = False,
     live_rl: bool = False,
     mlx_model: str | None = None,
     reset: bool = False,
+    corpus_dir: Path | None = None,
 ) -> list[TrainReport]:
-    """One small specialization step. Re-run to keep improving."""
+    """One small specialization step. Product is ready only when adapter *.safetensors exist."""
+    from sonec.training.weights import write_product_manifest, weight_status
+
     reports: list[TrainReport] = []
     art = root / "artifacts" / "train"
     if reset and art.exists():
         shutil.rmtree(art)
     art.mkdir(parents=True, exist_ok=True)
 
-    fuel_dir = art / "fuel"
-    rollouts = prepare_rollout_fuel(fuel_dir, group_size=rollout_group, train_n=train_n)
-    reports.append(TrainReport("fuel", True, f"rollouts={rollouts}", {"rollouts": str(rollouts)}))
-
-    corpus_dir = art / "sft_corpus"
-    paths = assemble_sft_corpus(rollouts_jsonl=rollouts, out_dir=corpus_dir, gold_n=gold_n)
-    reports.append(
-        TrainReport("corpus", True, f"examples in {paths['mlx_dir']}", {k: str(v) for k, v in paths.items()})
-    )
-
     adapter = art / "checkpoints" / "sonec-sft-mlx"
     model = resolve_mlx_base(mlx_model)
-    if not skip_sft:
+
+    if corpus_dir is not None:
+        corpus_path = corpus_dir.expanduser().resolve()
+        paths = {
+            "mlx_dir": corpus_path if (corpus_path / "train.jsonl").exists() else corpus_path / "mlx_data",
+            "mlx_train": (
+                corpus_path / "train.jsonl"
+                if (corpus_path / "train.jsonl").exists()
+                else corpus_path / "mlx_data" / "train.jsonl"
+            ),
+        }
         reports.append(
-            run_mlx_sft(
-                data_dir=paths["mlx_dir"],
-                adapter_path=adapter,
-                model=model,
-                iters=sft_iters,
+            TrainReport("corpus", True, f"reused {paths['mlx_dir']}", {k: str(v) for k, v in paths.items()})
+        )
+    else:
+        if not skip_fuel:
+            fuel_dir = art / "fuel"
+            rollouts = prepare_rollout_fuel(fuel_dir, group_size=rollout_group, train_n=train_n)
+            reports.append(TrainReport("fuel", True, f"rollouts={rollouts}", {"rollouts": str(rollouts)}))
+        else:
+            rollouts = art / "fuel" / "rollouts.jsonl"
+            if not rollouts.exists():
+                reports.append(TrainReport("fuel", False, f"missing {rollouts}", {}))
+                return reports
+            reports.append(TrainReport("fuel", True, f"reused {rollouts}", {"rollouts": str(rollouts)}))
+
+        corpus_out = art / "sft_corpus"
+        paths = assemble_sft_corpus(rollouts_jsonl=rollouts, out_dir=corpus_out, gold_n=gold_n)
+        reports.append(
+            TrainReport(
+                "corpus",
+                True,
+                f"examples in {paths['mlx_dir']}",
+                {k: str(v) for k, v in paths.items()},
             )
         )
+
+    if not skip_sft:
+        sft_report = run_mlx_sft(
+            data_dir=Path(paths["mlx_dir"]),
+            adapter_path=adapter,
+            model=model,
+            iters=sft_iters,
+        )
+        status = weight_status(adapter)
+        if sft_report.ok and not status.ready:
+            sft_report = TrainReport(
+                "sft",
+                False,
+                f"{sft_report.detail}; NO WEIGHTS: {status.detail}",
+                sft_report.paths,
+            )
+        reports.append(sft_report)
     else:
         reports.append(TrainReport("sft", True, "skipped", {}))
 
@@ -390,8 +437,20 @@ def run_train_step(
         )
     )
 
+    manifest = write_product_manifest(adapter_dir=adapter, mlx_base=model, root=root)
+    status = weight_status(adapter)
+    reports.append(
+        TrainReport(
+            "product",
+            status.ready,
+            status.detail if status.ready else f"NOT READY — {status.detail}",
+            {"manifest": str(manifest), "adapter": str(adapter)},
+        )
+    )
+
+    # Keep Modelfile as an explicit anti-wrapper note, not product definition.
     mf = write_product_modelfile(adapter_path=adapter, modelfile_out=root / "Modelfile")
-    reports.append(TrainReport("modelfile", True, f"wrote {mf}", {"modelfile": str(mf)}))
+    reports.append(TrainReport("modelfile_note", True, f"wrote non-product note {mf}", {"modelfile": str(mf)}))
 
     _write_json(
         art / "TRAIN_REPORT.json",
@@ -400,6 +459,7 @@ def run_train_step(
             "base": BASE_MODEL,
             "base_hf": BASE_HF,
             "mlx_base": model,
+            "weights_ready": status.ready,
             "phases": [r.__dict__ for r in reports],
         },
     )

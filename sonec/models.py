@@ -17,7 +17,7 @@ PRODUCT_MODEL = "sonec"
 DEFAULT_MODEL = PRODUCT_MODEL
 # "local" = OpenAI-compatible inference at SONEC_BASE_URL (any runner).
 DEFAULT_PROVIDER = "local"
-DEFAULT_LOCAL_BASE_URL = "http://127.0.0.1:11434/v1"
+DEFAULT_LOCAL_BASE_URL = "http://127.0.0.1:8080/v1"
 
 BASE_HF_CANDIDATES: tuple[str, ...] = (
     BASE_HF,
