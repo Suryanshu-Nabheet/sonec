@@ -1,15 +1,15 @@
 # sonec architecture
 
-Coding-agent model specialized from **Qwen 3.5 (2B)** for tool use in IDEs and CLIs.
+**sonec** is a coding model. This repository also ships the training and serving stack around it: thin identity, tools, a frozen harness, and graded evidence. Training starts from an Apache-2.0 base (see NOTICE); the product name is the specialized adapter `sonec`.
 
 ```
-IDE / CLI / MCP / HTTP
-  → thin identity + core tools
+CLI / MCP / HTTP
+  → thin identity + tools
   → AgentRuntime (frozen)
     → evidence graders
-  → TrainBench rollouts → SFT (MLX) → RL rejection → product name sonec
+  → TrainBench rollouts → SFT (MLX) → RL rejection → product weights (sonec)
 ```
 
-- **Decision metrics:** sealed SonecBench + WorldBench (never in training fuel)
-- **Training fuel:** TrainBench + gold agent curriculum
-- **Inference:** any OpenAI-compatible `/v1` endpoint (`SONEC_BASE_URL`)
+- **Decision metrics:** sealed SonecBench and WorldBench (never training fuel)
+- **Training fuel:** TrainBench and verified live trajectories
+- **Inference:** OpenAI-compatible `/v1` (`SONEC_BASE_URL`)

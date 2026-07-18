@@ -9,7 +9,7 @@ from typing import Any
 from sonec.core.types import Message, Plan, PlanStep, Role
 from sonec.llm.provider import LLMProvider
 
-PLAN_SYSTEM_PROMPT = """You are the planning engine for SONEC, an AI software engineering agent.
+PLAN_SYSTEM_PROMPT = """You are the planning engine for sonec.
 Given a goal, produce a concise, actionable plan as JSON only (no markdown fences).
 
 Schema:

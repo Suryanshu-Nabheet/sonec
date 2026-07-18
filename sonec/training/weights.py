@@ -1,7 +1,4 @@
-"""Product weights — sonec is a LoRA (or fused) checkpoint, not a prompt wrapper.
-
-A Modelfile SYSTEM string does not count as specialization.
-"""
+"""Product weight readiness — specialized LoRA checkpoints for sonec."""
 
 from __future__ import annotations
 
@@ -40,9 +37,7 @@ class WeightStatus:
 def adapter_weight_files(adapter_dir: Path) -> list[Path]:
     if not adapter_dir.is_dir():
         return []
-    files = list(adapter_dir.glob("*.safetensors"))
-    # mlx-lm may name the file adapters.safetensors
-    return sorted(files)
+    return sorted(adapter_dir.glob("*.safetensors"))
 
 
 def weight_status(adapter_dir: Path | None = None) -> WeightStatus:
@@ -65,7 +60,7 @@ def weight_status(adapter_dir: Path | None = None) -> WeightStatus:
             has_config=True,
             detail=(
                 "adapter_config.json present but no *.safetensors — "
-                "training never finished; sonec is NOT specialized yet"
+                "training incomplete; run sonec train --step"
             ),
         )
     return WeightStatus(
@@ -83,7 +78,7 @@ def write_product_manifest(
     mlx_base: str,
     root: Path | None = None,
 ) -> Path:
-    """Record what product sonec actually is (weights), not a Modelfile."""
+    """Record product weight location and readiness."""
     root = root or Path.cwd()
     status = weight_status(adapter_dir)
     resolved = adapter_dir.expanduser().resolve()
@@ -93,6 +88,7 @@ def write_product_manifest(
         adapter_rel = str(resolved)
     payload = {
         "product": PRODUCT_MODEL,
+        "author": "Suryanshu Nabheet",
         "kind": "mlx_lora_adapter",
         "base_tag": BASE_MODEL,
         "base_mlx": mlx_base,
@@ -104,8 +100,8 @@ def write_product_manifest(
             f"--adapter-path {adapter_rel} --port 8080"
         ),
         "note": (
-            "sonec is this LoRA adapter on the Qwen 3.5 2B base. "
-            "A Modelfile SYSTEM prompt alone is NOT the product."
+            "Product sonec is the LoRA adapter under the adapter path. "
+            "Optional chat Modelfiles are runners only."
         ),
     }
     out = root / PRODUCT_MANIFEST

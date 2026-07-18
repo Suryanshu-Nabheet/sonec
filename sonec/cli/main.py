@@ -28,7 +28,7 @@ from sonec.training.pipeline import DatasetGenerator, TrainingPipeline
 
 app = typer.Typer(
     name="sonec",
-    help="sonec — coding-specialist agentic harness",
+    help="sonec by Suryanshu Nabheet — coding model",
     no_args_is_help=True,
     add_completion=False,
 )
@@ -446,13 +446,15 @@ def rollout_cmd(
         Path("examples/benchmarks/smoke.json"), "--suite", "-s", exists=True
     ),
     out: Path = typer.Option(Path("artifacts/rollouts"), "--out"),
-    group_size: int = typer.Option(2, "--group-size", "-g", help="G rollouts per task"),
-    limit: int = typer.Option(3, "--limit", help="Max tasks (0=all)"),
-    mock: bool = typer.Option(True, "--mock/--live"),
+    group_size: int = typer.Option(8, "--group-size", "-g", help="G rollouts per task"),
+    limit: int = typer.Option(40, "--limit", help="Max tasks (0=all)"),
+    mock: bool = typer.Option(
+        False, "--mock/--live", help="Live graded fuel by default (use --mock offline)"
+    ),
     provider: str = typer.Option("local", "--provider"),
     model: str | None = typer.Option(None, "--model", "-m"),
 ) -> None:
-    """Graded rollout factory — fuel for SFT/RL (live open-weight or mock)."""
+    """Graded rollout factory — live winners for SFT/RL (mock only for offline tests)."""
     from sonec.training.rollouts import run_rollouts_sync
 
     tasks = EvalHarness.load_tasks(suite)
@@ -654,15 +656,18 @@ def train_cmd(
     rollouts: Path = typer.Option(Path("artifacts/rollouts/rollouts.jsonl"), "--rollouts", "-r"),
     out: Path = typer.Option(Path("artifacts/train"), "--out", "-o"),
     exclude_sealed: bool = typer.Option(True, "--exclude-sealed/--include-all"),
-    sft_iters: int = typer.Option(80, "--sft-iters", help="Small by default; raise over time"),
-    gold_n: int = typer.Option(40, "--gold-n"),
-    train_n: int = typer.Option(16, "--train-n", help="TrainBench tasks this step"),
+    sft_iters: int = typer.Option(300, "--sft-iters", help="LoRA iters on clean live data"),
+    gold_n: int = typer.Option(0, "--gold-n", help="Optional gold seed (0 = live only)"),
+    train_n: int = typer.Option(40, "--train-n", help="TrainBench tasks for live fuel"),
     skip_sft: bool = typer.Option(False, "--skip-sft"),
     skip_fuel: bool = typer.Option(False, "--skip-fuel", help="Reuse existing fuel rollouts"),
     corpus: Path | None = typer.Option(
         None, "--corpus", help="Reuse existing mlx_data dir (skip fuel+assemble)"
     ),
-    live_rl: bool = typer.Option(False, "--live-rl"),
+    live_fuel: bool = typer.Option(
+        True, "--live-fuel/--mock-fuel", help="Live graded rollouts for SFT (default)"
+    ),
+    live_rl: bool = typer.Option(True, "--live-rl/--mock-rl", help="Live rejection RL"),
     reset: bool = typer.Option(False, "--reset", help="Wipe artifacts/train before step"),
     mlx_model: str = typer.Option(
         "mlx-community/Qwen3.5-2B-4bit",
@@ -670,16 +675,17 @@ def train_cmd(
         help="HF/MLX base for LoRA (Qwen 3.5 2B lineage)",
     ),
 ) -> None:
-    """Specialize sonec via real LoRA weight updates (not a Modelfile wrapper)."""
+    """Specialize sonec via live passing trajectories and LoRA."""
     if step or full:
         from sonec.training.specialize import run_train_step
         from sonec.training.weights import weight_status
 
         console.print(
             Panel.fit(
-                f"Specialize step — SFT iters={sft_iters} gold={gold_n} train_n={train_n}\n"
+                f"Specialize — live_fuel={live_fuel} SFT={sft_iters} "
+                f"gold={gold_n} train_n={train_n}\n"
                 f"mlx={mlx_model}\n"
-                "Product = adapter *.safetensors (prompt wrapper ≠ sonec)",
+                "Keep the adapter only if sonec compare pass rate rises.",
                 title="sonec train",
                 border_style="cyan",
             )
@@ -691,6 +697,7 @@ def train_cmd(
             train_n=train_n,
             skip_sft=skip_sft,
             skip_fuel=skip_fuel,
+            live_fuel=live_fuel,
             live_rl=live_rl,
             mlx_model=mlx_model,
             reset=reset,
@@ -701,7 +708,7 @@ def train_cmd(
             console.print(f"[{color}]{r.phase}[/]: {r.detail}")
         status = weight_status()
         console.print(f"Report: artifacts/train/TRAIN_REPORT.json")
-        console.print(f"Weights: {'READY' if status.ready else 'NOT READY'} — {status.detail}")
+        console.print(f"Weights: {'ready' if status.ready else 'not ready'} — {status.detail}")
         if status.ready:
             console.print("Serve specialized model: sonec serve-llm")
         if any(not r.ok for r in reports) or not status.ready:
@@ -742,7 +749,7 @@ def weights_cmd() -> None:
         table.add_row(str(k), str(v))
     console.print(table)
     if not status.ready:
-        console.print("[red]sonec is NOT specialized — Modelfile/prompt alone does not count.[/]")
+        console.print("[red]Adapter weights missing. Run sonec train --step, then sonec serve-llm.[/]")
         raise typer.Exit(code=1)
 
 
@@ -855,12 +862,12 @@ def doctor_cmd() -> None:
         table.add_row(k, v)
     console.print(table)
     console.print(
-        "\nSpecialize (real weights):\n"
+        "\nSpecialize (product weights):\n"
         "1) sonec train --step\n"
         "2) sonec weights\n"
         "3) sonec serve-llm   # OpenAI-compatible on :8080 with LoRA\n"
         "4) SONEC_BASE_URL=http://127.0.0.1:8080/v1 sonec run \"…\"\n"
-        "A Modelfile SYSTEM prompt is NOT specialization."
+        "Specialization requires LoRA *.safetensors (see sonec weights)."
     )
     if not status.ready:
         raise typer.Exit(code=1)

@@ -19,6 +19,10 @@ def test_thin_prompt_budget() -> None:
     prompt = ContextAssembler().build_system_prompt("fix a bug")
     assert len(prompt) <= MAX_ALWAYS_ON_CHARS
     assert "sonec" in prompt.lower()
+    assert "Suryanshu Nabheet" in prompt
+    assert "Qwen" not in prompt
+    assert "answer only" not in prompt.lower()
+    assert "built on" not in prompt.lower()
 
 
 def test_compaction() -> None:

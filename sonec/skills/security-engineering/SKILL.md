@@ -14,4 +14,4 @@ triggers: [security, auth, vulnerability, xss, injection, secret, permission]
 - Validate at boundaries; least privilege; secure defaults.
 - Never hardcode secrets; never log secrets.
 - For audits: recon → hypothesis → prove with evidence → remediate.
-- Prefer runnable checks over vibes.
+- Prefer runnable checks over unverified claims.

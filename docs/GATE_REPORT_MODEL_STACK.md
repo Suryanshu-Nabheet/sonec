@@ -1,33 +1,25 @@
-# Gate — sonec on Qwen 3.5 (2B)
+# Gate — sonec specialization
 
-**Product:** LoRA adapter `sonec` (not a Modelfile SYSTEM string)  
-**Base:** `Qwen/Qwen3.5-2B` / `mlx-community/Qwen3.5-2B-4bit` (Apache-2.0)  
-**Code:** MIT — LICENSE + NOTICE
+**Product:** LoRA adapter `sonec` by Suryanshu Nabheet — coding model  
+**Weights:** `artifacts/train/checkpoints/sonec-sft-mlx`  
+**Code:** MIT — LICENSE · lineage — NOTICE
 
 ## Pipeline
 
 1. TrainBench graded rollouts (training-only ids)
-2. Gold agentic curriculum (localize → patch → verify)
+2. Verified live trajectories (path-correct writes, verify, restraint)
 3. MLX LoRA SFT
-4. RL rejection / group winners
-5. Serve with `sonec serve-llm` (base + adapter)
+4. Rejection sampling / group winners
+5. Serve with `sonec serve-llm`
 
 ## Commands
 
 ```bash
-sonec train --step --sft-iters 80 --gold-n 40 --train-n 16
+sonec train --step --live-fuel --sft-iters 300 --gold-n 0 --train-n 40
 sonec weights
 sonec serve-llm --port 8080
-# base-only on :8081 for A/B
 python -m mlx_lm server --model mlx-community/Qwen3.5-2B-4bit --port 8081
 sonec compare --out docs/results
 ```
 
-## Proof artifacts (committed)
-
-- `docs/results/TRAIN_PROOF.md` — what counts as specialization
-- `docs/results/COMPARE_REPORT.md` — live LoRA vs base, same harness
-
-## Contamination rule
-
-Never train on sealed SonecBench / WorldBench task ids.
+Promote an adapter only when `sonec compare` shows a higher pass rate without restraint regression.

@@ -210,7 +210,7 @@ def write_sonecbench(path: Path) -> Path:
         "version": "1.0.0",
         "sealed": True,
         "description": (
-            "Private SonecBench v1 — decision metric for coding-specialist training. "
+            "Private SonecBench v1 — decision metric for coding-model training. "
             "Do not train on these task ids."
         ),
         "task_count": len(tasks),

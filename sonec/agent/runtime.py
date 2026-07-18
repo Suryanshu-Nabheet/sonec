@@ -126,7 +126,7 @@ class AgentRuntime:
         for iteration in range(1, self.max_iterations + 1):
             iterations = iteration
             if should_compact(messages, max_messages=self.compact_after):
-                messages = compact_messages(messages)
+                messages = compact_messages(messages, goal=goal)
                 self._emit(AgentEventKind.WARNING, "context compacted", iteration=iteration)
 
             self._emit(AgentEventKind.STEP, f"iteration {iteration}", iteration=iteration)

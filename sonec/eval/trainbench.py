@@ -9,11 +9,35 @@ from sonec.eval.harness import EvalCheck, EvalTask
 
 
 def build_trainbench_tasks(*, n: int = 120) -> list[EvalTask]:
-    """Synthetic but realistic SE tasks for SFT/RL fuel only."""
+    """Synthetic but realistic SE tasks for SFT/RL fuel only.
+
+    Curriculum kinds: exact nested path → config → bug → tests → ts →
+    multi-file pkg → verify → restraint.
+    """
     tasks: list[EvalTask] = []
     for i in range(1, n + 1):
-        kind = i % 6
+        kind = i % 8
         if kind == 0:
+            tasks.append(
+                EvalTask(
+                    id=f"train-path-{i:04d}",
+                    name=f"Exact path write {i}",
+                    prompt=(
+                        f"Create notes/hello_{i}.txt containing exactly: hello sonec {i}"
+                    ),
+                    difficulty="easy",
+                    tags=["train", "exact_path"],
+                    checks=[
+                        EvalCheck(kind="file_exists", path=f"notes/hello_{i}.txt"),
+                        EvalCheck(
+                            kind="file_contains",
+                            path=f"notes/hello_{i}.txt",
+                            contains=f"hello sonec {i}",
+                        ),
+                    ],
+                )
+            )
+        elif kind == 1:
             tasks.append(
                 EvalTask(
                     id=f"train-feat-{i:04d}",
@@ -31,7 +55,7 @@ def build_trainbench_tasks(*, n: int = 120) -> list[EvalTask]:
                     ],
                 )
             )
-        elif kind == 1:
+        elif kind == 2:
             tasks.append(
                 EvalTask(
                     id=f"train-bug-{i:04d}",
@@ -50,7 +74,7 @@ def build_trainbench_tasks(*, n: int = 120) -> list[EvalTask]:
                     ],
                 )
             )
-        elif kind == 2:
+        elif kind == 3:
             tasks.append(
                 EvalTask(
                     id=f"train-test-{i:04d}",
@@ -69,12 +93,15 @@ def build_trainbench_tasks(*, n: int = 120) -> list[EvalTask]:
                     ],
                 )
             )
-        elif kind == 3:
+        elif kind == 4:
             tasks.append(
                 EvalTask(
                     id=f"train-ts-{i:04d}",
                     name=f"TS util {i}",
-                    prompt=f"Create src/util_{i}.ts exporting function util{i}(): number returning {i}.",
+                    prompt=(
+                        f"Create src/util_{i}.ts exporting function util{i}(): "
+                        f"number returning {i}."
+                    ),
                     difficulty="medium",
                     tags=["train", "typescript"],
                     checks=[
@@ -87,7 +114,30 @@ def build_trainbench_tasks(*, n: int = 120) -> list[EvalTask]:
                     ],
                 )
             )
-        elif kind == 4:
+        elif kind == 5:
+            tasks.append(
+                EvalTask(
+                    id=f"train-pkg-{i:04d}",
+                    name=f"Package scaffold {i}",
+                    prompt=(
+                        f"Create pkg{i}/__init__.py and pkg{i}/core.py with "
+                        f"def helper_{i}() returning {i}."
+                    ),
+                    difficulty="medium",
+                    tags=["train", "multifile"],
+                    checks=[
+                        EvalCheck(kind="file_exists", path=f"pkg{i}/__init__.py"),
+                        EvalCheck(kind="file_exists", path=f"pkg{i}/core.py"),
+                        EvalCheck(
+                            kind="file_contains",
+                            path=f"pkg{i}/core.py",
+                            contains=f"def helper_{i}",
+                        ),
+                        EvalCheck(kind="python_parses", path=f"pkg{i}/core.py"),
+                    ],
+                )
+            )
+        elif kind == 6:
             tasks.append(
                 EvalTask(
                     id=f"train-verify-{i:04d}",
@@ -118,7 +168,10 @@ def build_trainbench_tasks(*, n: int = 120) -> list[EvalTask]:
                 EvalTask(
                     id=f"train-q-{i:04d}",
                     name=f"Restraint {i}",
-                    prompt=f"In one sentence, what is continuous integration? (q{i}; do not edit files)",
+                    prompt=(
+                        f"In one sentence, what is continuous integration? "
+                        f"(q{i}; do not edit files)"
+                    ),
                     difficulty="easy",
                     tags=["train", "restraint"],
                     checks=[],

@@ -1,21 +1,23 @@
-"""Thin production system prompt — skills/rules load on demand."""
+"""Thin production system prompt — skills and rules load on demand."""
 
 from __future__ import annotations
 
 from sonec.harness.versioning import HARNESS_VERSION
 from sonec.indexing.index import RepositoryIndex
+from sonec.models import PRODUCT_IDENTITY
 from sonec.skills.registry import SkillsRegistry
 
-# Hard cap for always-on identity (Phase 0). Skills are progressive, not dumped.
 MAX_ALWAYS_ON_CHARS = 3500
 
-THIN_IDENTITY = f"""You are sonec v{HARNESS_VERSION} on Qwen 3.5 — a coding agent for IDEs/CLIs.
+THIN_IDENTITY = f"""{PRODUCT_IDENTITY}
 
-Rules:
-- Use tools. Prefer minimal diffs inside the workspace.
-- Paths must match the user request exactly (notes/a.txt is not a.txt).
-- Verify before done. Do not invent unread file contents.
-- Question-only asks: answer without editing.
+Harness v{HARNESS_VERSION}.
+
+Operating rules:
+- Prefer minimal, localized diffs inside the workspace.
+- Paths must match the request exactly (notes/a.txt is not a.txt).
+- Verify before claiming completion.
+- Do not invent unread file contents.
 
 Tools: filesystem, terminal, git, index.
 """
@@ -35,7 +37,6 @@ class ContextAssembler:
 
     def build_system_prompt(self, goal: str = "") -> str:
         parts = [THIN_IDENTITY.strip()]
-        # Progressive skill titles only (not full bodies) — durable skill → weights later.
         activations = self.skills.activate(goal or "software engineering", limit=3)
         if activations:
             catalog = "; ".join(

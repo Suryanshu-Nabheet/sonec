@@ -16,6 +16,7 @@ from sonec.core.config import load_settings
 from sonec.eval.harness import EvalHarness, EvalTask, mock_provider_for_task
 from sonec.harness.versioning import HARNESS_VERSION
 from sonec.llm.provider import LLMProvider, MockProvider
+from sonec.training.rewards import compute_agent_reward
 
 
 @dataclass
@@ -33,6 +34,7 @@ class RolloutRecord:
     rollout_index: int
     duration_s: float
     details: list[str] = field(default_factory=list)
+    reward_meta: dict[str, Any] = field(default_factory=dict)
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -49,6 +51,7 @@ class RolloutRecord:
             "rollout_index": self.rollout_index,
             "duration_s": self.duration_s,
             "details": self.details,
+            "reward_meta": self.reward_meta,
         }
 
 
@@ -157,13 +160,21 @@ class RolloutFactory:
             )
             traj_files = sorted(traj_dir.glob("*.jsonl"))
             traj_path = str(traj_files[-1]) if traj_files else ""
+            reward, reward_meta = compute_agent_reward(
+                passed=graded.passed,
+                trajectory_path=traj_path,
+                task=task,
+                details=graded.details,
+            )
+            if not graded.passed and reward_meta.get("failure"):
+                failure = str(reward_meta["failure"])
             record = RolloutRecord(
                 task_id=task.id,
                 prompt=task.prompt,
                 harness_version=agent_result.harness_version or HARNESS_VERSION,
                 tool_schema_hash=agent_result.tool_schema_hash,
                 model_id=agent_result.model_id,
-                reward=1.0 if graded.passed else 0.0,
+                reward=reward,
                 passed=graded.passed,
                 trajectory_path=traj_path,
                 failure_class=failure if not graded.passed else "none",
@@ -171,6 +182,7 @@ class RolloutFactory:
                 rollout_index=rollout_index,
                 duration_s=time.perf_counter() - started,
                 details=graded.details,
+                reward_meta=reward_meta,
             )
             with self.records_path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(record.to_json()) + "\n")

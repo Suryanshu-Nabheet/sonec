@@ -17,6 +17,7 @@ from sonec.core.types import (
     Role,
     ToolCall,
 )
+from sonec.llm.chat_format import ensure_user_present, message_to_openai
 from sonec.llm.tool_parse import parse_qwen_tool_calls
 
 
@@ -26,36 +27,18 @@ class LLMProvider(Protocol):
 
 
 def _message_to_openai(message: Message) -> dict[str, Any]:
-    payload: dict[str, Any] = {"role": message.role.value}
-    # mlx_lm / Qwen chat templates require content keys on every turn.
-    payload["content"] = message.content if message.content is not None else ""
-    if message.name:
-        payload["name"] = message.name
-    if message.tool_call_id:
-        payload["tool_call_id"] = message.tool_call_id
-    if message.tool_calls:
-        payload["tool_calls"] = [
-            {
-                "id": call.id,
-                "type": "function",
-                "function": {
-                    "name": call.name,
-                    "arguments": json.dumps(call.arguments),
-                },
-            }
-            for call in message.tool_calls
-        ]
-    # Do not forward reasoning into the next request — mlx_lm rejects odd shapes.
-    return payload
+    return message_to_openai(message)
 
 
-def _parse_tool_arguments(raw: str) -> dict[str, Any]:
-    if not raw or not raw.strip():
+def _parse_tool_arguments(raw: object) -> dict[str, Any]:
+    if isinstance(raw, dict):
+        return raw
+    if not raw or not str(raw).strip():
         return {}
     try:
-        parsed = json.loads(raw)
+        parsed = json.loads(str(raw))
     except json.JSONDecodeError:
-        return {"_raw": raw}
+        return {"_raw": str(raw)}
     if isinstance(parsed, dict):
         return parsed
     return {"value": parsed}
@@ -96,9 +79,18 @@ class OpenAICompatibleProvider:
 
     async def complete(self, request: CompletionRequest) -> CompletionResponse:
         model = request.model or self.model
+        # Qwen templates require a real user turn — recover after compaction.
+        fallback = ""
+        for m in request.messages:
+            if m.role == Role.USER and (m.content or "").strip():
+                fallback = m.content or ""
+                break
+        if not fallback:
+            fallback = "Continue the current coding task using tools."
+        packed = ensure_user_present(list(request.messages), fallback_user=fallback)
         body: dict[str, Any] = {
             "model": model,
-            "messages": [_message_to_openai(m) for m in request.messages],
+            "messages": [message_to_openai(m) for m in packed],
             "temperature": (
                 request.temperature if request.temperature is not None else self.temperature
             ),
@@ -163,7 +155,7 @@ class OpenAICompatibleProvider:
                     ToolCall(
                         id=item.get("id") or f"call_{len(tool_calls)}",
                         name=function.get("name", ""),
-                        arguments=_parse_tool_arguments(function.get("arguments", "{}")),
+                arguments=_parse_tool_arguments(function.get("arguments", {})),
                     )
                 )
         content = raw_message.get("content")

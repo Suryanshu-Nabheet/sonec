@@ -23,7 +23,8 @@ source. When you publish a specialized checkpoint, include:
 1. This NOTICE
 2. LICENSE (MIT for sonec code)
 3. The Apache-2.0 license text from the Qwen release you used
-4. Clear attribution: “Built on Qwen 3.5”
+4. Weight-lineage attribution in redistributions (Apache-2.0 base); product name remains **sonec by Suryanshu Nabheet**
+
 
 ## Optional local runners / toolchains
 

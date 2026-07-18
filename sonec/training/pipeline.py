@@ -13,8 +13,10 @@ from sonec.core.types import utc_now
 
 class TrajectoryStep(BaseModel):
     role: Literal["system", "user", "assistant", "tool"]
-    content: str
+    content: str = ""
     tool_name: str | None = None
+    tool_call_id: str | None = None
+    tool_calls: list[dict[str, Any]] | None = None
 
 
 class TrainingExample(BaseModel):
@@ -60,15 +62,20 @@ class DatasetGenerator:
         outcome: Literal["success", "failure"],
         metadata: dict[str, Any] | None = None,
     ) -> TrainingExample:
-        trajectory = [
-            TrajectoryStep(
-                role=msg["role"],
-                content=str(msg.get("content") or ""),
-                tool_name=msg.get("name"),
+        trajectory: list[TrajectoryStep] = []
+        for msg in messages:
+            role = msg.get("role")
+            if role not in {"system", "user", "assistant", "tool"}:
+                continue
+            trajectory.append(
+                TrajectoryStep(
+                    role=role,
+                    content=str(msg.get("content") or ""),
+                    tool_name=msg.get("name"),
+                    tool_call_id=msg.get("tool_call_id"),
+                    tool_calls=msg.get("tool_calls"),
+                )
             )
-            for msg in messages
-            if msg.get("role") in {"system", "user", "assistant", "tool"}
-        ]
         example = TrainingExample(
             id=example_id,
             task=task,
@@ -88,22 +95,28 @@ class DatasetGenerator:
                     {"role": "user", "content": "Create a README.md describing the project"},
                     {
                         "role": "assistant",
-                        "content": "I will write README.md with purpose, install, and usage.",
+                        "content": "",
+                        "tool_calls": [
+                            {
+                                "id": "c1",
+                                "type": "function",
+                                "function": {
+                                    "name": "fs_write",
+                                    "arguments": {
+                                        "path": "README.md",
+                                        "content": "# Project\n\nInstall and usage.\n",
+                                    },
+                                },
+                            }
+                        ],
                     },
-                    {"role": "tool", "name": "fs_write", "content": "Wrote README.md"},
+                    {
+                        "role": "tool",
+                        "name": "fs_write",
+                        "tool_call_id": "c1",
+                        "content": "Wrote README.md",
+                    },
                     {"role": "assistant", "content": "Created README.md."},
-                ],
-            ),
-            (
-                "fix-bug",
-                "Fix the failing test in tests/test_math.py",
-                [
-                    {"role": "user", "content": "Fix the failing test in tests/test_math.py"},
-                    {"role": "assistant", "content": "Reading the test and implementation."},
-                    {"role": "tool", "name": "fs_read", "content": "..."},
-                    {"role": "tool", "name": "fs_edit", "content": "Edited src/math.py"},
-                    {"role": "tool", "name": "terminal_run", "content": "exit_code: 0"},
-                    {"role": "assistant", "content": "Fixed off-by-one; tests pass."},
                 ],
             ),
         ]
@@ -125,11 +138,7 @@ class DatasetGenerator:
 
 
 class TrainingPipeline:
-    """Prepares dataset shards and a training config for external trainers.
-
-    SONEC does not ship model weights or a GPU trainer. It produces the
-    artifacts an external training stack (Axolotl, torchtune, etc.) expects.
-    """
+    """Prepares dataset shards and a training config for external trainers."""
 
     def __init__(self, output_dir: Path) -> None:
         self.output_dir = output_dir
@@ -139,10 +148,20 @@ class TrainingPipeline:
         path = self.output_dir / filename
         with path.open("w", encoding="utf-8") as handle:
             for example in manifest.examples:
+                messages: list[dict[str, Any]] = []
+                for step in example.trajectory:
+                    msg: dict[str, Any] = {"role": step.role, "content": step.content}
+                    if step.tool_name:
+                        msg["name"] = step.tool_name
+                    if step.tool_call_id:
+                        msg["tool_call_id"] = step.tool_call_id
+                    if step.tool_calls:
+                        msg["tool_calls"] = step.tool_calls
+                    messages.append(msg)
                 record = {
                     "id": example.id,
                     "task": example.task,
-                    "messages": [step.model_dump() for step in example.trajectory],
+                    "messages": messages,
                     "outcome": example.outcome,
                     "metadata": example.metadata,
                 }
@@ -163,9 +182,9 @@ class TrainingPipeline:
             "dataset": str(self.output_dir / dataset_file),
             "epochs": epochs,
             "learning_rate": learning_rate,
-            "format": "chat_trajectory",
+            "format": "openai_tool_calls",
             "notes": (
-                "Specialize the local sonec model (Qwen 3.5 class). "
+                "Specialize sonec with real assistant.tool_calls trajectories. "
                 "Use configs/sft/mlx_lora.yaml on Apple Silicon."
             ),
         }

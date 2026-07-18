@@ -13,17 +13,45 @@ def compact_messages(
     messages: list[Message],
     *,
     keep_recent: int = 16,
+    goal: str = "",
 ) -> list[Message]:
-    """Replace middle transcript with a single summary system note.
+    """Replace middle transcript with a summary, keeping system + original user + recent.
 
-    Keeps the first system message and the most recent turns intact.
+    Qwen chat templates raise if no real user query remains — never drop the goal user turn.
     """
-    if len(messages) <= keep_recent + 2:
+    if len(messages) <= keep_recent + 3:
         return messages
+
     system = messages[0] if messages and messages[0].role == Role.SYSTEM else None
+    # First real user message (the goal)
+    user_goal: Message | None = None
+    for msg in messages:
+        if msg.role == Role.USER and (msg.content or "").strip():
+            content = (msg.content or "").strip()
+            if content.startswith("<tool_response>") and content.endswith("</tool_response>"):
+                continue
+            user_goal = msg
+            break
+    if user_goal is None and goal.strip():
+        user_goal = Message(role=Role.USER, content=goal.strip())
+
     head_start = 1 if system else 0
+    # Skip original user in the "middle" slice if it sits right after system
+    mid_start = head_start
+    if user_goal is not None and mid_start < len(messages) and messages[mid_start] is user_goal:
+        mid_start += 1
+    elif (
+        user_goal is not None
+        and mid_start < len(messages)
+        and messages[mid_start].role == Role.USER
+    ):
+        mid_start += 1
+
     recent = messages[-keep_recent:]
-    middle = messages[head_start : len(messages) - keep_recent]
+    # Avoid duplicating user_goal / system inside recent
+    recent = [m for m in recent if m is not system and m is not user_goal]
+
+    middle = messages[mid_start : len(messages) - keep_recent]
     summary_bits: list[str] = []
     for msg in middle:
         if msg.role == Role.TOOL:
@@ -44,6 +72,8 @@ def compact_messages(
     out: list[Message] = []
     if system:
         out.append(system)
+    if user_goal is not None:
+        out.append(user_goal)
     out.append(summary)
     out.extend(recent)
     return out

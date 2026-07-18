@@ -5,12 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from sonec.eval.trainbench import build_trainbench_tasks
+from sonec.training.pipeline import DatasetGenerator
 from sonec.training.specialize import (
     assemble_sft_corpus,
     generate_gold_agent_examples,
     prepare_rollout_fuel,
 )
-from sonec.training.pipeline import DatasetGenerator
 
 
 def test_trainbench_size() -> None:
@@ -19,19 +19,48 @@ def test_trainbench_size() -> None:
     assert all(t.id.startswith("train-") for t in tasks)
 
 
-def test_gold_curriculum() -> None:
+def test_gold_curriculum_openai_tool_calls() -> None:
     gen = DatasetGenerator("t")
     n = generate_gold_agent_examples(gen, n=24)
     assert n == 24
-    assert len(gen.manifest().examples) == 24
+    examples = gen.manifest().examples
+    assert len(examples) == 24
+    toolish = [e for e in examples if any(s.tool_calls for s in e.trajectory)]
+    assert toolish, "gold must include structured tool_calls"
+    for e in toolish:
+        for step in e.trajectory:
+            assert not step.content.startswith("Calling tool")
+            assert "<tool_call>" not in step.content
 
 
-def test_prepare_fuel_and_corpus(tmp_path: Path, monkeypatch) -> None:
+def test_identity_examples() -> None:
+    from sonec.training.specialize import generate_identity_examples
+
+    gen = DatasetGenerator("id")
+    assert generate_identity_examples(gen, n=4) == 4
+    for e in gen.manifest().examples:
+        text = " ".join(s.content for s in e.trajectory)
+        assert "Suryanshu Nabheet" in text
+        assert "Qwen" not in text
+
+
+def test_gold_zero_skips() -> None:
+    gen = DatasetGenerator("t")
+    assert generate_gold_agent_examples(gen, n=0) == 0
+    assert gen.manifest().examples == []
+
+
+def test_prepare_fuel_and_corpus_mock(tmp_path: Path, monkeypatch) -> None:
+    """Unit test uses mock fuel; production defaults to live."""
     monkeypatch.chdir(tmp_path)
     (tmp_path / "examples" / "benchmarks").mkdir(parents=True)
-    fuel = prepare_rollout_fuel(tmp_path / "fuel", group_size=1, train_n=6)
+    fuel = prepare_rollout_fuel(
+        tmp_path / "fuel", group_size=1, train_n=6, live=False
+    )
     assert fuel.exists()
+    # Mock fuel may yield few/no tool_calls — seed with gold for assemble
     paths = assemble_sft_corpus(rollouts_jsonl=fuel, out_dir=tmp_path / "corpus", gold_n=12)
     assert paths["mlx_train"].exists()
-    stats = (tmp_path / "corpus" / "corpus_stats.json").read_text(encoding="utf-8")
-    assert "examples" in stats
+    text = paths["mlx_train"].read_text(encoding="utf-8")
+    assert "tool_calls" in text
+    assert "Calling tool" not in text

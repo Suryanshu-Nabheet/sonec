@@ -1,6 +1,6 @@
 # Getting started — sonec
 
-Product = **trained LoRA on Qwen 3.5 2B**, not a prompt wrapper.
+**sonec** by Suryanshu Nabheet is a coding model. Specialized behavior comes from trained LoRA weights.
 
 ## Install
 
@@ -10,27 +10,26 @@ pip install -e ".[dev,train]"
 cp .env.example .env
 ```
 
-## Specialize then serve
+## Specialize and serve
 
 ```bash
-sonec train --step --sft-iters 160 --gold-n 96
-sonec weights          # READY only when *.safetensors exist
-sonec serve-llm        # base + adapter on :8080
+sonec train --step --live-fuel --sft-iters 300 --gold-n 0
+sonec weights
+sonec serve-llm
 export SONEC_BASE_URL=http://127.0.0.1:8080/v1
 sonec run "Add a unit test and verify" -w .
 ```
 
-## Prove specialization
+## Evaluate
 
 ```bash
-# terminal B — base only
 python -m mlx_lm server --model mlx-community/Qwen3.5-2B-4bit --port 8081
 sonec compare --out docs/results
 ```
 
-See [docs/results/TRAIN_PROOF.md](results/TRAIN_PROOF.md) and [COMPARE_REPORT.md](results/COMPARE_REPORT.md).
+See [TRAIN_PROOF.md](results/TRAIN_PROOF.md) and [COMPARE_REPORT.md](results/COMPARE_REPORT.md).
 
-## Agent / IDE
+## Surfaces
 
 ```bash
 sonec serve
@@ -39,4 +38,4 @@ sonec mcp
 
 ## Licensing
 
-MIT for sonec code. Qwen base = Apache-2.0 — see [NOTICE](../NOTICE).
+MIT for sonec code. Weight lineage: [NOTICE](../NOTICE).

@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from sonec.eval.trainbench import build_trainbench_tasks, write_trainbench
-from sonec.models import BASE_HF, BASE_HF_MLX, BASE_MODEL, PRODUCT_MODEL
+from sonec.models import BASE_HF, BASE_HF_MLX, BASE_MODEL, PRODUCT_MODEL, PRODUCT_SYSTEM
 from sonec.training.export import export_from_rollouts
 from sonec.training.pipeline import DatasetGenerator, TrainingPipeline
 from sonec.training.rollouts import run_rollouts_sync
@@ -33,46 +33,83 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-def _qwen_tool_call(name: str, params: dict[str, str]) -> str:
-    """Qwen 3.5 native tool-call markup (what mlx_lm / chat template emit)."""
-    parts = ["<tool_call>", f"<function={name}>"]
-    for key, value in params.items():
-        parts.append(f"<parameter={key}>")
-        parts.append(str(value))
-        parts.append("</parameter>")
-    parts.extend(["</function>", "</tool_call>"])
-    return "\n".join(parts)
+
+def _tc(call_id: str, name: str, arguments: dict) -> dict:
+    """OpenAI-style assistant tool_calls entry."""
+    return {
+        "id": call_id,
+        "type": "function",
+        "function": {"name": name, "arguments": arguments},
+    }
 
 
-def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 40) -> int:
-    """Compact tool-use curriculum with real Qwen tool-call markup (not 'Calling tool')."""
+def generate_identity_examples(gen: DatasetGenerator, *, n: int = 12) -> int:
+    """Identity Q&A — sonec by Suryanshu Nabheet."""
+    if n <= 0:
+        return 0
+    answer = (
+        "I am sonec, a coding model created by Suryanshu Nabheet."
+    )
+    prompts = [
+        "Who are you?",
+        "Who is your founder?",
+        "Who created you?",
+        "What is your name?",
+        "Introduce yourself.",
+        "Who made sonec?",
+        "What are you?",
+        "State your identity.",
+        "Who built you?",
+        "Brief introduction.",
+        "What product are you?",
+        "Name yourself.",
+    ]
+    created = 0
+    while created < n:
+        q = prompts[created % len(prompts)]
+        gen.add_from_messages(
+            example_id=f"identity-{created:04d}",
+            task=q,
+            messages=[
+                {"role": "user", "content": q},
+                {"role": "assistant", "content": answer},
+            ],
+            outcome="success",
+            metadata={"source": "identity", "curriculum": "product_identity"},
+        )
+        created += 1
+    return created
+
+
+def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 0) -> int:
+    """Exact-path agent curriculum with real OpenAI tool_calls (not text dumps).
+
+    Default n=0 — prefer live passing rollouts. Gold is a bootstrap seed only.
+    """
+    if n <= 0:
+        return 0
     templates = [
         (
             "nested-path-write",
             "Create notes/hello.txt containing exactly: hello sonec",
             [
-                {
-                    "role": "user",
-                    "content": "Create notes/hello.txt containing exactly: hello sonec",
-                },
+                {"role": "user", "content": "Create notes/hello.txt containing exactly: hello sonec"},
                 {
                     "role": "assistant",
-                    "content": _qwen_tool_call(
-                        "fs_write",
-                        {"path": "notes/hello.txt", "content": "hello sonec"},
-                    ),
+                    "content": "",
+                    "tool_calls": [
+                        _tc("c1", "fs_write", {"path": "notes/hello.txt", "content": "hello sonec"})
+                    ],
                 },
                 {
                     "role": "tool",
                     "name": "fs_write",
+                    "tool_call_id": "c1",
                     "content": "Wrote 11 characters to notes/hello.txt",
                 },
                 {
                     "role": "assistant",
-                    "content": (
-                        "Created notes/hello.txt with exact content hello sonec. "
-                        "Evidence: fs_write to notes/hello.txt."
-                    ),
+                    "content": "Created notes/hello.txt with exact content hello sonec.",
                 },
             ],
         ),
@@ -86,22 +123,30 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 40) -> int:
                 },
                 {
                     "role": "assistant",
-                    "content": _qwen_tool_call(
-                        "fs_write",
-                        {
-                            "path": "src/util.py",
-                            "content": "def main():\n    return 0\n\nif __name__ == '__main__':\n    main()\n",
-                        },
-                    ),
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c1",
+                            "fs_write",
+                            {
+                                "path": "src/util.py",
+                                "content": (
+                                    "def main():\n    return 0\n\n"
+                                    "if __name__ == '__main__':\n    main()\n"
+                                ),
+                            },
+                        )
+                    ],
                 },
                 {
                     "role": "tool",
                     "name": "fs_write",
+                    "tool_call_id": "c1",
                     "content": "Wrote src/util.py",
                 },
                 {
                     "role": "assistant",
-                    "content": "Created src/util.py with def main. Path is src/util.py (not util.py).",
+                    "content": "Created src/util.py with def main (exact path).",
                 },
             ],
         ),
@@ -115,26 +160,30 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 40) -> int:
                 },
                 {
                     "role": "assistant",
-                    "content": _qwen_tool_call("fs_read", {"path": "util.py"}),
+                    "content": "",
+                    "tool_calls": [_tc("c1", "fs_read", {"path": "util.py"})],
                 },
                 {
                     "role": "tool",
                     "name": "fs_read",
+                    "tool_call_id": "c1",
                     "content": "def count_to(n):\n    return list(range(n + 1))\n",
                 },
                 {
                     "role": "assistant",
-                    "content": _qwen_tool_call(
-                        "fs_write",
-                        {
-                            "path": "util.py",
-                            "content": "def count_to(n):\n    return list(range(n))\n",
-                        },
-                    ),
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c2",
+                            "fs_write",
+                            {"path": "util.py", "content": "def count_to(n):\n    return list(range(n))\n"},
+                        )
+                    ],
                 },
                 {
                     "role": "tool",
                     "name": "fs_write",
+                    "tool_call_id": "c2",
                     "content": "Wrote util.py",
                 },
                 {
@@ -156,34 +205,54 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 40) -> int:
                 },
                 {
                     "role": "assistant",
-                    "content": _qwen_tool_call(
-                        "fs_write",
-                        {"path": "scripts/verify.sh", "content": "#!/bin/sh\necho ok\n"},
-                    ),
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c1",
+                            "fs_write",
+                            {"path": "scripts/verify.sh", "content": "#!/bin/sh\necho ok\n"},
+                        )
+                    ],
                 },
                 {
                     "role": "tool",
                     "name": "fs_write",
+                    "tool_call_id": "c1",
                     "content": "Wrote scripts/verify.sh",
                 },
                 {
                     "role": "assistant",
-                    "content": _qwen_tool_call(
-                        "fs_write",
-                        {
-                            "path": "VERIFY.md",
-                            "content": "Run scripts/verify.sh to verify.\n",
-                        },
-                    ),
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c2",
+                            "fs_write",
+                            {"path": "VERIFY.md", "content": "Run scripts/verify.sh to verify.\n"},
+                        )
+                    ],
                 },
                 {
                     "role": "tool",
                     "name": "fs_write",
+                    "tool_call_id": "c2",
                     "content": "Wrote VERIFY.md",
                 },
                 {
                     "role": "assistant",
-                    "content": "Added scripts/verify.sh and VERIFY.md mentioning scripts/verify.sh.",
+                    "content": "",
+                    "tool_calls": [
+                        _tc("c3", "terminal_run", {"command": "sh scripts/verify.sh"})
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "terminal_run",
+                    "tool_call_id": "c3",
+                    "content": "exit_code: 0\nok",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Added scripts/verify.sh and VERIFY.md. Verified: exit 0.",
                 },
             ],
         ),
@@ -200,17 +269,32 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 40) -> int:
                 },
                 {
                     "role": "assistant",
-                    "content": _qwen_tool_call("fs_write", {"path": "pkg/__init__.py", "content": ""}),
+                    "content": "",
+                    "tool_calls": [_tc("c1", "fs_write", {"path": "pkg/__init__.py", "content": ""})],
                 },
-                {"role": "tool", "name": "fs_write", "content": "Wrote pkg/__init__.py"},
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c1",
+                    "content": "Wrote pkg/__init__.py",
+                },
                 {
                     "role": "assistant",
-                    "content": _qwen_tool_call(
-                        "fs_write",
-                        {"path": "pkg/core.py", "content": "def greet():\n    return \"hello\"\n"},
-                    ),
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c2",
+                            "fs_write",
+                            {"path": "pkg/core.py", "content": 'def greet():\n    return "hello"\n'},
+                        )
+                    ],
                 },
-                {"role": "tool", "name": "fs_write", "content": "Wrote pkg/core.py"},
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c2",
+                    "content": "Wrote pkg/core.py",
+                },
                 {
                     "role": "assistant",
                     "content": "Created pkg/__init__.py and pkg/core.py with def greet.",
@@ -251,24 +335,39 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 40) -> int:
 def prepare_rollout_fuel(
     out_dir: Path,
     *,
-    group_size: int = 2,
-    train_n: int = 16,
+    group_size: int = 8,
+    train_n: int = 40,
     limit: int = 0,
+    live: bool = True,
+    model: str | None = None,
+    provider_name: str = "local",
 ) -> Path:
+    """Live graded TrainBench rollouts — mock fuel is not used for specialization."""
     write_trainbench(Path("examples/benchmarks/trainbench_v1.json"), n=max(train_n, 16))
     tasks = build_trainbench_tasks(n=train_n)
     if limit:
         tasks = tasks[:limit]
     out_dir.mkdir(parents=True, exist_ok=True)
-    records = run_rollouts_sync(tasks, out_dir, group_size=group_size, use_mock=True)
+    records = run_rollouts_sync(
+        tasks,
+        out_dir,
+        group_size=group_size,
+        use_mock=not live,
+        provider_name=provider_name,
+        model=model,
+    )
+    passed = [r for r in records if r.passed]
     _write_json(
         out_dir / "fuel_meta.json",
         {
             "suite": "trainbench",
+            "live": live,
             "tasks": len(tasks),
             "group_size": group_size,
             "records": len(records),
-            "passed": sum(1 for r in records if r.passed),
+            "passed": len(passed),
+            "pass_rate": len(passed) / max(len(records), 1),
+            "model": model,
         },
     )
     return out_dir / "rollouts.jsonl"
@@ -278,13 +377,22 @@ def assemble_sft_corpus(
     *,
     rollouts_jsonl: Path,
     out_dir: Path,
-    gold_n: int = 40,
+    gold_n: int = 0,
 ) -> dict[str, Path]:
+    """Build MLX corpus from passed rollouts with real tool_calls; gold optional."""
+    from sonec.training.export import (
+        export_from_rollouts,
+        has_real_tool_use,
+        is_broken_agent_format,
+        load_successful_rollouts,
+    )
+
     out_dir.mkdir(parents=True, exist_ok=True)
     sealed: set[str] = set()
     for suite in (
         Path("examples/benchmarks/sonecbench_v1.json"),
         Path("examples/benchmarks/worldbench_v1.json"),
+        Path("examples/benchmarks/ab_agent_v1.json"),
     ):
         if suite.exists():
             data = json.loads(suite.read_text(encoding="utf-8"))
@@ -293,28 +401,25 @@ def assemble_sft_corpus(
 
     written = export_from_rollouts(rollouts_jsonl, out_dir / "from_rollouts", sealed_ids=sealed)
     gen = DatasetGenerator("sonec-sft")
+    generate_identity_examples(gen, n=12)
     generate_gold_agent_examples(gen, n=gold_n)
-    rollout_i = 0
-    chat_path = written.get("chat")
-    if chat_path and chat_path.exists():
-        for line in chat_path.read_text(encoding="utf-8").splitlines():
-            if not line.strip():
-                continue
-            row = json.loads(line)
-            msgs = [
-                {"role": m["role"], "content": m.get("content") or "", "name": m.get("name")}
-                for m in row.get("messages") or []
-            ]
-            if len(msgs) < 2:
-                continue
+
+    examples = load_successful_rollouts(rollouts_jsonl, sealed_ids=sealed)
+    kept = 0
+    for i, row in enumerate(examples):
+        msgs = row["messages"]
+        if is_broken_agent_format(msgs):
+            continue
+        # Keep Q-only (no tools) or real tool_calls
+        if has_real_tool_use(msgs) or not any(m.get("role") == "tool" for m in msgs):
             gen.add_from_messages(
-                example_id=str(row.get("id") or f"rollout-{rollout_i:05d}"),
+                example_id=str(row.get("id") or f"rollout-{i:05d}"),
                 task=str(row.get("task_id") or "rollout"),
                 messages=msgs,
                 outcome="success",
-                metadata={"source": "rollout"},
+                metadata={"source": "live_rollout", "reward": row.get("reward")},
             )
-            rollout_i += 1
+            kept += 1
 
     pipeline = TrainingPipeline(out_dir)
     manifest = gen.manifest()
@@ -324,9 +429,23 @@ def assemble_sft_corpus(
     mlx_train = mlx_dir / "train.jsonl"
     with mlx_train.open("w", encoding="utf-8") as handle:
         for ex in manifest.examples:
-            messages = [{"role": s.role, "content": s.content} for s in ex.trajectory]
+            messages = []
+            for s in ex.trajectory:
+                msg = {"role": s.role, "content": s.content}
+                if s.tool_name:
+                    msg["name"] = s.tool_name
+                if s.tool_call_id:
+                    msg["tool_call_id"] = s.tool_call_id
+                if s.tool_calls:
+                    msg["tool_calls"] = s.tool_calls
+                messages.append(msg)
             handle.write(json.dumps({"messages": messages}, ensure_ascii=False) + "\n")
-    lines = mlx_train.read_text(encoding="utf-8").splitlines()
+    lines = mlx_train.read_text(encoding="utf-8").splitlines() if mlx_train.exists() else []
+    if not lines:
+        raise RuntimeError(
+            "SFT corpus empty — need live passing trajectories. "
+            "Run: sonec rollout --live --group-size 8 --limit 40"
+        )
     (mlx_dir / "valid.jsonl").write_text(
         "\n".join(lines[: max(1, len(lines) // 10)]) + "\n", encoding="utf-8"
     )
@@ -334,7 +453,13 @@ def assemble_sft_corpus(
     pipeline.write_config(model=PRODUCT_MODEL, dataset_file="train_chat.jsonl")
     _write_json(
         out_dir / "corpus_stats.json",
-        {"examples": len(manifest.examples), "gold_n": gold_n, "mlx_train": str(mlx_train)},
+        {
+            "examples": len(manifest.examples),
+            "gold_n": gold_n,
+            "live_kept": kept,
+            "mlx_train": str(mlx_train),
+            "format": "openai_tool_calls",
+        },
     )
     return {"chat": jsonl, "mlx_train": mlx_train, "mlx_dir": mlx_dir}
 
@@ -469,16 +594,11 @@ def write_product_modelfile(*, adapter_path: Path, modelfile_out: Path) -> Path:
         adapter_display = str(rel)
     except ValueError:
         adapter_display = str(adapter_path)
-    body = f"""# NOT THE PRODUCT
-# A SYSTEM prompt on top of {BASE_MODEL} is a wrapper, not sonec.
-# sonec = LoRA adapter weights under: {adapter_display}
+    body = f"""# Ollama chat tag (optional runner). Product weights: {adapter_display}
 # Ready: {status.ready} — {status.detail}
-#
-# Serve specialized weights:
-#   sonec serve-llm
-#   # or: python -m mlx_lm server --model {BASE_HF_MLX} --adapter-path {adapter_display} --port 8080
-#
-# Do not treat this file as a specialized model.
+# Serve specialized weights: sonec serve-llm
+# Rebuild: ollama create sonec -f Modelfile
+# Chat: ollama run sonec --think=false
 
 FROM {BASE_MODEL}
 
@@ -486,8 +606,7 @@ PARAMETER temperature 0.2
 PARAMETER top_p 0.9
 PARAMETER num_ctx 32768
 
-SYSTEM \"\"\"You are sonec — a coding-agent model on Qwen 3.5.
-This prompt is harness identity only. Specialized behavior requires trained adapter weights.
+SYSTEM \"\"\"{PRODUCT_SYSTEM}
 \"\"\"
 """
     modelfile_out.write_text(body, encoding="utf-8")
@@ -497,20 +616,22 @@ This prompt is harness identity only. Specialized behavior requires trained adap
 def run_train_step(
     *,
     root: Path,
-    sft_iters: int = 80,
-    gold_n: int = 40,
-    train_n: int = 16,
-    rollout_group: int = 2,
-    rl_group: int = 2,
-    rl_limit: int = 8,
+    sft_iters: int = 300,
+    gold_n: int = 0,
+    train_n: int = 40,
+    rollout_group: int = 8,
+    rl_group: int = 4,
+    rl_limit: int = 16,
     skip_sft: bool = False,
     skip_fuel: bool = False,
-    live_rl: bool = False,
+    live_fuel: bool = True,
+    live_rl: bool = True,
     mlx_model: str | None = None,
     reset: bool = False,
     corpus_dir: Path | None = None,
+    model: str | None = None,
 ) -> list[TrainReport]:
-    """One small specialization step. Product is ready only when adapter *.safetensors exist."""
+    """One specialization step on live passing trajectories (not mock chat)."""
     from sonec.training.weights import write_product_manifest, weight_status
 
     reports: list[TrainReport] = []
@@ -520,7 +641,8 @@ def run_train_step(
     art.mkdir(parents=True, exist_ok=True)
 
     adapter = art / "checkpoints" / "sonec-sft-mlx"
-    model = resolve_mlx_base(mlx_model)
+    mlx_base = resolve_mlx_base(mlx_model)
+    serve_model = model or PRODUCT_MODEL
 
     if corpus_dir is not None:
         corpus_path = corpus_dir.expanduser().resolve()
@@ -538,8 +660,25 @@ def run_train_step(
     else:
         if not skip_fuel:
             fuel_dir = art / "fuel"
-            rollouts = prepare_rollout_fuel(fuel_dir, group_size=rollout_group, train_n=train_n)
-            reports.append(TrainReport("fuel", True, f"rollouts={rollouts}", {"rollouts": str(rollouts)}))
+            try:
+                rollouts = prepare_rollout_fuel(
+                    fuel_dir,
+                    group_size=rollout_group,
+                    train_n=train_n,
+                    live=live_fuel,
+                    model=serve_model if live_fuel else None,
+                )
+                reports.append(
+                    TrainReport(
+                        "fuel",
+                        True,
+                        f"live={live_fuel} rollouts={rollouts}",
+                        {"rollouts": str(rollouts)},
+                    )
+                )
+            except Exception as exc:  # noqa: BLE001
+                reports.append(TrainReport("fuel", False, str(exc), {}))
+                return reports
         else:
             rollouts = art / "fuel" / "rollouts.jsonl"
             if not rollouts.exists():
@@ -547,22 +686,26 @@ def run_train_step(
                 return reports
             reports.append(TrainReport("fuel", True, f"reused {rollouts}", {"rollouts": str(rollouts)}))
 
-        corpus_out = art / "sft_corpus"
-        paths = assemble_sft_corpus(rollouts_jsonl=rollouts, out_dir=corpus_out, gold_n=gold_n)
-        reports.append(
-            TrainReport(
-                "corpus",
-                True,
-                f"examples in {paths['mlx_dir']}",
-                {k: str(v) for k, v in paths.items()},
+        try:
+            corpus_out = art / "sft_corpus"
+            paths = assemble_sft_corpus(rollouts_jsonl=rollouts, out_dir=corpus_out, gold_n=gold_n)
+            reports.append(
+                TrainReport(
+                    "corpus",
+                    True,
+                    f"examples in {paths['mlx_dir']}",
+                    {k: str(v) for k, v in paths.items()},
+                )
             )
-        )
+        except Exception as exc:  # noqa: BLE001
+            reports.append(TrainReport("corpus", False, str(exc), {}))
+            return reports
 
     if not skip_sft:
         sft_report = run_mlx_sft(
             data_dir=Path(paths["mlx_dir"]),
             adapter_path=adapter,
-            model=model,
+            model=mlx_base,
             iters=sft_iters,
         )
         status = weight_status(adapter)
@@ -583,11 +726,11 @@ def run_train_step(
             group_size=rl_group,
             limit=rl_limit,
             live=live_rl,
-            model=PRODUCT_MODEL,
+            model=serve_model,
         )
     )
 
-    manifest = write_product_manifest(adapter_dir=adapter, mlx_base=model, root=root)
+    manifest = write_product_manifest(adapter_dir=adapter, mlx_base=mlx_base, root=root)
     status = weight_status(adapter)
     reports.append(
         TrainReport(
@@ -608,7 +751,9 @@ def run_train_step(
             "product": PRODUCT_MODEL,
             "base": BASE_MODEL,
             "base_hf": BASE_HF,
-            "mlx_base": model,
+            "mlx_base": mlx_base,
+            "live_fuel": live_fuel,
+            "live_rl": live_rl,
             "weights_ready": status.ready,
             "phases": [r.__dict__ for r in reports],
         },

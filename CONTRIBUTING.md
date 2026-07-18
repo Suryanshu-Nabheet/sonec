@@ -1,15 +1,13 @@
-# Contributing to SONEC
+# Contributing to sonec
 
-Thank you for helping build one of the strongest open-source agentic SE systems.
+Thank you for contributing to sonec.
 
 ## Principles
 
-Follow `target.md` and the always-on prebuilt rules:
-
-- Production-grade only — no placeholders, no fake backends
-- Smallest correct change
-- Tests for every feature
-- Document architecture trade-offs
+- Ship production-ready changes — no placeholders or fake backends
+- Prefer the smallest correct change
+- Add tests for behavior you introduce
+- Document architecture trade-offs when they change
 
 ## Setup
 
@@ -25,15 +23,15 @@ ruff check sonec tests
 
 1. One logical change per PR
 2. Include tests
-3. Update docs when behavior/architecture changes
+3. Update docs when behavior or architecture changes
 4. Do not commit secrets or `.env`
 
-## Skills & prebuilt rules
+## Skills and rules
 
-- Skills live in `sonec/skills/<id>/SKILL.md`
-- Prebuilt rules live in `sonec/rules/prebuilt/*.mdc`
+- Skills: `sonec/skills/<id>/SKILL.md`
+- Prebuilt rules: `sonec/rules/prebuilt/*.mdc`
 - Keep skill bodies actionable; keep rules authoritative
 
-## Code of collaboration
+## Collaboration
 
-Be direct, precise, and respectful. Prefer evidence over vibes.
+Be direct, precise, and respectful. Prefer evidence over assumption.

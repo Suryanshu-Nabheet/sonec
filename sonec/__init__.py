@@ -1,6 +1,4 @@
-"""sonec — coding-agent model on Qwen 3.5 (2B).
-
-Default: local OpenAI-compatible inference for product model ``sonec``.
+"""sonec by Suryanshu Nabheet — coding model.
 """
 
 from __future__ import annotations

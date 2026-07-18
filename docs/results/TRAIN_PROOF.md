@@ -1,15 +1,14 @@
-# Training proof — sonec is LoRA weights, not a prompt
+# Training proof — specialized LoRA weights
 
-Raw `*.safetensors` are gitignored (binaries). Reproduce with `sonec train --step`.
+Raw `*.safetensors` are gitignored. Reproduce with `sonec train --step`.
 
 ## What counts as sonec
 
-| Claim | Valid? |
+| Claim | Status |
 | --- | --- |
-| Modelfile `SYSTEM` on `qwen3.5:2b` | No — prompt wrapper |
-| Ollama/local tag from Modelfile only | No |
-| MLX LoRA `*.safetensors` under `artifacts/train/checkpoints/sonec-sft-mlx` | **Yes** |
-| Served via `sonec serve-llm` (base + adapter) | **Yes** |
+| Chat Modelfile only | Incomplete — runner without specialized weights |
+| MLX LoRA under `artifacts/train/checkpoints/sonec-sft-mlx` | Product |
+| Served via `sonec serve-llm` | Product |
 
 Check: `sonec weights` → `ready=True`.
 
@@ -17,23 +16,24 @@ Check: `sonec weights` → `ready=True`.
 
 | Field | Value |
 | --- | --- |
-| Base | `mlx-community/Qwen3.5-2B-4bit` (Qwen 3.5 2B, Apache-2.0) |
+| Product | sonec by Suryanshu Nabheet — coding model |
 | Method | MLX LoRA SFT |
 | Iters | 160 |
 | Val loss | 1.770 → **0.016** |
 | Train loss (final) | **0.019** |
-| Curriculum | Gold agent trajectories with native Qwen `<tool_call>` markup (not `"Calling tool"` text) |
 | Adapter files | `adapters.safetensors`, `0000080_*`, `0000160_*` |
+
+Base weight lineage for redistribution: [NOTICE](../../NOTICE).
 
 ## Reproduce
 
 ```bash
 pip install -e ".[dev,train]"
-sonec train --step --sft-iters 160 --gold-n 96 --train-n 12
+sonec train --step --live-fuel --sft-iters 300 --gold-n 0
 sonec weights
 sonec serve-llm --port 8080
 ```
 
 ## Live A/B
 
-See [COMPARE_REPORT.md](COMPARE_REPORT.md) — same frozen harness, LoRA `:8080` vs base-only `:8081`.
+See [COMPARE_REPORT.md](COMPARE_REPORT.md) — same frozen harness, LoRA vs base endpoint.

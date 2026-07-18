@@ -21,8 +21,8 @@ TOOLS = [
     {
         "name": "sonec_run",
         "description": (
-            "Run the sonec coding-specialist agent on a software-engineering goal "
-            "inside a workspace. Returns final message + harness metadata."
+            "Run a software-engineering goal in a workspace with sonec. "
+            "Returns the final message and harness metadata."
         ),
         "inputSchema": {
             "type": "object",

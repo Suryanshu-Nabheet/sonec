@@ -1,7 +1,6 @@
-"""Head-to-head: specialized sonec (LoRA) vs base Qwen 3.5 2B.
+"""Head-to-head: specialized sonec (LoRA) vs unmodified base checkpoint.
 
-Same harness, same suite, different inference endpoints / model ids.
-A Modelfile prompt wrapper is not a valid \"sonec\" arm — use serve-llm.
+Same harness, same suite, different inference endpoints.
 """
 
 from __future__ import annotations
@@ -207,7 +206,7 @@ def write_compare_report(
             "",
             summary.note,
             "",
-            "Product sonec = LoRA adapter weights (`sonec serve-llm`), not a Modelfile SYSTEM string.",
+            "Product sonec = LoRA adapter served via sonec serve-llm.",
         ]
     )
     md.write_text("\n".join(lines) + "\n", encoding="utf-8")
