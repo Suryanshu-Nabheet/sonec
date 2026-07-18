@@ -1,4 +1,4 @@
-"""Configuration loaded from environment and optional files."""
+"""Runtime settings for sonec."""
 
 from __future__ import annotations
 
@@ -9,14 +9,15 @@ from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from sonec.core.errors import ConfigError
+from sonec.models import (
+    DEFAULT_LOCAL_BASE_URL,
+    DEFAULT_MODEL,
+    DEFAULT_PROVIDER,
+)
 
 
 class Settings(BaseSettings):
-    """Runtime settings for SONEC.
-
-    Secrets are never hardcoded. Prefer environment variables:
-    ``MOONSHOT_API_KEY``, ``SONEC_API_KEY``, ``OPENAI_API_KEY``.
-    """
+    """Provider-agnostic settings. Default: local OpenAI-compatible inference."""
 
     model_config = SettingsConfigDict(
         env_prefix="SONEC_",
@@ -27,8 +28,11 @@ class Settings(BaseSettings):
     )
 
     workspace: Path = Field(default_factory=lambda: Path.cwd())
-    provider: Literal["moonshot", "openai", "openai_compatible", "mock"] = "moonshot"
-    model: str = "kimi-k3"
+    # local | openai_compatible | openai | mock  (ollama kept as alias of local)
+    provider: Literal["local", "openai", "openai_compatible", "mock", "ollama"] = (
+        DEFAULT_PROVIDER
+    )
+    model: str = DEFAULT_MODEL
     api_key: str | None = None
     base_url: str | None = None
     temperature: float = 0.2
@@ -41,10 +45,6 @@ class Settings(BaseSettings):
     memory_dir: Path | None = None
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
-    moonshot_api_key: str | None = Field(
-        default=None,
-        validation_alias=AliasChoices("MOONSHOT_API_KEY", "moonshot_api_key"),
-    )
     openai_api_key: str | None = Field(
         default=None,
         validation_alias=AliasChoices("OPENAI_API_KEY", "openai_api_key"),
@@ -53,30 +53,31 @@ class Settings(BaseSettings):
     @field_validator("workspace", mode="before")
     @classmethod
     def _resolve_workspace(cls, value: object) -> Path:
-        path = Path(str(value)).expanduser().resolve()
-        return path
+        return Path(str(value)).expanduser().resolve()
+
+    def _normalized_provider(self) -> str:
+        if self.provider == "ollama":
+            return "local"
+        return self.provider
 
     def resolved_api_key(self) -> str | None:
         if self.api_key:
             return self.api_key
-        if self.provider == "moonshot":
-            return self.moonshot_api_key
-        if self.provider in {"openai", "openai_compatible"}:
-            return self.openai_api_key or self.moonshot_api_key
-        return self.moonshot_api_key or self.openai_api_key
+        if self._normalized_provider() in {"local", "mock"}:
+            return self.api_key or "local"
+        return self.openai_api_key
 
     def resolved_base_url(self) -> str:
         if self.base_url:
             return self.base_url.rstrip("/")
-        if self.provider == "moonshot":
-            return "https://api.moonshot.ai/v1"
-        if self.provider == "openai":
+        provider = self._normalized_provider()
+        if provider == "local":
+            return DEFAULT_LOCAL_BASE_URL.rstrip("/")
+        if provider == "openai":
             return "https://api.openai.com/v1"
-        if self.base_url is None and self.provider == "openai_compatible":
-            raise ConfigError(
-                "SONEC_BASE_URL is required when provider=openai_compatible"
-            )
-        return "https://api.moonshot.ai/v1"
+        if provider == "openai_compatible":
+            raise ConfigError("SONEC_BASE_URL is required when provider=openai_compatible")
+        return DEFAULT_LOCAL_BASE_URL.rstrip("/")
 
     def memory_path(self) -> Path:
         if self.memory_dir is not None:
@@ -84,15 +85,17 @@ class Settings(BaseSettings):
         return (self.workspace / ".sonec" / "memory").resolve()
 
     def require_api_key(self) -> str:
+        if self._normalized_provider() in {"mock", "local"}:
+            return self.resolved_api_key() or "local"
         key = self.resolved_api_key()
-        if not key and self.provider != "mock":
+        if not key:
             raise ConfigError(
-                "No API key configured. Set SONEC_API_KEY or MOONSHOT_API_KEY "
-                "(or OPENAI_API_KEY for OpenAI providers)."
+                "No API key configured. Set SONEC_API_KEY or OPENAI_API_KEY. "
+                "For local OpenAI-compatible servers: SONEC_PROVIDER=local "
+                f"SONEC_BASE_URL={DEFAULT_LOCAL_BASE_URL} SONEC_MODEL=sonec"
             )
-        return key or "mock"
+        return key
 
 
 def load_settings(**overrides: object) -> Settings:
-    """Load settings, applying optional overrides for tests and CLI."""
     return Settings(**overrides)  # type: ignore[arg-type]

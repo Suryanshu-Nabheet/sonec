@@ -4,7 +4,7 @@
 
 | Version | Supported |
 | --- | --- |
-| 0.2.x | Yes |
+| 1.x | Yes |
 
 ## Reporting a vulnerability
 
@@ -16,5 +16,5 @@ Do **not** file public issues for undisclosed vulnerabilities.
 
 - Workspace sandbox rejects path escapes
 - Terminal blocks a set of destructive patterns; network tools off by default
-- Secrets only via environment (`MOONSHOT_API_KEY`, `SONEC_API_KEY`, …)
+- Secrets only via environment (`SONEC_API_KEY`, `OPENAI_API_KEY`, …). Local OpenAI-compatible servers typically accept any key string.
 - Never commit `.env` or credentials

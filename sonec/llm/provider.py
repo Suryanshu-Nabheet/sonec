@@ -61,7 +61,7 @@ def _parse_tool_arguments(raw: str) -> dict[str, Any]:
 
 
 class OpenAICompatibleProvider:
-    """HTTP client for OpenAI-compatible chat completions (Moonshot / Kimi / OpenAI)."""
+    """HTTP client for OpenAI-compatible chat completions (local runners / vLLM / OpenAI)."""
 
     def __init__(
         self,
@@ -194,7 +194,7 @@ class MockProvider:
 
     @classmethod
     def harness_smoke(cls, goal: str) -> MockProvider:
-        """Scripted responses that walk the multi-phase harness offline."""
+        """Scripted offline run using training-critical tools only."""
         return cls(
             [
                 Message(
@@ -204,49 +204,13 @@ class MockProvider:
                 ),
                 Message(
                     role=Role.ASSISTANT,
-                    content="RECON: Indexed the repository and identified relevant surfaces.",
-                ),
-                Message(
-                    role=Role.ASSISTANT,
                     content=(
-                        "PLAN:\n1. Inspect relevant files\n2. Apply minimal change\n"
-                        "3. Verify with tests/commands\nSuccess: commands exit 0."
-                    ),
-                ),
-                Message(
-                    role=Role.ASSISTANT,
-                    content=None,
-                    tool_calls=[
-                        ToolCall(
-                            id="c2",
-                            name="memory_note",
-                            arguments={
-                                "text": f"Harness smoke for: {goal}",
-                                "tags": ["smoke"],
-                            },
-                        )
-                    ],
-                ),
-                Message(
-                    role=Role.ASSISTANT,
-                    content="EXECUTE: Recorded approach in memory; ready for verify.",
-                ),
-                Message(
-                    role=Role.ASSISTANT,
-                    content="VERIFY: Offline mock — verification evidence recorded (mock mode).",
-                ),
-                Message(
-                    role=Role.ASSISTANT,
-                    content=(
-                        f"DELIVER: Mock harness run complete for goal: {goal}. "
-                        "Configure MOONSHOT_API_KEY for live Kimi K3 + full SONEC harness."
+                        f"Indexed the repo for goal: {goal}. "
+                        "Verification: index_build returned file inventory. Done."
                     ),
                 ),
             ],
-            default=Message(
-                role=Role.ASSISTANT,
-                content="Mock phase complete.",
-            ),
+            default=Message(role=Role.ASSISTANT, content="Mock run complete."),
         )
 
 

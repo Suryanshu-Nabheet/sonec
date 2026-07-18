@@ -1,58 +1,39 @@
-# Getting started
+# Getting started — sonec
+
+Coding-agent stack on **Qwen 3.5 (2B)**. Specialize in small steps; serve via any OpenAI-compatible endpoint.
 
 ## Install
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev,train]"
+cp .env.example .env
+# Point SONEC_BASE_URL at a server that hosts qwen3.5:2b (or sonec after train)
+sonec doctor
 ```
 
-## Inspect the harness brain
+## Agent
 
 ```bash
-sonec skills    # progressive expertise packs
-sonec rules     # operating rules + prebuilt rules
+sonec run "Add a unit test and verify" -w .
 ```
 
-## Offline multi-phase run
+## IDE
 
 ```bash
-sonec run "Inspect the repo and summarize structure" --mock
+sonec serve
+sonec mcp
 ```
 
-You should see phases: `recon → plan → execute → verify → critique → deliver`.
-
-## Live (Kimi K3)
+## Specialize (small steps)
 
 ```bash
-export MOONSHOT_API_KEY=sk-...
-sonec run "Fix X and verify with pytest" --workspace .
+sonec train --step --sft-iters 80 --gold-n 40 --train-n 16
+# later: raise iters / train-n; keep sealed benches out of fuel
 ```
 
-## Library
+Sealed evals (`sonecbench`, `worldbench`) stay held out. Training uses TrainBench + gold curriculum.
 
-```python
-import asyncio
-from sonec.app import build_harness
-from sonec.llm import MockProvider
+## Licensing
 
-async def main() -> None:
-    provider = MockProvider.harness_smoke("demo")
-    harness, settings, workspace, tools = build_harness(
-        workspace=".", provider=provider, persist_memory=False
-    )
-    result = await harness.run("demo")
-    print(result.final_message)
-
-asyncio.run(main())
-```
-
-`--simple` uses the single-loop runtime; default is the full harness.
-
-## Benchmarks & tests
-
-```bash
-sonec bench --mock          # expect 100% on smoke suite
-pytest -q
-```
+MIT for sonec code ([LICENSE](../LICENSE)). Qwen base weights are Apache-2.0 — see [NOTICE](../NOTICE).

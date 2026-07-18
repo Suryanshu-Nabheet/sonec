@@ -1,0 +1,16 @@
+# sonec SFT — Apple Silicon (MLX), Qwen 3.5 2B
+# Prefer: sonec train --step  (small iters; raise over time)
+
+base_model_hint: mlx-community/Qwen3.5-2B-4bit
+hf_full: Qwen/Qwen3.5-2B
+product_tag: sonec
+data_dir: artifacts/train/sft_corpus/mlx_data
+adapter_out: artifacts/train/checkpoints/sonec-sft-mlx
+iters: 80
+batch_size: 1
+num_layers: 8
+learning_rate: 1.0e-5
+max_seq_length: 2048
+notes: |
+  Small iterative specialization. TrainBench + gold curriculum only.
+  Never train on sealed SonecBench / WorldBench ids.

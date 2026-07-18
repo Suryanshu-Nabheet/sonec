@@ -49,7 +49,7 @@ async def test_openai_compatible_parses_tool_calls() -> None:
     provider = OpenAICompatibleProvider(
         api_key="test",
         base_url="https://example.test/v1",
-        model="kimi-k3",
+        model="sonec",
         client=client,
     )
     response = await provider.complete(

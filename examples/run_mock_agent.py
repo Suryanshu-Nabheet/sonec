@@ -21,7 +21,10 @@ async def main() -> None:
     print(f"tools={len(registry.names())}")
     result = await harness.run("Build the index and summarize.")
     print(result.final_message)
-    print(f"success={result.success} iterations={result.iterations}")
+    print(
+        f"completed={result.completed} success={result.success} "
+        f"harness={result.harness_version} iterations={result.iterations}"
+    )
 
 
 if __name__ == "__main__":

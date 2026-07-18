@@ -1,0 +1,1109 @@
+{
+  "name": "worldbench-v1",
+  "version": "1.0.0",
+  "sealed": true,
+  "description": "WorldBench v1 \u2014 real-world IDE/runtime/CLI agent tasks shaped like VS Code extensions, Bun packages, and Codex-style agent CLIs. Do not train on these task ids. Use for live open-weight evaluation.",
+  "task_count": 30,
+  "tasks": [
+    {
+      "id": "vscode-ext-activate-01",
+      "name": "VS Code extension activation 1",
+      "prompt": "This is a VS Code extension workspace. Fix package.json so activationEvents includes onCommand:sonec.hello1 and add that command to contributes.commands with title 'Sonec: Hello 1'.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "onCommand:sonec.hello1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "Sonec: Hello 1",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "vscode",
+        "extension",
+        "typescript",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"sonec-vscode-ext-1\",\n  \"displayName\": \"Sonec Ext 1\",\n  \"version\": \"0.0.1\",\n  \"engines\": {\n    \"vscode\": \"^1.85.0\"\n  },\n  \"activationEvents\": [\n    \"onCommand:sonec.hello\"\n  ],\n  \"contributes\": {\n    \"commands\": [\n      {\n        \"command\": \"sonec.hello\",\n        \"title\": \"Sonec: Hello\"\n      }\n    ]\n  },\n  \"main\": \"./out/extension.js\"\n}\n",
+        "src/extension.ts": "import * as vscode from 'vscode';\n\nexport function activate(context: vscode.ExtensionContext) {\n  const disposable = vscode.commands.registerCommand('sonec.hello', () => {\n    vscode.window.showInformationMessage('Hello');\n  });\n  context.subscriptions.push(disposable);\n}\n",
+        "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"module\": \"commonjs\",\n    \"target\": \"ES2020\",\n    \"outDir\": \"out\"\n  }\n}\n"
+      }
+    },
+    {
+      "id": "vscode-ext-activate-02",
+      "name": "VS Code extension activation 2",
+      "prompt": "This is a VS Code extension workspace. Fix package.json so activationEvents includes onCommand:sonec.hello2 and add that command to contributes.commands with title 'Sonec: Hello 2'.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "onCommand:sonec.hello2",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "Sonec: Hello 2",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "vscode",
+        "extension",
+        "typescript",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"sonec-vscode-ext-2\",\n  \"displayName\": \"Sonec Ext 2\",\n  \"version\": \"0.0.1\",\n  \"engines\": {\n    \"vscode\": \"^1.85.0\"\n  },\n  \"activationEvents\": [\n    \"onCommand:sonec.hello\"\n  ],\n  \"contributes\": {\n    \"commands\": [\n      {\n        \"command\": \"sonec.hello\",\n        \"title\": \"Sonec: Hello\"\n      }\n    ]\n  },\n  \"main\": \"./out/extension.js\"\n}\n",
+        "src/extension.ts": "import * as vscode from 'vscode';\n\nexport function activate(context: vscode.ExtensionContext) {\n  const disposable = vscode.commands.registerCommand('sonec.hello', () => {\n    vscode.window.showInformationMessage('Hello');\n  });\n  context.subscriptions.push(disposable);\n}\n",
+        "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"module\": \"commonjs\",\n    \"target\": \"ES2020\",\n    \"outDir\": \"out\"\n  }\n}\n"
+      }
+    },
+    {
+      "id": "vscode-ext-activate-03",
+      "name": "VS Code extension activation 3",
+      "prompt": "This is a VS Code extension workspace. Fix package.json so activationEvents includes onCommand:sonec.hello3 and add that command to contributes.commands with title 'Sonec: Hello 3'.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "onCommand:sonec.hello3",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "Sonec: Hello 3",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "vscode",
+        "extension",
+        "typescript",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"sonec-vscode-ext-3\",\n  \"displayName\": \"Sonec Ext 3\",\n  \"version\": \"0.0.1\",\n  \"engines\": {\n    \"vscode\": \"^1.85.0\"\n  },\n  \"activationEvents\": [\n    \"onCommand:sonec.hello\"\n  ],\n  \"contributes\": {\n    \"commands\": [\n      {\n        \"command\": \"sonec.hello\",\n        \"title\": \"Sonec: Hello\"\n      }\n    ]\n  },\n  \"main\": \"./out/extension.js\"\n}\n",
+        "src/extension.ts": "import * as vscode from 'vscode';\n\nexport function activate(context: vscode.ExtensionContext) {\n  const disposable = vscode.commands.registerCommand('sonec.hello', () => {\n    vscode.window.showInformationMessage('Hello');\n  });\n  context.subscriptions.push(disposable);\n}\n",
+        "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"module\": \"commonjs\",\n    \"target\": \"ES2020\",\n    \"outDir\": \"out\"\n  }\n}\n"
+      }
+    },
+    {
+      "id": "vscode-ext-activate-04",
+      "name": "VS Code extension activation 4",
+      "prompt": "This is a VS Code extension workspace. Fix package.json so activationEvents includes onCommand:sonec.hello4 and add that command to contributes.commands with title 'Sonec: Hello 4'.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "onCommand:sonec.hello4",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "Sonec: Hello 4",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "vscode",
+        "extension",
+        "typescript",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"sonec-vscode-ext-4\",\n  \"displayName\": \"Sonec Ext 4\",\n  \"version\": \"0.0.1\",\n  \"engines\": {\n    \"vscode\": \"^1.85.0\"\n  },\n  \"activationEvents\": [\n    \"onCommand:sonec.hello\"\n  ],\n  \"contributes\": {\n    \"commands\": [\n      {\n        \"command\": \"sonec.hello\",\n        \"title\": \"Sonec: Hello\"\n      }\n    ]\n  },\n  \"main\": \"./out/extension.js\"\n}\n",
+        "src/extension.ts": "import * as vscode from 'vscode';\n\nexport function activate(context: vscode.ExtensionContext) {\n  const disposable = vscode.commands.registerCommand('sonec.hello', () => {\n    vscode.window.showInformationMessage('Hello');\n  });\n  context.subscriptions.push(disposable);\n}\n",
+        "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"module\": \"commonjs\",\n    \"target\": \"ES2020\",\n    \"outDir\": \"out\"\n  }\n}\n"
+      }
+    },
+    {
+      "id": "vscode-ext-activate-05",
+      "name": "VS Code extension activation 5",
+      "prompt": "This is a VS Code extension workspace. Fix package.json so activationEvents includes onCommand:sonec.hello5 and add that command to contributes.commands with title 'Sonec: Hello 5'.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "onCommand:sonec.hello5",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "Sonec: Hello 5",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "vscode",
+        "extension",
+        "typescript",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"sonec-vscode-ext-5\",\n  \"displayName\": \"Sonec Ext 5\",\n  \"version\": \"0.0.1\",\n  \"engines\": {\n    \"vscode\": \"^1.85.0\"\n  },\n  \"activationEvents\": [\n    \"onCommand:sonec.hello\"\n  ],\n  \"contributes\": {\n    \"commands\": [\n      {\n        \"command\": \"sonec.hello\",\n        \"title\": \"Sonec: Hello\"\n      }\n    ]\n  },\n  \"main\": \"./out/extension.js\"\n}\n",
+        "src/extension.ts": "import * as vscode from 'vscode';\n\nexport function activate(context: vscode.ExtensionContext) {\n  const disposable = vscode.commands.registerCommand('sonec.hello', () => {\n    vscode.window.showInformationMessage('Hello');\n  });\n  context.subscriptions.push(disposable);\n}\n",
+        "tsconfig.json": "{\n  \"compilerOptions\": {\n    \"module\": \"commonjs\",\n    \"target\": \"ES2020\",\n    \"outDir\": \"out\"\n  }\n}\n"
+      }
+    },
+    {
+      "id": "vscode-ext-command-01",
+      "name": "Register VS Code command handler 1",
+      "prompt": "In src/extension.ts register command sonec.run1 that shows message 'run-1'. Keep activate() export.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "sonec.run1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "run-1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "activate",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "vscode",
+        "typescript",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"ext-1\",\n  \"engines\": {\n    \"vscode\": \"^1.85.0\"\n  },\n  \"activationEvents\": [\n    \"onCommand:sonec.run1\"\n  ],\n  \"contributes\": {\n    \"commands\": [\n      {\n        \"command\": \"sonec.run1\",\n        \"title\": \"Run 1\"\n      }\n    ]\n  },\n  \"main\": \"./out/extension.js\"\n}\n",
+        "src/extension.ts": "import * as vscode from 'vscode';\n\nexport function activate(context: vscode.ExtensionContext) {\n  // TODO: register sonec.run command\n}\n"
+      }
+    },
+    {
+      "id": "vscode-ext-command-02",
+      "name": "Register VS Code command handler 2",
+      "prompt": "In src/extension.ts register command sonec.run2 that shows message 'run-2'. Keep activate() export.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "sonec.run2",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "run-2",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "activate",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "vscode",
+        "typescript",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"ext-2\",\n  \"engines\": {\n    \"vscode\": \"^1.85.0\"\n  },\n  \"activationEvents\": [\n    \"onCommand:sonec.run2\"\n  ],\n  \"contributes\": {\n    \"commands\": [\n      {\n        \"command\": \"sonec.run2\",\n        \"title\": \"Run 2\"\n      }\n    ]\n  },\n  \"main\": \"./out/extension.js\"\n}\n",
+        "src/extension.ts": "import * as vscode from 'vscode';\n\nexport function activate(context: vscode.ExtensionContext) {\n  // TODO: register sonec.run command\n}\n"
+      }
+    },
+    {
+      "id": "vscode-ext-command-03",
+      "name": "Register VS Code command handler 3",
+      "prompt": "In src/extension.ts register command sonec.run3 that shows message 'run-3'. Keep activate() export.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "sonec.run3",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "run-3",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "activate",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "vscode",
+        "typescript",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"ext-3\",\n  \"engines\": {\n    \"vscode\": \"^1.85.0\"\n  },\n  \"activationEvents\": [\n    \"onCommand:sonec.run3\"\n  ],\n  \"contributes\": {\n    \"commands\": [\n      {\n        \"command\": \"sonec.run3\",\n        \"title\": \"Run 3\"\n      }\n    ]\n  },\n  \"main\": \"./out/extension.js\"\n}\n",
+        "src/extension.ts": "import * as vscode from 'vscode';\n\nexport function activate(context: vscode.ExtensionContext) {\n  // TODO: register sonec.run command\n}\n"
+      }
+    },
+    {
+      "id": "vscode-ext-command-04",
+      "name": "Register VS Code command handler 4",
+      "prompt": "In src/extension.ts register command sonec.run4 that shows message 'run-4'. Keep activate() export.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "sonec.run4",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "run-4",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/extension.ts",
+          "contains": "activate",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "vscode",
+        "typescript",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"ext-4\",\n  \"engines\": {\n    \"vscode\": \"^1.85.0\"\n  },\n  \"activationEvents\": [\n    \"onCommand:sonec.run4\"\n  ],\n  \"contributes\": {\n    \"commands\": [\n      {\n        \"command\": \"sonec.run4\",\n        \"title\": \"Run 4\"\n      }\n    ]\n  },\n  \"main\": \"./out/extension.js\"\n}\n",
+        "src/extension.ts": "import * as vscode from 'vscode';\n\nexport function activate(context: vscode.ExtensionContext) {\n  // TODO: register sonec.run command\n}\n"
+      }
+    },
+    {
+      "id": "bun-script-01",
+      "name": "Bun package script 1",
+      "prompt": "Add a package.json script 'check1' that runs 'bun test tests/check1.test.ts'. Create that test file asserting expect(1+1).toBe(2).",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "check1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "tests/check1.test.ts",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/check1.test.ts",
+          "contains": "toBe(2)",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bun",
+        "javascript",
+        "tests",
+        "runtime"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"bun-app-1\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"bun run src/index.ts\"\n  }\n}\n",
+        "src/index.ts": " console.log('bun app 1');\n"
+      }
+    },
+    {
+      "id": "bun-script-02",
+      "name": "Bun package script 2",
+      "prompt": "Add a package.json script 'check2' that runs 'bun test tests/check2.test.ts'. Create that test file asserting expect(1+1).toBe(2).",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "check2",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "tests/check2.test.ts",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/check2.test.ts",
+          "contains": "toBe(2)",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bun",
+        "javascript",
+        "tests",
+        "runtime"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"bun-app-2\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"bun run src/index.ts\"\n  }\n}\n",
+        "src/index.ts": " console.log('bun app 2');\n"
+      }
+    },
+    {
+      "id": "bun-script-03",
+      "name": "Bun package script 3",
+      "prompt": "Add a package.json script 'check3' that runs 'bun test tests/check3.test.ts'. Create that test file asserting expect(1+1).toBe(2).",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "check3",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "tests/check3.test.ts",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/check3.test.ts",
+          "contains": "toBe(2)",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bun",
+        "javascript",
+        "tests",
+        "runtime"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"bun-app-3\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"bun run src/index.ts\"\n  }\n}\n",
+        "src/index.ts": " console.log('bun app 3');\n"
+      }
+    },
+    {
+      "id": "bun-script-04",
+      "name": "Bun package script 4",
+      "prompt": "Add a package.json script 'check4' that runs 'bun test tests/check4.test.ts'. Create that test file asserting expect(1+1).toBe(2).",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "check4",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "tests/check4.test.ts",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/check4.test.ts",
+          "contains": "toBe(2)",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bun",
+        "javascript",
+        "tests",
+        "runtime"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"bun-app-4\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"bun run src/index.ts\"\n  }\n}\n",
+        "src/index.ts": " console.log('bun app 4');\n"
+      }
+    },
+    {
+      "id": "bun-script-05",
+      "name": "Bun package script 5",
+      "prompt": "Add a package.json script 'check5' that runs 'bun test tests/check5.test.ts'. Create that test file asserting expect(1+1).toBe(2).",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "check5",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "package.json",
+          "contains": "tests/check5.test.ts",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/check5.test.ts",
+          "contains": "toBe(2)",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bun",
+        "javascript",
+        "tests",
+        "runtime"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\n  \"name\": \"bun-app-5\",\n  \"type\": \"module\",\n  \"scripts\": {\n    \"dev\": \"bun run src/index.ts\"\n  }\n}\n",
+        "src/index.ts": " console.log('bun app 5');\n"
+      }
+    },
+    {
+      "id": "bun-fetch-client-01",
+      "name": "Bun HTTP client 1",
+      "prompt": "Create src/client1.ts exporting async function fetchUser(id: string) that calls fetch(`/api/users/${id}`) and returns response.json().",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/client1.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/client1.ts",
+          "contains": "fetchUser",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/client1.ts",
+          "contains": "/api/users/",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bun",
+        "typescript",
+        "api"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\"name\":\"client\",\"type\":\"module\"}\n",
+        "src/index.ts": "export {};\n"
+      }
+    },
+    {
+      "id": "bun-fetch-client-02",
+      "name": "Bun HTTP client 2",
+      "prompt": "Create src/client2.ts exporting async function fetchUser(id: string) that calls fetch(`/api/users/${id}`) and returns response.json().",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/client2.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/client2.ts",
+          "contains": "fetchUser",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/client2.ts",
+          "contains": "/api/users/",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bun",
+        "typescript",
+        "api"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\"name\":\"client\",\"type\":\"module\"}\n",
+        "src/index.ts": "export {};\n"
+      }
+    },
+    {
+      "id": "bun-fetch-client-03",
+      "name": "Bun HTTP client 3",
+      "prompt": "Create src/client3.ts exporting async function fetchUser(id: string) that calls fetch(`/api/users/${id}`) and returns response.json().",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/client3.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/client3.ts",
+          "contains": "fetchUser",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/client3.ts",
+          "contains": "/api/users/",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bun",
+        "typescript",
+        "api"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "package.json": "{\"name\":\"client\",\"type\":\"module\"}\n",
+        "src/index.ts": "export {};\n"
+      }
+    },
+    {
+      "id": "codex-tool-schema-01",
+      "name": "Agent tool schema 1",
+      "prompt": "Create tools/fs_read_1.json describing an agent tool with name \"fs_read_1\", description \"Read a file\", and parameters object requiring \"path\" string.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tools/fs_read_1.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tools/fs_read_1.json",
+          "contains": "fs_read_1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tools/fs_read_1.json",
+          "contains": "path",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "codex",
+        "agent",
+        "cli",
+        "tools"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {
+        "README.md": "# agent workspace\n",
+        "AGENTS.md": "You are a coding agent. Use tools. Verify before done.\n"
+      }
+    },
+    {
+      "id": "codex-tool-schema-02",
+      "name": "Agent tool schema 2",
+      "prompt": "Create tools/fs_read_2.json describing an agent tool with name \"fs_read_2\", description \"Read a file\", and parameters object requiring \"path\" string.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tools/fs_read_2.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tools/fs_read_2.json",
+          "contains": "fs_read_2",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tools/fs_read_2.json",
+          "contains": "path",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "codex",
+        "agent",
+        "cli",
+        "tools"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {
+        "README.md": "# agent workspace\n",
+        "AGENTS.md": "You are a coding agent. Use tools. Verify before done.\n"
+      }
+    },
+    {
+      "id": "codex-tool-schema-03",
+      "name": "Agent tool schema 3",
+      "prompt": "Create tools/fs_read_3.json describing an agent tool with name \"fs_read_3\", description \"Read a file\", and parameters object requiring \"path\" string.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tools/fs_read_3.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tools/fs_read_3.json",
+          "contains": "fs_read_3",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tools/fs_read_3.json",
+          "contains": "path",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "codex",
+        "agent",
+        "cli",
+        "tools"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {
+        "README.md": "# agent workspace\n",
+        "AGENTS.md": "You are a coding agent. Use tools. Verify before done.\n"
+      }
+    },
+    {
+      "id": "codex-tool-schema-04",
+      "name": "Agent tool schema 4",
+      "prompt": "Create tools/fs_read_4.json describing an agent tool with name \"fs_read_4\", description \"Read a file\", and parameters object requiring \"path\" string.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tools/fs_read_4.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tools/fs_read_4.json",
+          "contains": "fs_read_4",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tools/fs_read_4.json",
+          "contains": "path",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "codex",
+        "agent",
+        "cli",
+        "tools"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {
+        "README.md": "# agent workspace\n",
+        "AGENTS.md": "You are a coding agent. Use tools. Verify before done.\n"
+      }
+    },
+    {
+      "id": "codex-verify-gate-01",
+      "name": "Agent verify-before-done 1",
+      "prompt": "Create scripts/verify_1.sh that exits 0 and echoes OK_1. Create VERIFY.md stating the verification command is ./scripts/verify_1.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/verify_1.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/verify_1.sh",
+          "contains": "OK_1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY.md",
+          "contains": "./scripts/verify_1.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "codex",
+        "agent",
+        "verify",
+        "cli"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "AGENTS.md": "Always verify with a script before finishing.\n"
+      }
+    },
+    {
+      "id": "codex-verify-gate-02",
+      "name": "Agent verify-before-done 2",
+      "prompt": "Create scripts/verify_2.sh that exits 0 and echoes OK_2. Create VERIFY.md stating the verification command is ./scripts/verify_2.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/verify_2.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/verify_2.sh",
+          "contains": "OK_2",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY.md",
+          "contains": "./scripts/verify_2.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "codex",
+        "agent",
+        "verify",
+        "cli"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "AGENTS.md": "Always verify with a script before finishing.\n"
+      }
+    },
+    {
+      "id": "codex-verify-gate-03",
+      "name": "Agent verify-before-done 3",
+      "prompt": "Create scripts/verify_3.sh that exits 0 and echoes OK_3. Create VERIFY.md stating the verification command is ./scripts/verify_3.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/verify_3.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/verify_3.sh",
+          "contains": "OK_3",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY.md",
+          "contains": "./scripts/verify_3.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "codex",
+        "agent",
+        "verify",
+        "cli"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "AGENTS.md": "Always verify with a script before finishing.\n"
+      }
+    },
+    {
+      "id": "ide-rename-symbol-01",
+      "name": "Cross-file rename 1",
+      "prompt": "Rename exported function oldName1 to newName1 in src/lib.ts and update the import/usage in src/app.ts.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "src/lib.ts",
+          "contains": "newName1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "src/lib.ts",
+          "contains": "oldName1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/app.ts",
+          "contains": "newName1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "src/app.ts",
+          "contains": "oldName1",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "ide",
+        "refactor",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "src/lib.ts": "export function oldName1(): number {\n  return 1;\n}\n",
+        "src/app.ts": "import { oldName1 } from './lib';\nexport const value = oldName1();\n"
+      }
+    },
+    {
+      "id": "ide-rename-symbol-02",
+      "name": "Cross-file rename 2",
+      "prompt": "Rename exported function oldName2 to newName2 in src/lib.ts and update the import/usage in src/app.ts.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "src/lib.ts",
+          "contains": "newName2",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "src/lib.ts",
+          "contains": "oldName2",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/app.ts",
+          "contains": "newName2",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "src/app.ts",
+          "contains": "oldName2",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "ide",
+        "refactor",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "src/lib.ts": "export function oldName2(): number {\n  return 2;\n}\n",
+        "src/app.ts": "import { oldName2 } from './lib';\nexport const value = oldName2();\n"
+      }
+    },
+    {
+      "id": "ide-rename-symbol-03",
+      "name": "Cross-file rename 3",
+      "prompt": "Rename exported function oldName3 to newName3 in src/lib.ts and update the import/usage in src/app.ts.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "src/lib.ts",
+          "contains": "newName3",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "src/lib.ts",
+          "contains": "oldName3",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/app.ts",
+          "contains": "newName3",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "src/app.ts",
+          "contains": "oldName3",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "ide",
+        "refactor",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "src/lib.ts": "export function oldName3(): number {\n  return 3;\n}\n",
+        "src/app.ts": "import { oldName3 } from './lib';\nexport const value = oldName3();\n"
+      }
+    },
+    {
+      "id": "restraint-review-01",
+      "name": "Review-only no edit 1",
+      "prompt": "Question only (1): In one sentence, why should an IDE agent prefer apply_patch over rewriting whole files? Do not create or edit files.",
+      "checks": [],
+      "tags": [
+        "review",
+        "restraint",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "restraint-review-02",
+      "name": "Review-only no edit 2",
+      "prompt": "Question only (2): In one sentence, why should an IDE agent prefer apply_patch over rewriting whole files? Do not create or edit files.",
+      "checks": [],
+      "tags": [
+        "review",
+        "restraint",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "restraint-review-03",
+      "name": "Review-only no edit 3",
+      "prompt": "Question only (3): In one sentence, why should an IDE agent prefer apply_patch over rewriting whole files? Do not create or edit files.",
+      "checks": [],
+      "tags": [
+        "review",
+        "restraint",
+        "ide"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    }
+  ]
+}

@@ -1,0 +1,1623 @@
+{
+  "name": "sonecbench-v1",
+  "version": "1.0.0",
+  "sealed": true,
+  "description": "Private SonecBench v1 \u2014 decision metric for coding-specialist training. Do not train on these task ids.",
+  "task_count": 50,
+  "tasks": [
+    {
+      "id": "bug-off-by-one-01",
+      "name": "Off-by-one fix 1",
+      "prompt": "util_1.py has a range bug. Ensure count_to(n) returns list(range(n)) not range(n+1).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "util_1.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "util_1.py",
+          "contains": "def count_to",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "util_1.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bugfix",
+        "python"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "util_1.py": "def count_to(n: int) -> list[int]:\n    return list(range(n + 1))  # bug\n"
+      }
+    },
+    {
+      "id": "bug-off-by-one-02",
+      "name": "Off-by-one fix 2",
+      "prompt": "util_2.py has a range bug. Ensure count_to(n) returns list(range(n)) not range(n+1).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "util_2.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "util_2.py",
+          "contains": "def count_to",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "util_2.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bugfix",
+        "python"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "util_2.py": "def count_to(n: int) -> list[int]:\n    return list(range(n + 1))  # bug\n"
+      }
+    },
+    {
+      "id": "bug-off-by-one-03",
+      "name": "Off-by-one fix 3",
+      "prompt": "util_3.py has a range bug. Ensure count_to(n) returns list(range(n)) not range(n+1).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "util_3.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "util_3.py",
+          "contains": "def count_to",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "util_3.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bugfix",
+        "python"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "util_3.py": "def count_to(n: int) -> list[int]:\n    return list(range(n + 1))  # bug\n"
+      }
+    },
+    {
+      "id": "bug-off-by-one-04",
+      "name": "Off-by-one fix 4",
+      "prompt": "util_4.py has a range bug. Ensure count_to(n) returns list(range(n)) not range(n+1).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "util_4.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "util_4.py",
+          "contains": "def count_to",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "util_4.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bugfix",
+        "python"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "util_4.py": "def count_to(n: int) -> list[int]:\n    return list(range(n + 1))  # bug\n"
+      }
+    },
+    {
+      "id": "bug-off-by-one-05",
+      "name": "Off-by-one fix 5",
+      "prompt": "util_5.py has a range bug. Ensure count_to(n) returns list(range(n)) not range(n+1).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "util_5.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "util_5.py",
+          "contains": "def count_to",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "util_5.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bugfix",
+        "python"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "util_5.py": "def count_to(n: int) -> list[int]:\n    return list(range(n + 1))  # bug\n"
+      }
+    },
+    {
+      "id": "bug-off-by-one-06",
+      "name": "Off-by-one fix 6",
+      "prompt": "util_6.py has a range bug. Ensure count_to(n) returns list(range(n)) not range(n+1).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "util_6.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "util_6.py",
+          "contains": "def count_to",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "util_6.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bugfix",
+        "python"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "util_6.py": "def count_to(n: int) -> list[int]:\n    return list(range(n + 1))  # bug\n"
+      }
+    },
+    {
+      "id": "bug-off-by-one-07",
+      "name": "Off-by-one fix 7",
+      "prompt": "util_7.py has a range bug. Ensure count_to(n) returns list(range(n)) not range(n+1).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "util_7.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "util_7.py",
+          "contains": "def count_to",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "util_7.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bugfix",
+        "python"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "util_7.py": "def count_to(n: int) -> list[int]:\n    return list(range(n + 1))  # bug\n"
+      }
+    },
+    {
+      "id": "bug-off-by-one-08",
+      "name": "Off-by-one fix 8",
+      "prompt": "util_8.py has a range bug. Ensure count_to(n) returns list(range(n)) not range(n+1).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "util_8.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "util_8.py",
+          "contains": "def count_to",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "util_8.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bugfix",
+        "python"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "util_8.py": "def count_to(n: int) -> list[int]:\n    return list(range(n + 1))  # bug\n"
+      }
+    },
+    {
+      "id": "bug-off-by-one-09",
+      "name": "Off-by-one fix 9",
+      "prompt": "util_9.py has a range bug. Ensure count_to(n) returns list(range(n)) not range(n+1).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "util_9.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "util_9.py",
+          "contains": "def count_to",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "util_9.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bugfix",
+        "python"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "util_9.py": "def count_to(n: int) -> list[int]:\n    return list(range(n + 1))  # bug\n"
+      }
+    },
+    {
+      "id": "bug-off-by-one-10",
+      "name": "Off-by-one fix 10",
+      "prompt": "util_10.py has a range bug. Ensure count_to(n) returns list(range(n)) not range(n+1).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "util_10.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "util_10.py",
+          "contains": "def count_to",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "util_10.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "bugfix",
+        "python"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {
+        "util_10.py": "def count_to(n: int) -> list[int]:\n    return list(range(n + 1))  # bug\n"
+      }
+    },
+    {
+      "id": "feat-config-01",
+      "name": "Add config flag 1",
+      "prompt": "Add config/feature_1.json with enabled true for feature 1.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/feature_1.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/feature_1.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "feature",
+        "config"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "feat-config-02",
+      "name": "Add config flag 2",
+      "prompt": "Add config/feature_2.json with enabled true for feature 2.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/feature_2.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/feature_2.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "feature",
+        "config"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "feat-config-03",
+      "name": "Add config flag 3",
+      "prompt": "Add config/feature_3.json with enabled true for feature 3.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/feature_3.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/feature_3.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "feature",
+        "config"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "feat-config-04",
+      "name": "Add config flag 4",
+      "prompt": "Add config/feature_4.json with enabled true for feature 4.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/feature_4.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/feature_4.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "feature",
+        "config"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "feat-config-05",
+      "name": "Add config flag 5",
+      "prompt": "Add config/feature_5.json with enabled true for feature 5.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/feature_5.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/feature_5.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "feature",
+        "config"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "feat-config-06",
+      "name": "Add config flag 6",
+      "prompt": "Add config/feature_6.json with enabled true for feature 6.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/feature_6.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/feature_6.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "feature",
+        "config"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "feat-config-07",
+      "name": "Add config flag 7",
+      "prompt": "Add config/feature_7.json with enabled true for feature 7.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/feature_7.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/feature_7.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "feature",
+        "config"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "feat-config-08",
+      "name": "Add config flag 8",
+      "prompt": "Add config/feature_8.json with enabled true for feature 8.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/feature_8.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/feature_8.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "feature",
+        "config"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "refactor-split-01",
+      "name": "Split module 1",
+      "prompt": "Create pkg1/core.py with helper() and pkg1/__init__.py exporting it.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg1/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg1/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg1/core.py",
+          "contains": "def helper",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg1/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "refactor",
+        "architecture"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "refactor-split-02",
+      "name": "Split module 2",
+      "prompt": "Create pkg2/core.py with helper() and pkg2/__init__.py exporting it.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg2/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg2/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg2/core.py",
+          "contains": "def helper",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg2/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "refactor",
+        "architecture"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "refactor-split-03",
+      "name": "Split module 3",
+      "prompt": "Create pkg3/core.py with helper() and pkg3/__init__.py exporting it.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg3/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg3/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg3/core.py",
+          "contains": "def helper",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg3/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "refactor",
+        "architecture"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "refactor-split-04",
+      "name": "Split module 4",
+      "prompt": "Create pkg4/core.py with helper() and pkg4/__init__.py exporting it.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg4/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg4/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg4/core.py",
+          "contains": "def helper",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg4/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "refactor",
+        "architecture"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "refactor-split-05",
+      "name": "Split module 5",
+      "prompt": "Create pkg5/core.py with helper() and pkg5/__init__.py exporting it.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg5/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg5/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg5/core.py",
+          "contains": "def helper",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg5/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "refactor",
+        "architecture"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "refactor-split-06",
+      "name": "Split module 6",
+      "prompt": "Create pkg6/core.py with helper() and pkg6/__init__.py exporting it.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg6/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg6/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg6/core.py",
+          "contains": "def helper",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg6/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "refactor",
+        "architecture"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "test-add-01",
+      "name": "Add tests 1",
+      "prompt": "Add tests/test_mod_1.py with test_truth asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_mod_1.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_mod_1.py",
+          "contains": "def test_truth",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_mod_1.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "test-add-02",
+      "name": "Add tests 2",
+      "prompt": "Add tests/test_mod_2.py with test_truth asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_mod_2.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_mod_2.py",
+          "contains": "def test_truth",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_mod_2.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "test-add-03",
+      "name": "Add tests 3",
+      "prompt": "Add tests/test_mod_3.py with test_truth asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_mod_3.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_mod_3.py",
+          "contains": "def test_truth",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_mod_3.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "test-add-04",
+      "name": "Add tests 4",
+      "prompt": "Add tests/test_mod_4.py with test_truth asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_mod_4.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_mod_4.py",
+          "contains": "def test_truth",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_mod_4.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "test-add-05",
+      "name": "Add tests 5",
+      "prompt": "Add tests/test_mod_5.py with test_truth asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_mod_5.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_mod_5.py",
+          "contains": "def test_truth",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_mod_5.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "test-add-06",
+      "name": "Add tests 6",
+      "prompt": "Add tests/test_mod_6.py with test_truth asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_mod_6.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_mod_6.py",
+          "contains": "def test_truth",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_mod_6.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "secure-secret-01",
+      "name": "Remove secret 1",
+      "prompt": "Create secure_1.py without password= literals; use env.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "secure_1.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "secure_1.py",
+          "contains": "password=",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "secure_1.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "security",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "secure-secret-02",
+      "name": "Remove secret 2",
+      "prompt": "Create secure_2.py without password= literals; use env.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "secure_2.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "secure_2.py",
+          "contains": "password=",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "secure_2.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "security",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "secure-secret-03",
+      "name": "Remove secret 3",
+      "prompt": "Create secure_3.py without password= literals; use env.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "secure_3.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "secure_3.py",
+          "contains": "password=",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "secure_3.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "security",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "secure-secret-04",
+      "name": "Remove secret 4",
+      "prompt": "Create secure_4.py without password= literals; use env.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "secure_4.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "secure_4.py",
+          "contains": "password=",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "secure_4.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "security",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "secure-secret-05",
+      "name": "Remove secret 5",
+      "prompt": "Create secure_5.py without password= literals; use env.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "secure_5.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "secure_5.py",
+          "contains": "password=",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "secure_5.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "security",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "migrate-rename-01",
+      "name": "Migration rename 1",
+      "prompt": "Create migrations/0001_init.sql containing CREATE TABLE items.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "migrations/0001_init.sql",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "migrations/0001_init.sql",
+          "contains": "CREATE TABLE items",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "migration"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "migrate-rename-02",
+      "name": "Migration rename 2",
+      "prompt": "Create migrations/0002_init.sql containing CREATE TABLE items.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "migrations/0002_init.sql",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "migrations/0002_init.sql",
+          "contains": "CREATE TABLE items",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "migration"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "migrate-rename-03",
+      "name": "Migration rename 3",
+      "prompt": "Create migrations/0003_init.sql containing CREATE TABLE items.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "migrations/0003_init.sql",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "migrations/0003_init.sql",
+          "contains": "CREATE TABLE items",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "migration"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "migrate-rename-04",
+      "name": "Migration rename 4",
+      "prompt": "Create migrations/0004_init.sql containing CREATE TABLE items.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "migrations/0004_init.sql",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "migrations/0004_init.sql",
+          "contains": "CREATE TABLE items",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "migration"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "debug-log-01",
+      "name": "Debug from log 1",
+      "prompt": "logs/fail_1.txt shows KeyError. Write fix_1.py defining safe_get(d, k).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_1.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_1.py",
+          "contains": "def safe_get",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_1.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "debug",
+        "logs"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "logs/fail_1.txt": "KeyError: missing key on path 1\n"
+      }
+    },
+    {
+      "id": "debug-log-02",
+      "name": "Debug from log 2",
+      "prompt": "logs/fail_2.txt shows KeyError. Write fix_2.py defining safe_get(d, k).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_2.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_2.py",
+          "contains": "def safe_get",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_2.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "debug",
+        "logs"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "logs/fail_2.txt": "KeyError: missing key on path 2\n"
+      }
+    },
+    {
+      "id": "debug-log-03",
+      "name": "Debug from log 3",
+      "prompt": "logs/fail_3.txt shows KeyError. Write fix_3.py defining safe_get(d, k).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_3.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_3.py",
+          "contains": "def safe_get",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_3.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "debug",
+        "logs"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "logs/fail_3.txt": "KeyError: missing key on path 3\n"
+      }
+    },
+    {
+      "id": "debug-log-04",
+      "name": "Debug from log 4",
+      "prompt": "logs/fail_4.txt shows KeyError. Write fix_4.py defining safe_get(d, k).",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_4.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_4.py",
+          "contains": "def safe_get",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_4.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "debug",
+        "logs"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "logs/fail_4.txt": "KeyError: missing key on path 4\n"
+      }
+    },
+    {
+      "id": "restraint-q-01",
+      "name": "Question only 1",
+      "prompt": "In one sentence, what is a regression test? (question 1; do not edit files)",
+      "checks": [],
+      "tags": [
+        "review",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "restraint-q-02",
+      "name": "Question only 2",
+      "prompt": "In one sentence, what is a regression test? (question 2; do not edit files)",
+      "checks": [],
+      "tags": [
+        "review",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "restraint-q-03",
+      "name": "Question only 3",
+      "prompt": "In one sentence, what is a regression test? (question 3; do not edit files)",
+      "checks": [],
+      "tags": [
+        "review",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "restraint-q-04",
+      "name": "Question only 4",
+      "prompt": "In one sentence, what is a regression test? (question 4; do not edit files)",
+      "checks": [],
+      "tags": [
+        "review",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "docs-readme-48",
+      "name": "Docs stub 48",
+      "prompt": "Create docs/note_48.md mentioning SONEC.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "docs/note_48.md",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "docs/note_48.md",
+          "contains": "SONEC",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "docs"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "docs-readme-49",
+      "name": "Docs stub 49",
+      "prompt": "Create docs/note_49.md mentioning SONEC.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "docs/note_49.md",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "docs/note_49.md",
+          "contains": "SONEC",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "docs"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "docs-readme-50",
+      "name": "Docs stub 50",
+      "prompt": "Create docs/note_50.md mentioning SONEC.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "docs/note_50.md",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "docs/note_50.md",
+          "contains": "SONEC",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "docs"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    }
+  ]
+}

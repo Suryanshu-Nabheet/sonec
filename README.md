@@ -1,84 +1,60 @@
-# SONEC
+# sonec
 
-**Senior Open-source Neural Engineering Companion**
+**Coding-agent model** on **Qwen 3.5 (2B)** — specialize it for tool use,
+minimal diffs, and verify-before-done inside a frozen harness. Embed via CLI, HTTP, or MCP.
 
 [![CI](https://github.com/Suryanshu-Nabheet/sonec/actions/workflows/ci.yml/badge.svg)](https://github.com/Suryanshu-Nabheet/sonec/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-SONEC is the **apex open-source agentic software-engineering system** — the operating layer that turns frontier models into staff-level engineering partners.
+## Stack
 
-Built to lead the agentic era: prebuilt operator rules, progressive skills, multi-phase orchestration, verification gates, critique, sandboxed tools, and benchmark posture — end to end.
-
-Powered by [Kimi K3](https://www.moonshot.ai/) as the default reasoning engine. Extensible to any OpenAI-compatible provider.
-
-**Repository:** [github.com/Suryanshu-Nabheet/sonec](https://github.com/Suryanshu-Nabheet/sonec)
-
-## What SONEC is
-
-| Layer | Capability |
+| Piece | Detail |
 | --- | --- |
-| **Prebuilt rules** | Production operator standards — constitution, process, git, design, security |
-| **Skills** | Progressive expertise — SE, debug, TDD, review, security, design-eng, SWE benchmarks |
-| **Context assembler** | Goal-conditioned intelligence assembly for every run |
-| **Orchestrator** | `RECON → PLAN → EXECUTE → VERIFY → CRITIQUE → DELIVER` |
-| **Critic** | Evidence-gated completion — verified work only |
-| **Tools** | Sandboxed filesystem, terminal, git, index, memory, skills/rules meta tools |
-| **Eval & training** | Task suites, grading, trajectory datasets for continuous ascent |
-
-## Package layout
-
-```
-sonec/
-  harness/             ← multi-phase orchestrator (core)
-  rules/prebuilt/      ← shipped operating rules
-  skills/              ← progressive expertise packs
-  agent/ tools/ …      ← runtime primitives
-tests/ docs/ examples/
-```
+| Base | Qwen 3.5 2B (`Qwen/Qwen3.5-2B` / `qwen3.5:2b`) — Apache-2.0 |
+| Product | `sonec` (specialized checkpoint / served name) |
+| Code | MIT — see [LICENSE](LICENSE) + [NOTICE](NOTICE) |
+| Inference | Any OpenAI-compatible endpoint (`SONEC_BASE_URL`) |
 
 ## Install
 
 ```bash
 git clone https://github.com/Suryanshu-Nabheet/sonec.git
 cd sonec
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev,train]"
+cp .env.example .env   # set SONEC_BASE_URL to your local/remote OpenAI-compatible server
 ```
 
-## Quick start
+Serve `qwen3.5:2b` (or `sonec` after specialization) on that endpoint, then:
 
 ```bash
-sonec skills
-sonec rules
-sonec run "Summarize this repository" --mock
-
-# Full offline harness benchmark (must be 100%)
-sonec bench --mock
-
-export MOONSHOT_API_KEY=sk-...
-sonec run "Fix the failing tests and verify" -w .
-sonec bench --live   # real model against the suite
+sonec doctor
+sonec run "Fix the failing test and verify" -w .
 ```
 
-## Prebuilt rules
+## Small training steps (iterate)
 
-First-class product assets under `sonec/rules/prebuilt/` (`prebuilt/<id>`).
+Do not start with a giant run. One step, review, repeat:
 
-- **Always-on:** engineering constitution, Suryanshu guidelines, git safety  
-- **Conditional:** design, animation, enterprise web, security — activated by goal  
+```bash
+sonec train --step --sft-iters 80 --gold-n 40 --train-n 16
+# later: raise iters / train-n; keep sealed SonecBench / WorldBench out of training
+```
 
-Full bodies via `rules_load`.
+## Surfaces
+
+```bash
+sonec serve    # HTTP agent gateway
+sonec mcp      # IDE MCP stdio
+```
 
 ## Docs
 
-- [Architecture](docs/architecture.md)
 - [Getting started](docs/getting-started.md)
-- [Constitution](target.md)
-- [Contributing](CONTRIBUTING.md)
-- [Security](SECURITY.md)
+- [Architecture](docs/architecture.md)
+- [Training gate](docs/GATE_REPORT_MODEL_STACK.md)
+- [NOTICE](NOTICE) — Qwen Apache-2.0 + MIT obligations
 
 ## License
 
-MIT © Suryanshu Nabheet
+MIT © Suryanshu Nabheet — tooling. Base weights: Qwen Apache-2.0 (see NOTICE).

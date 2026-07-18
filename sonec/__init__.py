@@ -1,10 +1,9 @@
-"""SONEC — Senior Open-source Neural Engineering Companion.
+"""sonec — coding-agent model on Qwen 3.5 (2B).
 
-Apex open-source agentic software-engineering system.
-Default reasoning engine: Kimi K3. Extensible to OpenAI-compatible providers.
+Default: local OpenAI-compatible inference for product model ``sonec``.
 """
 
 from __future__ import annotations
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 __all__ = ["__version__"]

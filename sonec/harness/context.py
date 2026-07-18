@@ -1,78 +1,63 @@
-"""Context assembler — builds the advanced system prompt from rules + skills + repo."""
+"""Thin production system prompt — skills/rules load on demand."""
 
 from __future__ import annotations
 
+from sonec.harness.versioning import HARNESS_VERSION
 from sonec.indexing.index import RepositoryIndex
-from sonec.rules.engine import RulesEngine
 from sonec.skills.registry import SkillsRegistry
 
-BASE_IDENTITY = """You are SONEC (Senior Open-source Neural Engineering Companion),
-the apex agentic software-engineering system by Suryanshu Nabheet.
+# Hard cap for always-on identity (Phase 0). Skills are progressive, not dumped.
+MAX_ALWAYS_ON_CHARS = 3500
 
-You are the operating layer of elite software work: prebuilt rules, progressive
-skills, multi-phase orchestration, verification gates, critique, and sandboxed
-tools — assembled into one coherent engineering companion.
+THIN_IDENTITY = f"""You are sonec v{HARNESS_VERSION} — a coding-agent model on Qwen 3.5.
+Agentic software engineering for IDEs and CLIs. Prefer minimal diffs.
 
-Default reasoning engine: Kimi K3 (Moonshot). Your mandate is staff-level
-execution: localize precisely, patch minimally, verify with evidence, deliver
-production-grade outcomes that set the standard for agentic coding.
+Contract:
+1. Inspect with tools before editing (index/search/read).
+2. Prefer fs_edit over full rewrites; stay inside the workspace.
+3. Verify with terminal commands/tests before finishing — evidence required.
+4. Never invent file contents you have not read.
+5. When done, summarize paths changed and exact verification evidence.
+6. Question-only asks: answer; do not edit files.
+7. Be precise and production-grade.
+
+Tool families: filesystem, terminal, git, repository index.
 """
 
 
 class ContextAssembler:
     def __init__(
         self,
-        rules: RulesEngine,
-        skills: SkillsRegistry,
+        skills: SkillsRegistry | None = None,
         *,
         index: RepositoryIndex | None = None,
+        max_chars: int = MAX_ALWAYS_ON_CHARS,
     ) -> None:
-        self.rules = rules
-        self.skills = skills
+        self.skills = skills or SkillsRegistry()
         self.index = index
+        self.max_chars = max_chars
 
-    def build_system_prompt(self, goal: str) -> str:
-        sections = [
-            BASE_IDENTITY,
-            self.rules.render(goal),
-            self.skills.render(goal),
-            self._repo_brief(),
-            self._tooling_brief(),
-            self._phase_contract(),
-        ]
-        return "\n\n---\n\n".join(section.strip() for section in sections if section.strip())
-
-    def _repo_brief(self) -> str:
-        if self.index is None:
-            return "# Repository\n\nIndex not yet built. Call `index_build` early in recon."
-        if not self.index.files:
-            self.index.build()
-        summary = self.index.summary()
-        sample = sorted(self.index.files.keys())[:40]
-        lines = [
-            "# Repository brief",
-            f"- root: `{summary.get('root')}`",
-            f"- files indexed: {summary.get('file_count')}",
-            f"- languages: {summary.get('languages')}",
-            "- sample paths:",
-            *[f"  - `{p}`" for p in sample],
-        ]
-        return "\n".join(lines)
-
-    def _tooling_brief(self) -> str:
-        return """# Tools
-Filesystem: fs_list, fs_read, fs_write, fs_edit, fs_search
-Terminal: terminal_run (network blocked by default)
-Git: git_status, git_diff, git_log, git_branch
-Index: index_build, index_search, index_symbols
-Memory: memory_note, memory_search
-Meta: skills_list, skills_load, rules_list, rules_load
-Use meta tools to pull full skill/rule bodies when activation was incomplete.
-"""
-
-    def _phase_contract(self) -> str:
-        return """# Phase contract (orchestrator)
-You will be driven through phases: RECON → PLAN → EXECUTE → VERIFY → CRITIQUE → DELIVER.
-In each phase, obey the phase instruction in the user message.
-Do not skip VERIFY. Do not DELIVER without verification evidence (or an explicit blocker).
-"""
+    def build_system_prompt(self, goal: str = "") -> str:
+        parts = [THIN_IDENTITY.strip()]
+        # Progressive skill titles only (not full bodies) — durable skill → weights later.
+        activations = self.skills.activate(goal or "software engineering", limit=3)
+        if activations:
+            catalog = "; ".join(
+                f"{a.skill.id} ({a.skill.description[:60]})" for a in activations
+            )
+            parts.append(f"Suggested skills (load if needed): {catalog}")
+        if self.index is not None:
+            if not self.index.files:
+                try:
+                    self.index.build()
+                except Exception:  # noqa: BLE001
+                    pass
+            if self.index.files:
+                summary = self.index.summary()
+                parts.append(
+                    f"Repo: {summary.get('file_count')} files, langs={summary.get('languages')}"
+                )
+        text = "\n\n".join(parts)
+        if len(text) > self.max_chars:
+            return text[: self.max_chars] + "\n[prompt truncated]"
+        return text

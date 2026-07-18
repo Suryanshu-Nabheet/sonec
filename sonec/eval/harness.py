@@ -32,7 +32,7 @@ class EvalTask(BaseModel):
     tags: list[str] = Field(default_factory=list)
     timeout_s: float = 300.0
     difficulty: str = "easy"
-
+    seed_files: dict[str, str] = Field(default_factory=dict)
 
 class EvalResult(BaseModel):
     task_id: str
@@ -101,12 +101,16 @@ class EvalHarness:
                 details.append(f"FAIL {check.kind}: {label}")
         total = max(len(task.checks), 1)
         if not task.checks:
-            score = 1.0 if agent_result.success else 0.0
-            passed = agent_result.success
-            details.append("No checks defined; used agent success flag")
+            # Question-only / no-edit: environment evidence is "completed turn".
+            score = 1.0 if agent_result.completed else 0.0
+            passed = bool(agent_result.completed)
+            details.append("No file checks; evidence=completed turn")
         else:
             score = passed_checks / total
             passed = passed_checks == total
+        # Success is environment evidence only — never model self-report.
+        agent_result.evidence_success = passed
+        agent_result.success = passed
         return EvalResult(
             task_id=task.id,
             passed=passed,
@@ -156,8 +160,16 @@ class EvalHarness:
             return True
         raise EvalError(f"Unknown check kind: {check.kind}")
 
+    def apply_seeds(self, task: EvalTask) -> None:
+        """Materialize held-out seed files before the agent runs."""
+        for rel, content in task.seed_files.items():
+            path = self.workspace / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
+
     async def run_task(self, task: EvalTask, agent: RunnableAgent) -> EvalResult:
         started = time.perf_counter()
+        self.apply_seeds(task)
         agent_result = await agent.run(task.prompt)
         graded = await self.grade(task, agent_result)
         graded.duration_s = time.perf_counter() - started
@@ -223,33 +235,50 @@ def mock_provider_for_task(task: EvalTask) -> MockProvider:
             "python_parses",
         }:
             continue
-        meta = targets.setdefault(check.path, {})
+        meta = targets.setdefault(
+            check.path,
+            {"contains_all": [], "not_contains": [], "exists": True, "python": False},
+        )
         if check.kind == "file_contains" and check.contains is not None:
-            meta["contains"] = check.contains
+            meta["contains_all"].append(check.contains)
         if check.kind == "file_not_contains" and check.contains is not None:
-            meta["not_contains"] = check.contains
+            meta["not_contains"].append(check.contains)
         if check.kind == "python_parses":
             meta["python"] = True
         meta["exists"] = True
 
     scripted: list[Message] = []
     for index, (path, meta) in enumerate(targets.items(), start=1):
-        contains = meta.get("contains")
-        not_contains = meta.get("not_contains")
+        contains_all: list[str] = list(meta.get("contains_all") or [])
+        not_contains_list: list[str] = list(meta.get("not_contains") or [])
         if meta.get("python"):
-            if contains and contains.startswith("def "):
-                name = contains.removeprefix("def ").split("(")[0].strip() or "main"
+            primary = next((c for c in contains_all if c.startswith("def ")), None)
+            if primary:
+                name = primary.removeprefix("def ").split("(")[0].strip() or "main"
                 content = f"def {name}() -> str:\n    return 'hello'\n"
-            elif contains:
-                content = f"# {contains}\ndef main() -> None:\n    return None\n"
+            elif contains_all:
+                joined = "\n".join(f"# {c}" for c in contains_all)
+                content = f"{joined}\ndef main() -> None:\n    return None\n"
             else:
                 content = "def main() -> None:\n    return None\n"
-        elif contains is not None:
-            content = contains if contains.endswith("\n") else f"{contains}\n"
+            for needle in contains_all:
+                if needle not in content:
+                    content = f"# {needle}\n" + content
+        elif path.endswith(".json"):
+            # Merge all required substrings into a JSON-ish document.
+            blob = " ".join(contains_all) if contains_all else "sonec"
+            content = "{\n"
+            for i, needle in enumerate(contains_all or ["sonec"]):
+                content += f'  "k{i}": "{needle}",\n'
+            content += f'  "note": "{blob}"\n}}\n'
+        elif contains_all:
+            # Ensure every required substring appears.
+            content = "\n".join(contains_all) + "\n"
         else:
             content = "sonec\n"
-        if not_contains and not_contains in content:
-            content = content.replace(not_contains, "")
+        for banned in not_contains_list:
+            if banned in content:
+                content = content.replace(banned, "")
             if not content.strip():
                 content = "clean\n"
         scripted.append(

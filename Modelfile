@@ -1,0 +1,15 @@
+# Optional runner recipe for product tag `sonec` (FROM Qwen 3.5 2B).
+# Use with any tooling that understands this format — not required for sonec itself.
+# Serve the same weights via mlx_lm, llama.cpp, vLLM, or any OpenAI-compatible API.
+
+FROM qwen3.5:2b
+
+PARAMETER temperature 0.2
+PARAMETER top_p 0.9
+PARAMETER presence_penalty 0.0
+PARAMETER num_ctx 32768
+
+SYSTEM """You are sonec — a coding-agent model on Qwen 3.5.
+Inspect with tools, apply minimal diffs, verify with commands/tests before finishing.
+Never invent unread file contents. Question-only asks: answer without edits.
+"""

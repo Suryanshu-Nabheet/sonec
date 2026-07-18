@@ -33,6 +33,9 @@ async def test_agent_tool_loop(tmp_path: Path) -> None:
     settings = load_settings(workspace=tmp_path, provider="mock", max_iterations=5)
     agent, *_ = build_agent(settings=settings, provider=provider, persist_memory=False)
     result = await agent.run("Write out.txt with done")
-    assert result.success
+    assert result.completed
+    assert result.success is False  # success requires environment grading
     assert (tmp_path / "out.txt").read_text() == "done"
     assert result.iterations == 2
+    assert result.harness_version
+    assert result.tool_schema_hash

@@ -1,0 +1,23 @@
+# Optional open-source corpora for hard live workspaces
+root: corpora
+repos:
+  - id: vscode-extension-samples
+    url: https://github.com/microsoft/vscode-extension-samples.git
+    ref: main
+    depth: 1
+    notes: Official VS Code extension samples — IDE agent surface
+  - id: openai-codex
+    url: https://github.com/openai/codex.git
+    ref: main
+    depth: 1
+    notes: OpenAI Codex CLI — agent CLI patterns
+  - id: oven-bun
+    url: https://github.com/oven-sh/bun.git
+    ref: main
+    depth: 1
+    sparse:
+      - docs
+      - test
+      - packages/bun-types
+    notes: Bun runtime (sparse) — package/runtime patterns
+    optional: true

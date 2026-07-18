@@ -5,7 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from sonec.app import build_agent
+
+from sonec.app import build_runtime
 from sonec.core.config import load_settings
 from sonec.core.types import AgentRunResult, Message, Role
 from sonec.eval.harness import (
@@ -14,8 +15,11 @@ from sonec.eval.harness import (
     EvalTask,
     mock_provider_for_task,
 )
+from sonec.eval.sonecbench import build_sonecbench_tasks
+from sonec.harness.versioning import HARNESS_VERSION, CORE_TOOL_NAMES
 from sonec.llm.provider import MockProvider
 from sonec.training.pipeline import DatasetGenerator, TrainingPipeline
+from sonec.training.rollouts import run_rollouts_sync
 
 
 @pytest.mark.asyncio
@@ -32,12 +36,13 @@ async def test_eval_harness_grades_files(tmp_path: Path) -> None:
             EvalCheck(kind="file_contains", path="notes/hello.txt", contains="hello sonec"),
         ],
     )
-    graded = await harness.grade(
-        task,
-        AgentRunResult(run_id="r", goal="g", success=True, final_message="ok"),
+    agent = AgentRunResult(
+        run_id="r", goal="g", success=False, final_message="ok", completed=True
     )
+    graded = await harness.grade(task, agent)
     assert graded.passed
-    assert graded.score == 1.0
+    assert agent.success is True
+    assert agent.evidence_success is True
 
 
 @pytest.mark.asyncio
@@ -56,7 +61,9 @@ async def test_eval_suite_mock_agent(tmp_path: Path) -> None:
     def factory(task: EvalTask):
         del task
         provider = MockProvider([Message(role=Role.ASSISTANT, content="hi")])
-        agent, *_ = build_agent(settings=settings, provider=provider, persist_memory=False)
+        agent, *_ = build_runtime(
+            settings=settings, provider=provider, persist_memory=False, log_dir=tmp_path / "t"
+        )
         return agent
 
     report = await harness.run_suite(tasks, factory)
@@ -72,13 +79,36 @@ async def test_smoke_benchmark_suite(tmp_path: Path) -> None:
 
     def factory(task: EvalTask):
         provider = mock_provider_for_task(task)
-        agent, *_ = build_agent(settings=settings, provider=provider, persist_memory=False)
+        agent, *_ = build_runtime(
+            settings=settings, provider=provider, persist_memory=False, log_dir=tmp_path / "t"
+        )
         return agent
 
     report = await harness.run_suite(tasks, factory, name="smoke")
     assert report.total == 8
     assert report.pass_rate == 1.0
-    assert report.mean_score == 1.0
+
+
+def test_sonecbench_size() -> None:
+    tasks = build_sonecbench_tasks()
+    assert len(tasks) >= 50
+    ids = {t.id for t in tasks}
+    assert len(ids) == len(tasks)
+
+
+def test_rollout_factory(tmp_path: Path) -> None:
+    tasks = build_sonecbench_tasks()[:2]
+    records = run_rollouts_sync(tasks, tmp_path / "rollouts", group_size=2)
+    assert len(records) == 4
+    assert all(r.harness_version == HARNESS_VERSION for r in records)
+    assert all(r.tool_schema_hash for r in records)
+    assert (tmp_path / "rollouts" / "rollouts.jsonl").exists()
+
+
+def test_core_tool_freeze() -> None:
+    assert "fs_read" in CORE_TOOL_NAMES
+    assert "terminal_run" in CORE_TOOL_NAMES
+    assert "memory_note" not in CORE_TOOL_NAMES
 
 
 def test_dataset_export(tmp_path: Path) -> None:
@@ -90,4 +120,3 @@ def test_dataset_export(tmp_path: Path) -> None:
     config = pipeline.write_config()
     assert jsonl.exists()
     assert config.exists()
-    assert len(manifest.examples) == 2

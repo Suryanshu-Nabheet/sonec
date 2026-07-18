@@ -1,0 +1,53 @@
+# sonec SFT — Axolotl QLoRA (Linux/NVIDIA)
+# Run from a machine with CUDA after: pip install axolotl
+#   accelerate launch -m axolotl.cli.train configs/sft/axolotl_qlora.yml
+#
+# Data: produce via `sonec train --export -r artifacts/rollouts/rollouts.jsonl`
+# Or use artifacts from `sonec train --step`
+
+base_model: Qwen/Qwen3.5-2B
+model_type: AutoModelForCausalLM
+tokenizer_type: AutoTokenizer
+
+load_in_4bit: true
+adapter: qlora
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.05
+lora_target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+datasets:
+  - path: artifacts/train/sft_corpus/from_rollouts/train_sharegpt.jsonl
+    type: sharegpt
+    conversation: chatml
+
+output_dir: artifacts/train/checkpoints/sonec-sft-axolotl
+sequence_len: 4096
+sample_packing: true
+pad_to_sequence_len: true
+
+gradient_accumulation_steps: 4
+micro_batch_size: 1
+num_epochs: 1
+optimizer: adamw_bnb_8bit
+lr_scheduler: cosine
+learning_rate: 1.0e-5
+
+bf16: auto
+tf32: true
+
+gradient_checkpointing: true
+logging_steps: 10
+warmup_steps: 10
+evals_per_epoch: 1
+saves_per_epoch: 1
+
+special_tokens:
+  pad_token: <|endoftext|>

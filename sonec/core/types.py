@@ -115,6 +115,12 @@ class AgentRunResult(BaseModel):
     plan: Plan | None = None
     events: list[AgentEvent] = Field(default_factory=list)
     iterations: int = 0
+    harness_version: str = ""
+    tool_schema_hash: str = ""
+    model_id: str = ""
+    usage: dict[str, int] = Field(default_factory=dict)
+    evidence_success: bool | None = None
+    completed: bool = False
 
 
 class CompletionRequest(BaseModel):

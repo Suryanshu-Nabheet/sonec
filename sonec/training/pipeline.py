@@ -152,20 +152,21 @@ class TrainingPipeline:
     def write_config(
         self,
         *,
-        model: str = "moonshotai/Kimi-K3",
+        model: str = "sonec",
         dataset_file: str = "train.jsonl",
         epochs: int = 1,
         learning_rate: float = 1e-5,
     ) -> Path:
         config = {
             "model": model,
+            "base": "qwen3.5:2b",
             "dataset": str(self.output_dir / dataset_file),
             "epochs": epochs,
             "learning_rate": learning_rate,
             "format": "chat_trajectory",
             "notes": (
-                "Config for an external trainer. SONEC generates data; "
-                "training execution is delegated to your chosen stack."
+                "Specialize the local sonec model (Qwen 3.5 class). "
+                "Use configs/sft/mlx_lora.yaml on Apple Silicon."
             ),
         }
         path = self.output_dir / "train_config.json"

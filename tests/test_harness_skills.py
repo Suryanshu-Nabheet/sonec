@@ -44,6 +44,8 @@ async def test_harness_smoke(tmp_path: Path) -> None:
     provider = MockProvider.harness_smoke("smoke goal")
     harness, *_ = build_harness(settings=settings, provider=provider, persist_memory=False)
     result = await harness.run("smoke goal")
-    assert result.success
-    assert result.iterations >= 5
-    assert "DELIVER" in result.final_message or "Mock" in result.final_message
+    assert result.completed
+    assert result.success is False  # environment graders own success
+    assert result.iterations >= 2
+    assert result.harness_version
+    assert "Indexed" in result.final_message or "Mock" in result.final_message
