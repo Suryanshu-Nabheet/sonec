@@ -1,4 +1,4 @@
-"""CUDA / Unsloth / Axolotl backend selection tests."""
+"""CUDA / Unsloth / Axolotl / CPU backend selection tests."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from pathlib import Path
 
 from sonec.training.backends import (
     ADAPTER_DIRS,
+    CPU_BASE_HF,
     detect_backend,
     write_axolotl_config,
     write_unsloth_dataset,
@@ -28,17 +29,39 @@ def test_detect_backend_explicit_unsloth() -> None:
     assert "CUDA" in info.detail or "unsloth" in info.detail.lower()
 
 
+def test_detect_backend_explicit_cpu() -> None:
+    info = detect_backend("cpu")
+    assert info.name == "cpu"
+    assert info.adapter_dir == ADAPTER_DIRS["cpu"]
+    assert info.base_model == CPU_BASE_HF
+    # Availability depends on whether torch/peft are installed in this env.
+    assert isinstance(info.available, bool)
+    assert info.detail
+
+
 def test_detect_backend_auto_never_crashes() -> None:
     info = detect_backend("auto")
-    assert info.name in {"mlx", "unsloth", "axolotl"}
+    assert info.name in {"mlx", "unsloth", "axolotl", "cpu"}
     assert info.adapter_dir.name.startswith("sonec-sft-")
+
+
+def test_adapter_dirs_include_cpu() -> None:
+    assert "cpu" in ADAPTER_DIRS
+    assert ADAPTER_DIRS["cpu"].name == "sonec-sft-cpu"
 
 
 def test_write_unsloth_dataset(tmp_path: Path) -> None:
     mlx = tmp_path / "mlx_data"
     mlx.mkdir()
     (mlx / "train.jsonl").write_text(
-        json.dumps({"messages": [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "yo"}]})
+        json.dumps(
+            {
+                "messages": [
+                    {"role": "user", "content": "hi"},
+                    {"role": "assistant", "content": "yo"},
+                ]
+            }
+        )
         + "\n",
         encoding="utf-8",
     )

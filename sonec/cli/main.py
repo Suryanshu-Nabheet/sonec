@@ -847,12 +847,12 @@ def train_cmd(
     hf_model: str = typer.Option(
         "Qwen/Qwen3.5-2B",
         "--hf-model",
-        help="HF base for Unsloth/Axolotl (Linux CUDA)",
+        help="HF base for Unsloth/Axolotl (Linux CUDA); CPU backend defaults to Qwen2.5-0.5B",
     ),
     backend: str = typer.Option(
         "auto",
         "--backend",
-        help="auto|mlx|unsloth|axolotl — auto picks MLX on Apple Silicon, Unsloth on CUDA",
+        help="auto|mlx|unsloth|axolotl|cpu — auto picks MLX / Unsloth / CPU PEFT",
     ),
     rollout_group: int = typer.Option(8, "--rollout-group", help="Rollouts per TrainBench task"),
     rl_group: int = typer.Option(4, "--rl-group", help="Rejection sampling group size"),
@@ -865,13 +865,21 @@ def train_cmd(
         from sonec.training.weights import weight_status
 
         info = detect_backend(backend)  # type: ignore[arg-type]
+        from sonec.models import BASE_HF as _BASE_HF
+        from sonec.training.backends import CPU_BASE_HF
+
+        resolved_hf = (
+            CPU_BASE_HF
+            if info.name == "cpu" and hf_model == _BASE_HF
+            else hf_model
+        )
         console.print(
             Panel.fit(
                 f"Specialize — backend={info.name} ({info.detail})\n"
                 f"live_fuel={live_fuel} SFT={sft_iters} "
                 f"gold={gold_n} train_n={train_n} group={rollout_group}\n"
                 f"rl_group={rl_group} rl_limit={rl_limit}\n"
-                f"mlx={mlx_model} hf={hf_model}\n"
+                f"mlx={mlx_model} hf={resolved_hf}\n"
                 "Retain the adapter only when CapabilityBench pass rate improves.",
                 title="sonec train",
                 border_style="cyan",
@@ -910,10 +918,11 @@ def train_cmd(
     from sonec.training.export import export_from_rollouts
 
     if not export:
-        console.print("sonec train --step --backend auto   # MLX or Unsloth/Axolotl")
+        console.print("sonec train --step --backend auto   # MLX / Unsloth / CPU PEFT")
         console.print("sonec train --step --backend unsloth  # Linux CUDA (fastest)")
         console.print("sonec train --step --backend axolotl  # Linux CUDA (flexible)")
         console.print("sonec train --step --backend mlx      # Apple Silicon")
+        console.print("sonec train --step --backend cpu      # Zero-GPU PEFT proof")
         console.print("sonec train --step --corpus …         # reuse mlx_data, skip fuel")
         console.print("sonec train --export -r …             # export shards only")
         console.print("H2O LLM Studio: import artifacts/train/sft_corpus/mlx_data/train.jsonl")
@@ -962,6 +971,7 @@ def serve_llm_cmd(
     import subprocess
 
     from sonec.models import BASE_HF, BASE_HF_MLX
+    from sonec.training.backends import CPU_BASE_HF
     from sonec.training.weights import mlx_server_command, peft_server_command, weight_status
 
     status = weight_status(adapter)
@@ -970,10 +980,15 @@ def serve_llm_cmd(
         console.print("Run: sonec train --step --backend auto")
         raise typer.Exit(code=1)
     use_peft = backend == "peft" or (
-        backend == "auto" and status.backend in {"unsloth", "axolotl"}
+        backend == "auto" and status.backend in {"unsloth", "axolotl", "cpu", "peft"}
     )
     if use_peft:
-        base = model or BASE_HF
+        if model:
+            base = model
+        elif status.backend == "cpu":
+            base = CPU_BASE_HF
+        else:
+            base = BASE_HF
         cmd = peft_server_command(adapter_dir=status.adapter_dir, model=base, host=host, port=port)
         kind = "peft"
     else:

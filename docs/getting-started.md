@@ -1,12 +1,15 @@
 # Getting started — sonec
 
-**sonec** by Suryanshu Nabheet is a coding model. Specialized behavior comes from trained LoRA weights (`artifacts/train/checkpoints/sonec-sft-mlx`), not from a Modelfile alone.
+**sonec** by Suryanshu Nabheet is a coding model. Specialized behavior comes from trained LoRA weights under `artifacts/train/checkpoints/`, not from a Modelfile alone.
 
 ## Install (once)
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev,train]"
+pip install -e ".[dev]"
+# Apple Silicon:   pip install -e ".[train]"
+# Linux CUDA:      pip install -e ".[train-cuda]"
+# Zero-GPU proof:  pip install -e ".[train-cpu]"
 cp .env.example .env
 ```
 
@@ -30,6 +33,10 @@ sonec run "Add a unit test and verify" -w .
 
 # Or one step (live fuel preferred when serve is up)
 sonec train --step --live-fuel --sft-iters 300 --gold-n 0 --train-n 40
+
+# Zero-GPU pipeline proof (small Qwen, not product 2B claims)
+sonec train --step --backend cpu --mock-fuel --sft-iters 40 --gold-n 32
+
 sonec weights
 ```
 

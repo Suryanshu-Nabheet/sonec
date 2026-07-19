@@ -55,6 +55,14 @@ train-cuda = [
   "bitsandbytes>=0.43",
   "unsloth",
 ]
+train-cpu = [
+  "torch>=2.2",
+  "transformers>=4.44",
+  "datasets>=2.20",
+  "accelerate>=0.33",
+  "peft>=0.12",
+  "trl>=0.9",
+]
 train-axolotl = [
   "torch>=2.2",
   "axolotl>=0.4",
@@ -67,7 +75,7 @@ dev = [
   "ruff>=0.5",
   "mypy>=1.10",
 ]
-all = ["sonec[browser,dev,train,train-cuda]"]
+all = ["sonec[browser,dev,train,train-cuda,train-cpu]"]
 
 [project.scripts]
 sonec = "sonec.cli.main:app"

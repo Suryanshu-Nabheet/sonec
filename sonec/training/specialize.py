@@ -1133,7 +1133,16 @@ def run_train_step(
     )
     adapter = info.adapter_dir
     mlx_base = resolve_mlx_base(mlx_model)
-    hf_base = hf_model or BASE_HF
+    from sonec.training.backends import CPU_BASE_HF
+
+    if info.name == "cpu":
+        # Product 2B HF is too large for zero-GPU hosts; use small default unless
+        # the caller explicitly passed a non-default --hf-model.
+        hf_base = (
+            CPU_BASE_HF if hf_model is None or hf_model == BASE_HF else hf_model
+        )
+    else:
+        hf_base = hf_model or BASE_HF
     if info.name == "mlx":
         inference_model = model or mlx_base
         sft_model = mlx_base
@@ -1265,6 +1274,9 @@ def run_train_step(
                     gold_n=max(gold_n, 64),
                 )
                 rft_iters = max(80, sft_iters // 3)
+                if info.name == "cpu":
+                    # Keep zero-GPU RFT short — proof of pipeline, not product scale.
+                    rft_iters = max(10, min(40, sft_iters))
                 rft = run_sft(
                     backend=info.name,  # type: ignore[arg-type]
                     data_dir=Path(rft_paths["mlx_dir"]),
