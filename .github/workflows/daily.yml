@@ -1,9 +1,8 @@
 name: Daily
 
 # Nightly suite integrity + mock harness smoke.
-# Publishes DAILY_STATUS.* as workflow artifacts only — never commits/pushes.
-# Auto-commits via GITHUB_TOKEN made github-actions[bot] appear as a contributor;
-# Cap200 / MLX LoRA eval stays local — see scripts/capabilitybench_e2e.sh.
+# Uploads DAILY_STATUS.* as workflow artifacts (no commits — keeps Contributors clean).
+# Live Cap200 / MLX LoRA eval stays local — see scripts/capabilitybench_e2e.sh.
 
 on:
   schedule:

@@ -36,11 +36,11 @@ Source: [leaderboard_2b/LEADERBOARD.md](leaderboard_2b/LEADERBOARD.md) · `2026-
 
 **Winner:** sonec (pass-rate tie → specialized LoRA + speed).
 
-Honest note: the 8-task smoke is **saturated** for tool-capable 2B models. Use CapabilityBench 200 for discriminating pass rates.
+Honest note: the 8-task smoke is **saturated** for tool-capable 2B models. CapabilityBench 200 is the discriminating gate; full live Cap200 scores are **not published yet**.
 
 ## Decision suite — CapabilityBench 200
 
-Sealed; never training fuel. Generate: `sonec capabilitybench`.
+Sealed; never training fuel. Generate: `sonec capabilitybench`. Suite shipped; live Cap200 A/B pending a long local run.
 
 | Category | n |
 | --- | ---: |
@@ -51,11 +51,11 @@ Sealed; never training fuel. Generate: `sonec capabilitybench`.
 Difficulty: 70 easy / 70 medium / 60 hard.
 
 ```bash
-# Full Cap200 (hours)
-./scripts/capabilitybench_e2e.sh
-
-# Eval only
+# Compare only (hours; board skipped by default)
 SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh
+
+# Also run multi-model board
+SKIP_SFT=1 SKIP_BOARD=0 ./scripts/capabilitybench_e2e.sh
 
 # Fast probe
 sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json \

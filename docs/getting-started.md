@@ -57,16 +57,18 @@ Latest published smoke (2026-07-19): **sonec 8/8 @ 8.5s**, board #1 among strict
 
 ### CapabilityBench 200 (hours) — decision suite
 
+Suite is sealed in-repo. Full live scores are optional and slow; published claim above is smoke.
+
 ```bash
 sonec capabilitybench            # writes examples/benchmarks/capabilitybench_v1.json
 
-# Full densify + Cap200 compare + multi-model board (long)
-./scripts/capabilitybench_e2e.sh
-
-# Eval only (adapters already trained)
+# Compare only (default skips multi-model board)
 SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh
 
-# Or smoke-sized probe
+# Compare + multi-model board (much longer)
+SKIP_SFT=1 SKIP_BOARD=0 ./scripts/capabilitybench_e2e.sh
+
+# Time-boxed probe
 sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json \
   -a configs/leaderboard/arms_2b.json -o docs/results/leaderboard_cap --limit 40 --fresh
 ```

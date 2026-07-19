@@ -14,7 +14,7 @@ LoRA specialization of **Qwen 3.5 2B** for tool-using software engineering. Trai
 | **Serve** | `sonec serve-llm` → OpenAI-compatible `/v1` |
 | **Base** | `mlx-community/Qwen3.5-2B-4bit` (Qwen 3.5 2B) |
 | **License** | Apache-2.0 — code, adapters, and Qwen weight lineage ([NOTICE](NOTICE)) |
-| **Latest A/B** | Smoke: sonec **8/8 @ 8.5s** (2B board #1). Decision suite: CapabilityBench **200** |
+| **Latest A/B** | Published smoke: sonec **8/8 @ 8.5s** (2B board #1). Cap200 suite shipped; full live Cap200 scores not published yet |
 
 ---
 
@@ -83,12 +83,13 @@ Reports: [COMPARE_REPORT.md](docs/results/COMPARE_REPORT.md) · [LEADERBOARD.md]
 ### CapabilityBench 200 (decision suite)
 
 Sealed **200** tasks (10 categories × 20, easy/medium/hard, tagged). Not training fuel.
+**Status:** suite + harness are in-repo; a full live Cap200 A/B takes hours on Apple Silicon and is **not** in the published results yet (smoke is).
 
 ```bash
 sonec capabilitybench
-# Full run (hours):  ./scripts/capabilitybench_e2e.sh
-# Eval only:         SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh
-# Fast probe:        sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json --limit 40 --fresh
+# Compare only (hours):     SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh
+# Compare + multi-model:    SKIP_SFT=1 SKIP_BOARD=0 ./scripts/capabilitybench_e2e.sh
+# Fast probe:               sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json --limit 40 --fresh
 ```
 
 Suite file: [`capabilitybench_v1.json`](examples/benchmarks/capabilitybench_v1.json).
@@ -482,9 +483,9 @@ Raw `*.safetensors` are gitignored. Reproduce with `sonec train --step`.
 
 **Next**
 
-- Publish CapabilityBench 200 multi-model scores (hours-long; `SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh`)
+- Publish CapabilityBench 200 live compare when you have hours free (`SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh`)
+- Promote adapters only on Cap200 pass-rate gates (smoke is saturated)
 - Scale live verified trajectories; keep sealed ids out of fuel
-- Promote adapters only on CapabilityBench pass-rate gates (smoke is saturated)
 
 ---
 

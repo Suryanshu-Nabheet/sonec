@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# CapabilityBench 200 end-to-end: optional densify → dual-serve → compare → 2B board.
-# No heavy live GRPO.
+# CapabilityBench 200 end-to-end (local Apple Silicon).
+# No heavy live GRPO. Expect hours for full compare; multi-model board is optional.
 #
 # Usage:
-#   ./scripts/capabilitybench_e2e.sh              # densify + full Cap200 (hours)
-#   SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh   # eval only (adapters already ready)
-#   SFT_ITERS=120 GOLD_N=200 ./scripts/capabilitybench_e2e.sh
+#   SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh          # compare only (default board skip)
+#   SKIP_SFT=1 SKIP_BOARD=0 ./scripts/capabilitybench_e2e.sh  # compare + 2B board
+#   ./scripts/capabilitybench_e2e.sh                     # densify then compare
 #
-# Smoke (minutes, not Cap200):
+# Smoke (minutes, published claim):
 #   sonec compare -s examples/benchmarks/ab_agent_2b_hard.json -o docs/results
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -19,8 +19,15 @@ mkdir -p artifacts/logs docs/results/leaderboard_cap docs/results
 LOG="artifacts/logs/cap200_$(date +%Y%m%d_%H%M%S).log"
 exec > >(tee -a "$LOG") 2>&1
 
+cleanup() {
+  pkill -f "mlx_lm server.*8080" 2>/dev/null || true
+  pkill -f "mlx_lm server.*8081" 2>/dev/null || true
+}
+trap cleanup EXIT
+
 echo "=== capabilitybench 200 pipeline ==="
 echo "started=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+echo "SKIP_SFT=${SKIP_SFT:-0} SKIP_BOARD=${SKIP_BOARD:-1}"
 
 echo "=== regenerate sealed CapabilityBench ==="
 sonec capabilitybench
@@ -69,8 +76,7 @@ PY
 fi
 
 echo "=== serve LoRA :8080 + base :8081 ==="
-pkill -f "mlx_lm server.*8080" 2>/dev/null || true
-pkill -f "mlx_lm server.*8081" 2>/dev/null || true
+cleanup
 sleep 2
 python -m mlx_lm server \
   --model mlx-community/Qwen3.5-2B-4bit \
@@ -95,15 +101,18 @@ done
 curl -sf http://127.0.0.1:8080/v1/models >/dev/null || { echo "LoRA serve failed"; exit 1; }
 curl -sf http://127.0.0.1:8081/v1/models >/dev/null || { echo "base serve failed"; exit 1; }
 
-echo "=== MLX compare on CapabilityBench ==="
+echo "=== MLX compare on CapabilityBench (200×2 arms; expect hours) ==="
 PYTHONUNBUFFERED=1 sonec compare \
   --suite examples/benchmarks/capabilitybench_v1.json \
   --out docs/results \
   --lora-url http://127.0.0.1:8080/v1 \
   --base-url http://127.0.0.1:8081/v1
 
-echo "=== resolve Ollama 2B arms ==="
-python - <<'PY'
+if [[ "${SKIP_BOARD:-1}" == "1" ]]; then
+  echo "=== multi-model board skipped (SKIP_BOARD=1; set SKIP_BOARD=0 to run) ==="
+else
+  echo "=== resolve Ollama 2B arms ==="
+  python - <<'PY'
 import json, subprocess
 from pathlib import Path
 catalog = json.loads(Path("configs/leaderboard/arms_2b.json").read_text(encoding="utf-8"))
@@ -123,27 +132,22 @@ out.write_text(
 print("arms:", [a["name"] for a in arms])
 PY
 
-echo "=== full 200-task multi-model board ==="
-OUT="${OUT:-docs/results/leaderboard_cap}"
-mkdir -p "$OUT"
-# Fresh board for CapabilityBench (do not reuse ab_agent_2b_hard dumps).
-# Use find — zsh/bash globs fail (and abort set -e) when no arm_*.json exist yet.
-find "$OUT" -maxdepth 1 -name 'arm_*.json' -delete 2>/dev/null || true
-find docs/results -maxdepth 1 -name 'arm_*.json' -delete 2>/dev/null || true
-PYTHONUNBUFFERED=1 sonec leaderboard \
-  --suite examples/benchmarks/capabilitybench_v1.json \
-  --arms configs/leaderboard/arms_resolved.json \
-  --out "$OUT" \
-  --fresh
-
-# Mirror primary snapshot into leaderboard_2b for docs
-cp -f "$OUT/LEADERBOARD.md" docs/results/leaderboard_2b/LEADERBOARD.md
-cp -f "$OUT/LEADERBOARD.json" docs/results/leaderboard_2b/LEADERBOARD.json 2>/dev/null || true
+  echo "=== full 200-task multi-model board ==="
+  OUT="${OUT:-docs/results/leaderboard_cap}"
+  mkdir -p "$OUT"
+  find "$OUT" -maxdepth 1 -name 'arm_*.json' -delete 2>/dev/null || true
+  find docs/results -maxdepth 1 -name 'arm_*.json' -delete 2>/dev/null || true
+  PYTHONUNBUFFERED=1 sonec leaderboard \
+    --suite examples/benchmarks/capabilitybench_v1.json \
+    --arms configs/leaderboard/arms_resolved.json \
+    --out "$OUT" \
+    --fresh
+  cp -f "$OUT/LEADERBOARD.md" docs/results/leaderboard_2b/LEADERBOARD.md
+  cp -f "$OUT/LEADERBOARD.json" docs/results/leaderboard_2b/LEADERBOARD.json 2>/dev/null || true
+  echo "board: $OUT/LEADERBOARD.md"
+fi
 
 echo "=== done $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
 echo "compare: docs/results/COMPARE_REPORT.md"
-echo "board: $OUT/LEADERBOARD.md"
 echo "log: $LOG"
 cat docs/results/COMPARE_REPORT.md
-echo "---"
-cat "$OUT/LEADERBOARD.md"
