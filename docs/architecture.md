@@ -15,12 +15,13 @@ CLI / MCP / HTTP
 
 | Layer | Entry |
 | --- | --- |
-| Specialize | `./scripts/overnight_specialize.sh` or `sonec train --step` |
+| Specialize | `./scripts/overnight_specialize.sh` or `sonec train --step --backend auto` |
+| Linux CUDA | `sonec train --step --backend unsloth` (or `axolotl`) |
 | Smoke board | `SUITE=…/ab_agent_2b_hard.json SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh` |
 | Cap200 board | `SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh` |
 | Decision metric | CapabilityBench 200 (sealed; never training fuel) |
 | Training fuel | TrainBench + verified live trajectories |
-| Inference | `sonec serve-llm` → OpenAI-compatible `/v1` |
+| Inference | `sonec serve-llm` → OpenAI-compatible `/v1` (MLX or PEFT) |
 
 ## Harness details that matter
 

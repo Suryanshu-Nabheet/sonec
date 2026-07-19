@@ -842,7 +842,17 @@ def train_cmd(
     mlx_model: str = typer.Option(
         "mlx-community/Qwen3.5-2B-4bit",
         "--mlx-model",
-        help="MLX base checkpoint for LoRA",
+        help="MLX base checkpoint for LoRA (Apple Silicon)",
+    ),
+    hf_model: str = typer.Option(
+        "Qwen/Qwen3.5-2B",
+        "--hf-model",
+        help="HF base for Unsloth/Axolotl (Linux CUDA)",
+    ),
+    backend: str = typer.Option(
+        "auto",
+        "--backend",
+        help="auto|mlx|unsloth|axolotl — auto picks MLX on Apple Silicon, Unsloth on CUDA",
     ),
     rollout_group: int = typer.Option(8, "--rollout-group", help="Rollouts per TrainBench task"),
     rl_group: int = typer.Option(4, "--rl-group", help="Rejection sampling group size"),
@@ -850,16 +860,19 @@ def train_cmd(
 ) -> None:
     """Specialize sonec via graded trajectories and LoRA."""
     if step or full:
+        from sonec.training.backends import detect_backend
         from sonec.training.specialize import run_train_step
         from sonec.training.weights import weight_status
 
+        info = detect_backend(backend)  # type: ignore[arg-type]
         console.print(
             Panel.fit(
-                f"Specialize — live_fuel={live_fuel} SFT={sft_iters} "
+                f"Specialize — backend={info.name} ({info.detail})\n"
+                f"live_fuel={live_fuel} SFT={sft_iters} "
                 f"gold={gold_n} train_n={train_n} group={rollout_group}\n"
                 f"rl_group={rl_group} rl_limit={rl_limit}\n"
-                f"mlx={mlx_model}\n"
-                "Retain the adapter only when sonec compare pass rate improves.",
+                f"mlx={mlx_model} hf={hf_model}\n"
+                "Retain the adapter only when CapabilityBench pass rate improves.",
                 title="sonec train",
                 border_style="cyan",
             )
@@ -874,6 +887,8 @@ def train_cmd(
             live_fuel=live_fuel,
             live_rl=live_rl,
             mlx_model=mlx_model,
+            hf_model=hf_model,
+            backend=backend,
             reset=reset,
             corpus_dir=corpus,
             rollout_group=rollout_group,
@@ -895,9 +910,13 @@ def train_cmd(
     from sonec.training.export import export_from_rollouts
 
     if not export:
-        console.print("sonec train --step                 # LoRA SFT + RL (writes *.safetensors)")
-        console.print("sonec train --step --corpus …      # reuse mlx_data, skip fuel")
-        console.print("sonec train --export -r …          # export shards only")
+        console.print("sonec train --step --backend auto   # MLX or Unsloth/Axolotl")
+        console.print("sonec train --step --backend unsloth  # Linux CUDA (fastest)")
+        console.print("sonec train --step --backend axolotl  # Linux CUDA (flexible)")
+        console.print("sonec train --step --backend mlx      # Apple Silicon")
+        console.print("sonec train --step --corpus …         # reuse mlx_data, skip fuel")
+        console.print("sonec train --export -r …             # export shards only")
+        console.print("H2O LLM Studio: import artifacts/train/sft_corpus/mlx_data/train.jsonl")
         raise typer.Exit(code=0)
     sealed: set[str] = set()
     if exclude_sealed:
@@ -929,25 +948,41 @@ def weights_cmd() -> None:
 def serve_llm_cmd(
     host: str = typer.Option("127.0.0.1", "--host"),
     port: int = typer.Option(8080, "--port"),
-    adapter: Path = typer.Option(
-        Path("artifacts/train/checkpoints/sonec-sft-mlx"), "--adapter"
+    adapter: Path | None = typer.Option(
+        None, "--adapter", help="Adapter dir (default: auto-detect ready checkpoint)"
     ),
-    model: str = typer.Option("mlx-community/Qwen3.5-2B-4bit", "--model", "-m"),
+    model: str | None = typer.Option(None, "--model", "-m", help="Base model id"),
+    backend: str = typer.Option(
+        "auto",
+        "--backend",
+        help="auto|mlx|peft — peft serves Unsloth/Axolotl adapters on CUDA/CPU",
+    ),
 ) -> None:
-    """Serve specialized sonec = base Qwen 3.5 2B + trained LoRA adapter (OpenAI-compatible)."""
+    """Serve specialized sonec = base + trained LoRA adapter (OpenAI-compatible)."""
     import subprocess
 
-    from sonec.training.weights import mlx_server_command, weight_status
+    from sonec.models import BASE_HF, BASE_HF_MLX
+    from sonec.training.weights import mlx_server_command, peft_server_command, weight_status
 
     status = weight_status(adapter)
     if not status.ready:
         console.print(f"[red]{status.detail}[/]")
-        console.print("Run: sonec train --step")
+        console.print("Run: sonec train --step --backend auto")
         raise typer.Exit(code=1)
-    cmd = mlx_server_command(adapter_dir=adapter, model=model, host=host, port=port)
+    use_peft = backend == "peft" or (
+        backend == "auto" and status.backend in {"unsloth", "axolotl"}
+    )
+    if use_peft:
+        base = model or BASE_HF
+        cmd = peft_server_command(adapter_dir=status.adapter_dir, model=base, host=host, port=port)
+        kind = "peft"
+    else:
+        base = model or BASE_HF_MLX
+        cmd = mlx_server_command(adapter_dir=status.adapter_dir, model=base, host=host, port=port)
+        kind = "mlx"
     console.print(
         Panel.fit(
-            f"Serving specialized sonec\nbase={model}\nadapter={adapter}\n"
+            f"Serving specialized sonec ({kind})\nbase={base}\nadapter={status.adapter_dir}\n"
             f"OpenAI API: http://{host}:{port}/v1\n"
             f"Set SONEC_BASE_URL=http://{host}:{port}/v1",
             title="sonec serve-llm",
@@ -1049,6 +1084,14 @@ def doctor_cmd() -> None:
         except Exception as exc:  # noqa: BLE001
             rows.append(("capabilitybench", f"unreadable ({exc})"))
     rows.append(("author", "Suryanshu Nabheet"))
+    try:
+        from sonec.training.backends import detect_backend
+
+        info = detect_backend("auto")
+        rows.append(("train_backend", f"{info.name} available={info.available}"))
+        rows.append(("train_backend_detail", info.detail))
+    except Exception as exc:  # noqa: BLE001
+        rows.append(("train_backend", f"error ({exc})"))
     table = Table("Check", "Status")
     for k, v in rows:
         table.add_row(k, v)

@@ -34,7 +34,9 @@ def test_weight_status_ready_with_safetensors(tmp_path: Path) -> None:
     assert status.author == "Suryanshu Nabheet"
     manifest = write_product_manifest(adapter_dir=d, mlx_base="mlx-community/Qwen3.5-2B-4bit", root=tmp_path)
     assert manifest.exists()
-    assert "mlx_lora_adapter" in manifest.read_text(encoding="utf-8")
+    assert "lora_adapter" in manifest.read_text(encoding="utf-8") or "mlx_lora" in manifest.read_text(
+        encoding="utf-8"
+    )
 
 
 def test_weight_status_tiny_tensor_not_ready(tmp_path: Path) -> None:

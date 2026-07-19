@@ -1109,8 +1109,11 @@ def run_train_step(
     reset: bool = False,
     corpus_dir: Path | None = None,
     model: str | None = None,
+    backend: str = "auto",
+    hf_model: str | None = None,
 ) -> list[TrainReport]:
     """One specialization step on live passing trajectories (not mock chat)."""
+    from sonec.training.backends import detect_backend, run_sft
     from sonec.training.weights import weight_status, write_product_manifest
 
     reports: list[TrainReport] = []
@@ -1119,10 +1122,24 @@ def run_train_step(
         shutil.rmtree(art)
     art.mkdir(parents=True, exist_ok=True)
 
-    adapter = art / "checkpoints" / "sonec-sft-mlx"
+    info = detect_backend(backend)  # type: ignore[arg-type]
+    reports.append(
+        TrainReport(
+            "backend",
+            info.available or skip_sft,
+            f"{info.name}: {info.detail}",
+            {"adapter_dir": str(info.adapter_dir)},
+        )
+    )
+    adapter = info.adapter_dir
     mlx_base = resolve_mlx_base(mlx_model)
-    # mlx_lm / OpenAI servers advertise the base checkpoint id, not the product tag.
-    inference_model = model or mlx_base
+    hf_base = hf_model or BASE_HF
+    if info.name == "mlx":
+        inference_model = model or mlx_base
+        sft_model = mlx_base
+    else:
+        inference_model = model or hf_base
+        sft_model = hf_base
 
     if corpus_dir is not None:
         corpus_path = corpus_dir.expanduser().resolve()
@@ -1182,21 +1199,37 @@ def run_train_step(
             return reports
 
     if not skip_sft:
-        sft_report = run_mlx_sft(
-            data_dir=Path(paths["mlx_dir"]),
-            adapter_path=adapter,
-            model=mlx_base,
-            iters=sft_iters,
-        )
-        status = weight_status(adapter)
-        if sft_report.ok and not status.ready:
-            sft_report = TrainReport(
-                "sft",
-                False,
-                f"{sft_report.detail}; NO WEIGHTS: {status.detail}",
-                sft_report.paths,
+        if not info.available:
+            reports.append(
+                TrainReport(
+                    "sft",
+                    False,
+                    info.detail,
+                    {"hint": "Install train extras for your platform, then re-run."},
+                )
             )
-        reports.append(sft_report)
+        else:
+            sft = run_sft(
+                backend=info.name,  # type: ignore[arg-type]
+                data_dir=Path(paths["mlx_dir"]),
+                adapter_path=adapter,
+                model=sft_model,
+                iters=sft_iters,
+                root=root,
+            )
+            status = weight_status(adapter)
+            reports.append(
+                TrainReport(
+                    "sft",
+                    sft.ok and status.ready,
+                    (
+                        sft.detail
+                        if sft.ok and status.ready
+                        else f"{sft.detail}; NO WEIGHTS: {status.detail}"
+                    ),
+                    sft.paths,
+                )
+            )
     else:
         reports.append(TrainReport("sft", True, "skipped", {}))
 
@@ -1210,12 +1243,12 @@ def run_train_step(
         )
     )
 
-    # Rejection → second SFT (RFT): fuel + RL rollouts densify write-first Python.
     fuel_rollouts = art / "fuel" / "rollouts.jsonl"
     rl_rollouts = art / "rl" / "rollouts" / "rollouts.jsonl"
     winners_path = art / "rl" / "winners.jsonl"
     if (
         not skip_sft
+        and info.available
         and corpus_dir is None
         and winners_path.is_file()
         and winners_path.stat().st_size > 0
@@ -1232,11 +1265,13 @@ def run_train_step(
                     gold_n=max(gold_n, 64),
                 )
                 rft_iters = max(80, sft_iters // 3)
-                rft = run_mlx_sft(
+                rft = run_sft(
+                    backend=info.name,  # type: ignore[arg-type]
                     data_dir=Path(rft_paths["mlx_dir"]),
                     adapter_path=adapter,
-                    model=mlx_base,
+                    model=sft_model,
                     iters=rft_iters,
+                    root=root,
                 )
                 reports.append(
                     TrainReport(
@@ -1249,7 +1284,13 @@ def run_train_step(
             except Exception as exc:  # noqa: BLE001
                 reports.append(TrainReport("rft_sft", False, str(exc), {}))
 
-    manifest = write_product_manifest(adapter_dir=adapter, mlx_base=mlx_base, root=root)
+    manifest = write_product_manifest(
+        adapter_dir=adapter,
+        mlx_base=mlx_base,
+        root=root,
+        backend=info.name,
+        base_hf=hf_base,
+    )
     status = weight_status(adapter)
     reports.append(
         TrainReport(
@@ -1260,7 +1301,6 @@ def run_train_step(
         )
     )
 
-    # Optional chat Modelfile (runner only; product is the LoRA adapter).
     mf = write_product_modelfile(adapter_path=adapter, modelfile_out=root / "Modelfile")
     reports.append(TrainReport("modelfile", True, f"updated {mf}", {"modelfile": str(mf)}))
 
@@ -1268,9 +1308,11 @@ def run_train_step(
         art / "TRAIN_REPORT.json",
         {
             "product": PRODUCT_MODEL,
+            "author": "Suryanshu Nabheet",
             "base": BASE_MODEL,
             "base_hf": BASE_HF,
             "mlx_base": mlx_base,
+            "backend": info.name,
             "live_fuel": live_fuel,
             "live_rl": live_rl,
             "weights_ready": status.ready,

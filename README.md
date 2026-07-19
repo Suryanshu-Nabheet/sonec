@@ -199,9 +199,23 @@ sonec weights                      # adapter readiness (after train)
 | Extra | Use |
 | --- | --- |
 | `.[dev]` | Tests, lint, local development |
-| `.[train]` | MLX LoRA specialization |
+| `.[train]` | MLX LoRA on Apple Silicon |
+| `.[train-cuda]` | Unsloth QLoRA on Linux NVIDIA (preferred CUDA path) |
+| `.[train-axolotl]` | Axolotl QLoRA on Linux NVIDIA (flexible) |
 
 Keep the venv activated whenever you run `sonec` — the CLI entry point lives there.
+
+### Linux CUDA specialize
+
+```bash
+pip install -e ".[dev,train-cuda]"   # or .[train-axolotl]
+sonec train --step --backend unsloth --mock-fuel --sft-iters 300
+# or: sonec train --step --backend axolotl
+sonec weights
+sonec serve-llm --backend peft
+```
+
+H2O LLM Studio (GUI): export/import `artifacts/train/sft_corpus/mlx_data/train.jsonl` (chat `messages`).
 
 ---
 

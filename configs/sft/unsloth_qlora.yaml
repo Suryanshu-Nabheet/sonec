@@ -1,0 +1,17 @@
+# sonec SFT — Unsloth QLoRA (Linux/NVIDIA, fastest)
+
+base_model: Qwen/Qwen3.5-2B
+product: sonec
+author: Suryanshu Nabheet
+adapter_out: artifacts/train/checkpoints/sonec-sft-unsloth
+data: artifacts/train/sft_corpus/mlx_data/train.jsonl
+steps: 300
+learning_rate: 1.0e-5
+max_seq_length: 2048
+lora_r: 16
+lora_alpha: 32
+notes: |
+  Preferred Linux CUDA path: sonec train --step --backend unsloth
+  Requires: pip install 'sonec[train-cuda]'
+  Serve: sonec serve-llm --backend peft
+  H2O LLM Studio (GUI): import the same train.jsonl chat messages file.
