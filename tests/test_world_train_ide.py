@@ -36,7 +36,7 @@ def test_corpora_yaml(tmp_path: Path) -> None:
 def test_local_settings_defaults() -> None:
     settings = load_settings()
     assert settings.provider == "local"
-    assert settings.model == "sonec"
+    assert settings.model == "mlx-community/Qwen3.5-2B-4bit"
     assert settings.resolved_base_url().endswith("/v1")
     assert settings.require_api_key() == "local"
 

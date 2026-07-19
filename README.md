@@ -1,82 +1,125 @@
-# sonec
+<div align="center">
 
-**sonec** by [Suryanshu Nabheet](https://github.com/Suryanshu-Nabheet) — a specialized coding agent model.
+# SONEC
 
-LoRA specialization of **Qwen 3.5 2B** for tool-using software engineering: write, edit, verify, restrain. Same frozen harness as the base; weights differ.
+**A specialized coding agent model**
+
+LoRA specialization of Qwen 3.5 2B — tool-using software engineering,  
+trained and graded in a frozen harness. Weights, not prompts.
+
+<br/>
 
 [![CI](https://github.com/Suryanshu-Nabheet/sonec/actions/workflows/ci.yml/badge.svg)](https://github.com/Suryanshu-Nabheet/sonec/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-111111?style=flat-square)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-111111?style=flat-square)](pyproject.toml)
+[![Base](https://img.shields.io/badge/base-Qwen%203.5%202B-111111?style=flat-square)](NOTICE)
+[![Product](https://img.shields.io/badge/product-MLX%20LoRA-111111?style=flat-square)](artifacts/train/PRODUCT.json)
+
+<br/>
+
+```text
+sonec weights   →   sonec serve-llm   →   sonec run   →   sonec compare
+```
+
+[Install](#install) · [Quickstart](#quickstart) · [Evidence](#evidence) · [Architecture](#architecture) · [Docs](#documentation)
+
+<br/>
+
+by [Suryanshu Nabheet](https://github.com/Suryanshu-Nabheet)
+
+</div>
 
 ---
 
-## Results
+<div align="center">
 
-Live A/B on a sealed agent suite. Identical harness, tools, and prompts — only the endpoint weights change.
+### Live A/B — sealed agent suite
 
-| Arm | Pass rate | Passed | Mean score | Mean duration |
-| --- | --- | --- | --- | --- |
-| **sonec LoRA** | **67%** | **4/6** | **0.67** | 19.8s |
-| Qwen 3.5 2B base | 50% | 3/6 | 0.50 | 21.6s |
+| | **SONEC** | Base Qwen 3.5 2B | Delta |
+| :---: | :---: | :---: | :---: |
+| **Pass rate** | **67%** | 50% | **+17%** |
+| **Passed** | **4 / 6** | 3 / 6 | +1 |
+| **Mean score** | **0.67** | 0.50 | +0.17 |
+| **Mean duration** | 19.8s | 21.6s | −1.8s |
 
-**Winner: sonec** — **+17%** absolute pass rate vs unmodified base.
+Same harness · same tools · same prompts · **weights only**
 
-| Task | sonec | Base |
-| --- | --- | --- |
-| `fs-nested-note` | Pass | Pass |
-| `fix-seeded-bug` | Pass | Pass |
-| `restraint-q` | Pass | Pass |
-| `verify-script` | **Pass** | Fail |
-| `py-util-main` | Fail | Fail |
-| `pkg-greet` | Fail | Fail |
+</div>
 
-Suite: [`examples/benchmarks/ab_agent_v1.json`](examples/benchmarks/ab_agent_v1.json) · Full report: [`docs/results/COMPARE_REPORT.md`](docs/results/COMPARE_REPORT.md)
+| Task | SONEC | Base |
+| --- | :---: | :---: |
+| Nested path write | Pass | Pass |
+| Seeded bug fix | Pass | Pass |
+| Restraint (no tools) | Pass | Pass |
+| Verify script + docs | **Pass** | Fail |
+| Multi-file Python util | Fail | Fail |
+| Package scaffold | Fail | Fail |
 
-### Weight-level proof (not a prompt)
+<details>
+<summary><strong>Weight-level proof</strong> — NLL on gold agent trajectories (not a Modelfile)</summary>
 
-A Modelfile `SYSTEM` string does not change token likelihoods. Sonec does:
+<br/>
 
-| Metric | Base | sonec LoRA |
-| --- | --- | --- |
-| Mean token NLL on gold agent probe | 2.159 | **0.022** |
-| Improvement | — | **−2.137 NLL** |
+| Model | Mean token NLL |
+| --- | ---: |
+| Base `Qwen3.5-2B-4bit` | 2.159 |
+| **SONEC LoRA** | **0.022** |
+| Improvement | **−2.137** |
 
-Source: [`docs/results/SFT_METRICS.json`](docs/results/SFT_METRICS.json)
+A system prompt cannot produce this gap. Source: [`docs/results/SFT_METRICS.json`](docs/results/SFT_METRICS.json)
 
-### Specialization snapshot
+</details>
 
-| Field | Value |
-| --- | --- |
-| Base | `mlx-community/Qwen3.5-2B-4bit` (Qwen 3.5 2B, Apache-2.0) |
-| Method | MLX LoRA SFT + rejection filtering |
-| Corpus | Live harness rollouts + oracle-graded gold; OpenAI structured `tool_calls` |
-| Adapter | `artifacts/train/checkpoints/sonec-sft-mlx` (`adapters.safetensors`) |
-| Readiness | `sonec weights` → `ready=True` |
-
-Training record: [`docs/results/TRAIN_PROOF.md`](docs/results/TRAIN_PROOF.md) · Manifest: `artifacts/train/PRODUCT.json`
+Full report → [`docs/results/COMPARE_REPORT.md`](docs/results/COMPARE_REPORT.md)
 
 ---
 
-## What sonec is
+## What is SONEC?
 
-| This is the product | This is not |
+<div align="center">
+
+| Product | Not the product |
 | --- | --- |
-| MLX LoRA under `artifacts/train/checkpoints/sonec-sft-mlx` | A chat Modelfile alone |
-| Served via `sonec serve-llm` (base + adapter) | Prompt-only wrapping of `qwen3.5:2b` |
-| Agent loop: frozen tools, graders, trajectories | A larger general LLM |
+| MLX LoRA at `artifacts/train/checkpoints/sonec-sft-mlx` | Chat Modelfile / `SYSTEM` alone |
+| `sonec serve-llm` (base + adapter on `/v1`) | Prompt wrapper around `qwen3.5:2b` |
+| Agent loop: tools · graders · trajectories | A larger general-purpose LLM |
 
-Optional Ollama/Modelfile tags are **runners**. Specialized weights are the product.
+</div>
+
+**SONEC** is a coding model: specialize small open weights for verified agent behavior — write, edit, verify, restrain — then serve them through an OpenAI-compatible endpoint.
+
+Optional Ollama tags are **runners**. The adapter is the product. Confirm with `sonec weights` → `ready=True`.
 
 ---
 
-## Stack
+## Architecture
 
-| Piece | Detail |
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  CLI  ·  MCP  ·  HTTP                                       │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  AgentRuntime (frozen)                                      │
+│  thin identity · hashed tools · evidence graders            │
+└───────────────────────────┬─────────────────────────────────┘
+                            │
+          ┌─────────────────┼─────────────────┐
+          ▼                 ▼                 ▼
+   TrainBench fuel    Sealed SonecBench   WorldBench
+   (live rollouts)    (never train fuel)  (never train fuel)
+          │
+          ▼
+   SFT corpus  →  MLX LoRA  →  rejection winners  →  SONEC adapters
+```
+
+| Layer | Role |
 | --- | --- |
-| Product | LoRA adapter on Qwen 3.5 2B |
-| Harness | Frozen tool surface (filesystem, terminal, git, index) + evidence graders |
-| Train | Live fuel → SFT corpus → MLX LoRA → rejection winners |
-| Serve | OpenAI-compatible `/v1` (`sonec serve-llm`) |
-| Code | MIT — [LICENSE](LICENSE) · Weight lineage — [NOTICE](NOTICE) |
+| **Harness** | Frozen tool surface — filesystem, terminal, git, index |
+| **Train** | Live fuel → structured `tool_calls` corpus → MLX LoRA → rejection filter |
+| **Serve** | OpenAI-compatible `/v1` via `sonec serve-llm` |
+| **Eval** | Fair A/B: LoRA `:8080` vs base-only `:8081` |
 
 ---
 
@@ -90,114 +133,161 @@ pip install -e ".[dev,train]"
 cp .env.example .env
 ```
 
-Confirm environment and adapters:
-
 ```bash
-sonec doctor
-sonec weights
+sonec doctor     # environment
+sonec weights    # adapter readiness
 ```
 
 ---
 
-## End-to-end
+## Quickstart
 
-### 1. Specialize
+End-to-end path from specialization to a fair compare.
 
-Live harness fuel (preferred):
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 01 — Specialize
 
 ```bash
-sonec train --step --live-fuel --sft-iters 300 --gold-n 0 --train-n 40
+sonec train --step \
+  --live-fuel \
+  --sft-iters 300 \
+  --gold-n 0 \
+  --train-n 40
+
 sonec weights
 ```
 
-Reuse an existing corpus:
+Reuse a corpus:
 
 ```bash
-sonec train --step --corpus artifacts/train/sft_corpus/mlx_data --sft-iters 300
+sonec train --step \
+  --corpus artifacts/train/sft_corpus/mlx_data \
+  --sft-iters 300
 ```
 
-Overnight path (if present):
+</td>
+<td width="50%" valign="top">
+
+### 02 — Serve
+
+```bash
+# SONEC — base + LoRA
+sonec serve-llm --port 8080
+
+# Unmodified base (A/B)
+python -m mlx_lm server \
+  --model mlx-community/Qwen3.5-2B-4bit \
+  --port 8081
+```
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 03 — Run
+
+```bash
+SONEC_BASE_URL=http://127.0.0.1:8080/v1 \
+  sonec run "Fix the failing test" -w .
+```
+
+</td>
+<td width="50%" valign="top">
+
+### 04 — Compare
+
+```bash
+sonec compare \
+  --suite examples/benchmarks/ab_agent_v1.json \
+  --out docs/results
+```
+
+Promote only when pass rate **beats** base.
+
+</td>
+</tr>
+</table>
+
+**Outputs:** `COMPARE_REPORT.md` · `COMPARE_REPORT.json` · `arm_sonec_lora.json` · `arm_qwen35_2b_base.json`
+
+> **Product path:** `sonec serve-llm` on `:8080`.  
+> `ollama run sonec` does not load the specialized adapter.
+
+---
+
+## Specialization
+
+| Field | Value |
+| --- | --- |
+| Base | `mlx-community/Qwen3.5-2B-4bit` · Qwen 3.5 2B (Apache-2.0) |
+| Method | MLX LoRA SFT + rejection filtering |
+| Corpus | Live harness rollouts + oracle-graded gold · OpenAI `tool_calls` |
+| Adapter | `artifacts/train/checkpoints/sonec-sft-mlx` |
+| Manifest | `artifacts/train/PRODUCT.json` |
+
+Training record → [`docs/results/TRAIN_PROOF.md`](docs/results/TRAIN_PROOF.md)
+
+Overnight:
 
 ```bash
 ./scripts/overnight_specialize.sh
 ```
-
-### 2. Serve
-
-```bash
-# Specialized sonec (base + LoRA)
-sonec serve-llm --port 8080
-
-# Unmodified base (for A/B)
-python -m mlx_lm server --model mlx-community/Qwen3.5-2B-4bit --port 8081
-```
-
-### 3. Run as an agent
-
-```bash
-SONEC_BASE_URL=http://127.0.0.1:8080/v1 sonec run "Fix the failing test" -w .
-```
-
-### 4. Evaluate (fair A/B)
-
-```bash
-sonec compare --suite examples/benchmarks/ab_agent_v1.json --out docs/results
-```
-
-Outputs:
-
-- `docs/results/COMPARE_REPORT.md` — human summary
-- `docs/results/COMPARE_REPORT.json` — machine summary
-- `docs/results/arm_*.json` — per-task traces (gitignored; regenerate with compare)
-
-Promote an adapter only when pass rate **exceeds** the base arm on the sealed suite.
-
-**Product path:** `sonec serve-llm` on `:8080` (base + LoRA). `ollama run sonec` is an optional chat runner only — it does not load the specialized adapter.
 
 ---
 
 ## Surfaces
 
 ```bash
-sonec serve      # harness gateway
-sonec mcp        # MCP bridge
-sonec doctor     # environment + weight readiness
-sonec rollout    # trajectory collection
-sonec bench      # harness benches
+sonec serve       # harness gateway
+sonec serve-llm   # OpenAI-compatible LLM (product)
+sonec mcp         # MCP bridge
+sonec doctor      # environment + weight readiness
+sonec rollout     # trajectory collection
+sonec bench       # harness benches
+sonec compare     # fair A/B vs base
+sonec train       # specialize LoRA
+sonec weights     # product readiness
 ```
 
 ---
 
-## Roadmap (honest)
+## Status
 
-Already landed:
-
-- Live A/B win vs base on `ab_agent_v1` (+17%)
-- Structured tool-call SFT (not text-shaped “Calling tool …”)
-- Weight-level NLL proof
-- Tool-argument wire fix for mlx_lm multi-turn
-
-Next:
-
-- Flip `py-util-main` and `pkg-greet` (multi-file create; stop explore-only loops)
-- Scale live verified trajectories + rejection / RL
-- Widen sealed eval before claiming broader superiority
+| Landed | Next |
+| --- | --- |
+| Live A/B win vs base (`ab_agent_v1`, +17%) | Flip `py-util-main` / `pkg-greet` |
+| Structured tool-call SFT | Scale live verified trajectories + RL |
+| Weight-level NLL proof | Widen sealed eval |
+| mlx_lm multi-turn tool-arg wire fix | Promote only on pass-rate gates |
 
 ---
 
 ## Documentation
 
-| Doc | Purpose |
+| | |
 | --- | --- |
 | [Getting started](docs/getting-started.md) | First run |
 | [Architecture](docs/architecture.md) | Harness + training layout |
 | [Training gate](docs/GATE_REPORT_MODEL_STACK.md) | Model stack decisions |
 | [Training proof](docs/results/TRAIN_PROOF.md) | What counts as the product |
 | [Compare report](docs/results/COMPARE_REPORT.md) | Latest live A/B |
-| [NOTICE](NOTICE) | Base weight lineage (Apache-2.0) |
+| [NOTICE](NOTICE) | Base weight lineage |
 
 ---
 
-## License
+<div align="center">
 
-MIT © Suryanshu Nabheet. Third-party weight lineage: see [NOTICE](NOTICE).
+**SONEC**
+
+MIT © [Suryanshu Nabheet](https://github.com/Suryanshu-Nabheet)  
+Third-party weight lineage — [NOTICE](NOTICE)
+
+<br/>
+
+<sub>Specialize · Serve · Verify</sub>
+
+</div>

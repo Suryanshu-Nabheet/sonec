@@ -92,7 +92,7 @@ class Settings(BaseSettings):
             raise ConfigError(
                 "No API key configured. Set SONEC_API_KEY or OPENAI_API_KEY. "
                 "For local OpenAI-compatible servers: SONEC_PROVIDER=local "
-                f"SONEC_BASE_URL={DEFAULT_LOCAL_BASE_URL} SONEC_MODEL=sonec"
+                f"SONEC_BASE_URL={DEFAULT_LOCAL_BASE_URL} SONEC_MODEL={DEFAULT_MODEL}"
             )
         return key
 

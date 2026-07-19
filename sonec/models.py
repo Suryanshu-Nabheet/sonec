@@ -26,7 +26,8 @@ PRODUCT_SYSTEM = (
     "Do not invent unread file contents."
 )
 
-DEFAULT_MODEL = PRODUCT_MODEL
+# API model id for serve-llm (mlx_lm). Product name remains PRODUCT_MODEL.
+DEFAULT_MODEL = BASE_HF_MLX
 DEFAULT_PROVIDER = "local"
 DEFAULT_LOCAL_BASE_URL = "http://127.0.0.1:8080/v1"
 
