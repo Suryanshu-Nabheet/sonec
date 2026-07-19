@@ -1,7 +1,8 @@
 name: Daily
 
 # Nightly suite integrity + mock harness smoke. Commits DAILY_STATUS.* when changed.
-# Live Cap200 / MLX LoRA eval stays local (Apple Silicon) — see scripts/capabilitybench_e2e.sh.
+# Commits are authored as Suryanshu Nabheet (never github-actions[bot]).
+# Live Cap200 / MLX LoRA eval stays local — see scripts/capabilitybench_e2e.sh.
 
 on:
   schedule:
@@ -22,6 +23,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # Push back as repo owner commits (author set below).
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-python@v5
         with:
@@ -39,10 +42,14 @@ jobs:
       - name: Daily stats (pytest + Cap200 shape + mock bench)
         run: python scripts/ci_daily_stats.py
 
-      - name: Commit status artifacts
+      - name: Commit status artifacts (author = Suryanshu Nabheet)
+        env:
+          # Verified GitHub email for https://github.com/Suryanshu-Nabheet
+          GIT_AUTHOR_NAME: Suryanshu Nabheet
+          GIT_AUTHOR_EMAIL: suryanshunab@gmail.com
+          GIT_COMMITTER_NAME: Suryanshu Nabheet
+          GIT_COMMITTER_EMAIL: suryanshunab@gmail.com
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/results/DAILY_STATUS.md docs/results/DAILY_STATUS.json examples/benchmarks/capabilitybench_v1.json
           if git diff --staged --quiet; then
             echo "No daily status changes"
