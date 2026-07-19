@@ -12,28 +12,30 @@ Raw `*.safetensors` are gitignored. Reproduce with `sonec train --step`.
 
 Check: `sonec weights` → `ready=True`.
 
-## Specialization recorded here
+## Latest specialization (2026-07-19)
 
 | Field | Value |
 | --- | --- |
 | Product | sonec by Suryanshu Nabheet — coding model |
 | Method | MLX LoRA SFT |
-| Iters | 160 |
-| Val loss | 1.770 → **0.016** |
-| Train loss (final) | **0.019** |
-| Adapter files | `adapters.safetensors`, `0000080_*`, `0000160_*` |
+| Corpus | 508 examples, OpenAI structured `tool_calls` (oracle-graded + gold); XML text dumps rejected |
+| Iters | 500 |
+| SFT wall time | ~1082 s |
+| Adapter | `adapters.safetensors` + checkpoints through `0000480_*` |
 
 Base weight lineage for redistribution: [NOTICE](../../NOTICE).
+
+## Live A/B (after tool-argument wire fix)
+
+See [COMPARE_REPORT.md](COMPARE_REPORT.md). Protocol fix required `arguments` as a JSON string on the OpenAI wire. Post-fix result: **50% vs 50%** on `ab_agent_v1` (tie). Promote only when pass rate exceeds base.
 
 ## Reproduce
 
 ```bash
 pip install -e ".[dev,train]"
-sonec train --step --live-fuel --sft-iters 300 --gold-n 0
+./scripts/overnight_specialize.sh
+# or:
+sonec train --step --mock-fuel --sft-iters 500 --gold-n 240 --train-n 64 --rollout-group 4
 sonec weights
 sonec serve-llm --port 8080
 ```
-
-## Live A/B
-
-See [COMPARE_REPORT.md](COMPARE_REPORT.md) — same frozen harness, LoRA vs base endpoint.

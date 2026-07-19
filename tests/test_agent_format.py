@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import json
+
 from sonec.core.types import Message, Role, ToolCall
 from sonec.harness.compaction import compact_messages
 from sonec.llm.chat_format import ensure_user_present, message_to_openai
 from sonec.training.export import is_broken_agent_format
 
 
-def test_message_to_openai_args_are_dict() -> None:
+def test_message_to_openai_args_are_json_string() -> None:
     msg = Message(
         role=Role.ASSISTANT,
         content="",
@@ -16,8 +18,8 @@ def test_message_to_openai_args_are_dict() -> None:
     )
     payload = message_to_openai(msg)
     args = payload["tool_calls"][0]["function"]["arguments"]
-    assert isinstance(args, dict)
-    assert args["path"] == "a.txt"
+    assert isinstance(args, str)
+    assert json.loads(args)["path"] == "a.txt"
 
 
 def test_ensure_user_present_recovers_missing_user() -> None:
@@ -43,7 +45,10 @@ def test_reject_calling_tool_text() -> None:
     assert is_broken_agent_format(
         [
             {"role": "user", "content": "x"},
-            {"role": "assistant", "content": "Calling tool fs_write"},
+            {
+                "role": "assistant",
+                "content": "<tool_call><function=fs_write></function></tool_call>",
+            },
         ]
     )
     assert not is_broken_agent_format(

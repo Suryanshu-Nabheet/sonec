@@ -97,6 +97,9 @@ class RolloutFactory:
         self.provider_name = provider_name
         self.model = model
         self.records_path = self.output_dir / "rollouts.jsonl"
+        # Fresh file each factory run so live/oracle fuels do not mix.
+        if self.records_path.exists():
+            self.records_path.unlink()
 
     def _isolate_workspace(self, seed: Path | None = None) -> Path:
         root = Path(tempfile.mkdtemp(prefix="sonec-rollout-"))

@@ -56,7 +56,7 @@ def _normalize_tool_calls(raw: object) -> list[dict[str, Any]] | None:
 
 
 def is_broken_agent_format(messages: list[dict[str, Any]]) -> bool:
-    """Reject text tool dumps / fake 'Calling tool' trajectories."""
+    """Reject text tool dumps and XML-in-content trajectories."""
     for msg in messages:
         if msg.get("role") != "assistant":
             continue
@@ -65,12 +65,11 @@ def is_broken_agent_format(messages: list[dict[str, Any]]) -> bool:
             return True
         if '"tool_calls"' in content and not msg.get("tool_calls"):
             return True
-        # XML-only without structured tool_calls is allowed only if no OpenAI tools expected;
-        # for agent SFT we require structured tool_calls whenever tools were used.
+        # Qwen XML in the content channel is never valid agent SFT.
+        if "<tool_call>" in content or "<function=" in content:
+            return True
         if msg.get("tool_calls"):
             continue
-        if "<tool_call>" in content:
-            return True
     return False
 
 

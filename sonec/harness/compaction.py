@@ -62,7 +62,7 @@ def compact_messages(
         elif msg.content:
             summary_bits.append(f"{msg.role.value}: {msg.content[:160]}")
     summary = Message(
-        role=Role.SYSTEM,
+        role=Role.USER,
         content=(
             "CONTEXT COMPACTION (harness self-summary):\n"
             + "\n".join(summary_bits[-40:])

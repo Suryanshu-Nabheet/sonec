@@ -342,7 +342,11 @@ def prepare_rollout_fuel(
     model: str | None = None,
     provider_name: str = "local",
 ) -> Path:
-    """Live graded TrainBench rollouts — mock fuel is not used for specialization."""
+    """Graded TrainBench rollouts for specialization.
+
+    live=True: model under test (requires a reachable inference server).
+    live=False: oracle solver that emits structured tool_calls and passes graders.
+    """
     write_trainbench(Path("examples/benchmarks/trainbench_v1.json"), n=max(train_n, 16))
     tasks = build_trainbench_tasks(n=train_n)
     if limit:
@@ -642,7 +646,8 @@ def run_train_step(
 
     adapter = art / "checkpoints" / "sonec-sft-mlx"
     mlx_base = resolve_mlx_base(mlx_model)
-    serve_model = model or PRODUCT_MODEL
+    # mlx_lm / OpenAI servers advertise the base checkpoint id, not the product tag.
+    inference_model = model or mlx_base
 
     if corpus_dir is not None:
         corpus_path = corpus_dir.expanduser().resolve()
@@ -666,7 +671,7 @@ def run_train_step(
                     group_size=rollout_group,
                     train_n=train_n,
                     live=live_fuel,
-                    model=serve_model if live_fuel else None,
+                    model=inference_model if live_fuel else None,
                 )
                 reports.append(
                     TrainReport(
@@ -726,7 +731,7 @@ def run_train_step(
             group_size=rl_group,
             limit=rl_limit,
             live=live_rl,
-            model=serve_model,
+            model=inference_model,
         )
     )
 
@@ -736,14 +741,14 @@ def run_train_step(
         TrainReport(
             "product",
             status.ready,
-            status.detail if status.ready else f"NOT READY — {status.detail}",
+            status.detail if status.ready else f"not ready — {status.detail}",
             {"manifest": str(manifest), "adapter": str(adapter)},
         )
     )
 
-    # Keep Modelfile as an explicit anti-wrapper note, not product definition.
+    # Optional chat Modelfile (runner only; product is the LoRA adapter).
     mf = write_product_modelfile(adapter_path=adapter, modelfile_out=root / "Modelfile")
-    reports.append(TrainReport("modelfile_note", True, f"wrote non-product note {mf}", {"modelfile": str(mf)}))
+    reports.append(TrainReport("modelfile", True, f"updated {mf}", {"modelfile": str(mf)}))
 
     _write_json(
         art / "TRAIN_REPORT.json",

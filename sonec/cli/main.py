@@ -611,7 +611,7 @@ def compare_cmd(
     ),
     out: Path = typer.Option(Path("docs/results"), "--out", "-o"),
 ) -> None:
-    """Live A/B: LoRA sonec vs base Qwen 3.5 2B (same harness)."""
+    """Live A/B: specialized sonec LoRA versus the unmodified base checkpoint."""
     from sonec.eval.compare import run_compare_sync
     from sonec.training.weights import weight_status
 
@@ -665,17 +665,20 @@ def train_cmd(
         None, "--corpus", help="Reuse existing mlx_data dir (skip fuel+assemble)"
     ),
     live_fuel: bool = typer.Option(
-        True, "--live-fuel/--mock-fuel", help="Live graded rollouts for SFT (default)"
+        True,
+        "--live-fuel/--mock-fuel",
+        help="Live model fuel, or oracle graded trajectories (structured tool_calls)",
     ),
-    live_rl: bool = typer.Option(True, "--live-rl/--mock-rl", help="Live rejection RL"),
+    live_rl: bool = typer.Option(True, "--live-rl/--mock-rl", help="Live or oracle rejection RL"),
     reset: bool = typer.Option(False, "--reset", help="Wipe artifacts/train before step"),
     mlx_model: str = typer.Option(
         "mlx-community/Qwen3.5-2B-4bit",
         "--mlx-model",
-        help="HF/MLX base for LoRA (Qwen 3.5 2B lineage)",
+        help="MLX base checkpoint for LoRA",
     ),
+    rollout_group: int = typer.Option(8, "--rollout-group", help="Rollouts per TrainBench task"),
 ) -> None:
-    """Specialize sonec via live passing trajectories and LoRA."""
+    """Specialize sonec via graded trajectories and LoRA."""
     if step or full:
         from sonec.training.specialize import run_train_step
         from sonec.training.weights import weight_status
@@ -683,9 +686,9 @@ def train_cmd(
         console.print(
             Panel.fit(
                 f"Specialize — live_fuel={live_fuel} SFT={sft_iters} "
-                f"gold={gold_n} train_n={train_n}\n"
+                f"gold={gold_n} train_n={train_n} group={rollout_group}\n"
                 f"mlx={mlx_model}\n"
-                "Keep the adapter only if sonec compare pass rate rises.",
+                "Retain the adapter only when sonec compare pass rate improves.",
                 title="sonec train",
                 border_style="cyan",
             )
@@ -702,6 +705,7 @@ def train_cmd(
             mlx_model=mlx_model,
             reset=reset,
             corpus_dir=corpus,
+            rollout_group=rollout_group,
         )
         for r in reports:
             color = "green" if r.ok else "red"

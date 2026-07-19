@@ -39,7 +39,10 @@ def ensure_user_present(messages: list[Message], *, fallback_user: str) -> list[
 
 
 def message_to_openai(message: Message) -> dict[str, Any]:
-    """Wire format that Qwen chat templates accept."""
+    """OpenAI-compatible wire format for mlx_lm / vLLM / OpenAI servers.
+
+    ``function.arguments`` must be a JSON string on the wire (OpenAI schema).
+    """
     payload: dict[str, Any] = {
         "role": message.role.value,
         "content": message.content if message.content is not None else "",
@@ -55,8 +58,10 @@ def message_to_openai(message: Message) -> dict[str, Any]:
                 "type": "function",
                 "function": {
                     "name": call.name,
-                    # Dict, not JSON string — Qwen template uses |items
-                    "arguments": call.arguments if isinstance(call.arguments, dict) else {},
+                    "arguments": json.dumps(
+                        call.arguments if isinstance(call.arguments, dict) else {},
+                        ensure_ascii=False,
+                    ),
                 },
             }
             for call in message.tool_calls

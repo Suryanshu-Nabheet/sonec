@@ -4,169 +4,23 @@
   "sealed": false,
   "training_only": true,
   "description": "Training-only fuel. Do not use as decision eval.",
-  "task_count": 16,
+  "task_count": 24,
   "tasks": [
     {
-      "id": "train-bug-0001",
-      "name": "Bug fix 1",
-      "prompt": "Create fix_1.py with def answer() returning 1.",
+      "id": "train-feat-0001",
+      "name": "Feature flag 1",
+      "prompt": "Create config/flag_1.json with \"enabled\": true.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "fix_1.py",
+          "path": "config/flag_1.json",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "fix_1.py",
-          "contains": "def answer",
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "python_parses",
-          "path": "fix_1.py",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        }
-      ],
-      "tags": [
-        "train",
-        "bugfix"
-      ],
-      "timeout_s": 300.0,
-      "difficulty": "medium",
-      "seed_files": {}
-    },
-    {
-      "id": "train-test-0002",
-      "name": "Add test 2",
-      "prompt": "Create tests/test_t2.py with def test_ok asserting True.",
-      "checks": [
-        {
-          "kind": "file_exists",
-          "path": "tests/test_t2.py",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "tests/test_t2.py",
-          "contains": "def test_ok",
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "python_parses",
-          "path": "tests/test_t2.py",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        }
-      ],
-      "tags": [
-        "train",
-        "tests"
-      ],
-      "timeout_s": 300.0,
-      "difficulty": "medium",
-      "seed_files": {}
-    },
-    {
-      "id": "train-ts-0003",
-      "name": "TS util 3",
-      "prompt": "Create src/util_3.ts exporting function util3(): number returning 3.",
-      "checks": [
-        {
-          "kind": "file_exists",
-          "path": "src/util_3.ts",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "src/util_3.ts",
-          "contains": "util3",
-          "command_exit_zero": null,
-          "pattern": null
-        }
-      ],
-      "tags": [
-        "train",
-        "typescript"
-      ],
-      "timeout_s": 300.0,
-      "difficulty": "medium",
-      "seed_files": {}
-    },
-    {
-      "id": "train-verify-0004",
-      "name": "Verify script 4",
-      "prompt": "Create scripts/check_4.sh echoing PASS_4 and VERIFY_4.md referencing ./scripts/check_4.sh",
-      "checks": [
-        {
-          "kind": "file_exists",
-          "path": "scripts/check_4.sh",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "scripts/check_4.sh",
-          "contains": "PASS_4",
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "VERIFY_4.md",
-          "contains": "./scripts/check_4.sh",
-          "command_exit_zero": null,
-          "pattern": null
-        }
-      ],
-      "tags": [
-        "train",
-        "verify"
-      ],
-      "timeout_s": 300.0,
-      "difficulty": "medium",
-      "seed_files": {}
-    },
-    {
-      "id": "train-q-0005",
-      "name": "Restraint 5",
-      "prompt": "In one sentence, what is continuous integration? (q5; do not edit files)",
-      "checks": [],
-      "tags": [
-        "train",
-        "restraint"
-      ],
-      "timeout_s": 300.0,
-      "difficulty": "easy",
-      "seed_files": {}
-    },
-    {
-      "id": "train-feat-0006",
-      "name": "Feature flag 6",
-      "prompt": "Create config/flag_6.json with \"enabled\": true.",
-      "checks": [
-        {
-          "kind": "file_exists",
-          "path": "config/flag_6.json",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "config/flag_6.json",
+          "path": "config/flag_1.json",
           "contains": "\"enabled\": true",
           "command_exit_zero": null,
           "pattern": null
@@ -181,27 +35,27 @@
       "seed_files": {}
     },
     {
-      "id": "train-bug-0007",
-      "name": "Bug fix 7",
-      "prompt": "Create fix_7.py with def answer() returning 7.",
+      "id": "train-bug-0002",
+      "name": "Bug fix 2",
+      "prompt": "Create fix_2.py with def answer() returning 2.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "fix_7.py",
+          "path": "fix_2.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "fix_7.py",
+          "path": "fix_2.py",
           "contains": "def answer",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "python_parses",
-          "path": "fix_7.py",
+          "path": "fix_2.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -216,27 +70,27 @@
       "seed_files": {}
     },
     {
-      "id": "train-test-0008",
-      "name": "Add test 8",
-      "prompt": "Create tests/test_t8.py with def test_ok asserting True.",
+      "id": "train-test-0003",
+      "name": "Add test 3",
+      "prompt": "Create tests/test_t3.py with def test_ok asserting True.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "tests/test_t8.py",
+          "path": "tests/test_t3.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "tests/test_t8.py",
+          "path": "tests/test_t3.py",
           "contains": "def test_ok",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "python_parses",
-          "path": "tests/test_t8.py",
+          "path": "tests/test_t3.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -251,21 +105,21 @@
       "seed_files": {}
     },
     {
-      "id": "train-ts-0009",
-      "name": "TS util 9",
-      "prompt": "Create src/util_9.ts exporting function util9(): number returning 9.",
+      "id": "train-ts-0004",
+      "name": "TS util 4",
+      "prompt": "Create src/util_4.ts exporting function util4(): number returning 4.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "src/util_9.ts",
+          "path": "src/util_4.ts",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "src/util_9.ts",
-          "contains": "util9",
+          "path": "src/util_4.ts",
+          "contains": "util4",
           "command_exit_zero": null,
           "pattern": null
         }
@@ -279,28 +133,70 @@
       "seed_files": {}
     },
     {
-      "id": "train-verify-0010",
-      "name": "Verify script 10",
-      "prompt": "Create scripts/check_10.sh echoing PASS_10 and VERIFY_10.md referencing ./scripts/check_10.sh",
+      "id": "train-pkg-0005",
+      "name": "Package scaffold 5",
+      "prompt": "Create pkg5/__init__.py and pkg5/core.py with def helper_5() returning 5.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "scripts/check_10.sh",
+          "path": "pkg5/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg5/core.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "scripts/check_10.sh",
-          "contains": "PASS_10",
+          "path": "pkg5/core.py",
+          "contains": "def helper_5",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg5/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0006",
+      "name": "Verify script 6",
+      "prompt": "Create scripts/check_6.sh echoing PASS_6 and VERIFY_6.md referencing ./scripts/check_6.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_6.sh",
+          "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "VERIFY_10.md",
-          "contains": "./scripts/check_10.sh",
+          "path": "scripts/check_6.sh",
+          "contains": "PASS_6",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_6.md",
+          "contains": "./scripts/check_6.sh",
           "command_exit_zero": null,
           "pattern": null
         }
@@ -314,9 +210,9 @@
       "seed_files": {}
     },
     {
-      "id": "train-q-0011",
-      "name": "Restraint 11",
-      "prompt": "In one sentence, what is continuous integration? (q11; do not edit files)",
+      "id": "train-q-0007",
+      "name": "Restraint 7",
+      "prompt": "In one sentence, what is continuous integration? (q7; do not edit files)",
       "checks": [],
       "tags": [
         "train",
@@ -327,20 +223,48 @@
       "seed_files": {}
     },
     {
-      "id": "train-feat-0012",
-      "name": "Feature flag 12",
-      "prompt": "Create config/flag_12.json with \"enabled\": true.",
+      "id": "train-path-0008",
+      "name": "Exact path write 8",
+      "prompt": "Create notes/hello_8.txt containing exactly: hello sonec 8",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "config/flag_12.json",
+          "path": "notes/hello_8.txt",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "config/flag_12.json",
+          "path": "notes/hello_8.txt",
+          "contains": "hello sonec 8",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-feat-0009",
+      "name": "Feature flag 9",
+      "prompt": "Create config/flag_9.json with \"enabled\": true.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/flag_9.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/flag_9.json",
           "contains": "\"enabled\": true",
           "command_exit_zero": null,
           "pattern": null
@@ -355,27 +279,27 @@
       "seed_files": {}
     },
     {
-      "id": "train-bug-0013",
-      "name": "Bug fix 13",
-      "prompt": "Create fix_13.py with def answer() returning 13.",
+      "id": "train-bug-0010",
+      "name": "Bug fix 10",
+      "prompt": "Create fix_10.py with def answer() returning 10.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "fix_13.py",
+          "path": "fix_10.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "fix_13.py",
+          "path": "fix_10.py",
           "contains": "def answer",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "python_parses",
-          "path": "fix_13.py",
+          "path": "fix_10.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -390,27 +314,27 @@
       "seed_files": {}
     },
     {
-      "id": "train-test-0014",
-      "name": "Add test 14",
-      "prompt": "Create tests/test_t14.py with def test_ok asserting True.",
+      "id": "train-test-0011",
+      "name": "Add test 11",
+      "prompt": "Create tests/test_t11.py with def test_ok asserting True.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "tests/test_t14.py",
+          "path": "tests/test_t11.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "tests/test_t14.py",
+          "path": "tests/test_t11.py",
           "contains": "def test_ok",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "python_parses",
-          "path": "tests/test_t14.py",
+          "path": "tests/test_t11.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -425,21 +349,21 @@
       "seed_files": {}
     },
     {
-      "id": "train-ts-0015",
-      "name": "TS util 15",
-      "prompt": "Create src/util_15.ts exporting function util15(): number returning 15.",
+      "id": "train-ts-0012",
+      "name": "TS util 12",
+      "prompt": "Create src/util_12.ts exporting function util12(): number returning 12.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "src/util_15.ts",
+          "path": "src/util_12.ts",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "src/util_15.ts",
-          "contains": "util15",
+          "path": "src/util_12.ts",
+          "contains": "util12",
           "command_exit_zero": null,
           "pattern": null
         }
@@ -453,28 +377,70 @@
       "seed_files": {}
     },
     {
-      "id": "train-verify-0016",
-      "name": "Verify script 16",
-      "prompt": "Create scripts/check_16.sh echoing PASS_16 and VERIFY_16.md referencing ./scripts/check_16.sh",
+      "id": "train-pkg-0013",
+      "name": "Package scaffold 13",
+      "prompt": "Create pkg13/__init__.py and pkg13/core.py with def helper_13() returning 13.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "scripts/check_16.sh",
+          "path": "pkg13/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg13/core.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "scripts/check_16.sh",
-          "contains": "PASS_16",
+          "path": "pkg13/core.py",
+          "contains": "def helper_13",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg13/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0014",
+      "name": "Verify script 14",
+      "prompt": "Create scripts/check_14.sh echoing PASS_14 and VERIFY_14.md referencing ./scripts/check_14.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_14.sh",
+          "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "VERIFY_16.md",
-          "contains": "./scripts/check_16.sh",
+          "path": "scripts/check_14.sh",
+          "contains": "PASS_14",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_14.md",
+          "contains": "./scripts/check_14.sh",
           "command_exit_zero": null,
           "pattern": null
         }
@@ -485,6 +451,291 @@
       ],
       "timeout_s": 300.0,
       "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-q-0015",
+      "name": "Restraint 15",
+      "prompt": "In one sentence, what is continuous integration? (q15; do not edit files)",
+      "checks": [],
+      "tags": [
+        "train",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-path-0016",
+      "name": "Exact path write 16",
+      "prompt": "Create notes/hello_16.txt containing exactly: hello sonec 16",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_16.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_16.txt",
+          "contains": "hello sonec 16",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-feat-0017",
+      "name": "Feature flag 17",
+      "prompt": "Create config/flag_17.json with \"enabled\": true.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/flag_17.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/flag_17.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "feature"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-bug-0018",
+      "name": "Bug fix 18",
+      "prompt": "Create fix_18.py with def answer() returning 18.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_18.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_18.py",
+          "contains": "def answer",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_18.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-test-0019",
+      "name": "Add test 19",
+      "prompt": "Create tests/test_t19.py with def test_ok asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_t19.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_t19.py",
+          "contains": "def test_ok",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_t19.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-ts-0020",
+      "name": "TS util 20",
+      "prompt": "Create src/util_20.ts exporting function util20(): number returning 20.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util_20.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util_20.ts",
+          "contains": "util20",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkg-0021",
+      "name": "Package scaffold 21",
+      "prompt": "Create pkg21/__init__.py and pkg21/core.py with def helper_21() returning 21.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg21/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg21/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg21/core.py",
+          "contains": "def helper_21",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg21/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0022",
+      "name": "Verify script 22",
+      "prompt": "Create scripts/check_22.sh echoing PASS_22 and VERIFY_22.md referencing ./scripts/check_22.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_22.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/check_22.sh",
+          "contains": "PASS_22",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_22.md",
+          "contains": "./scripts/check_22.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "verify"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-q-0023",
+      "name": "Restraint 23",
+      "prompt": "In one sentence, what is continuous integration? (q23; do not edit files)",
+      "checks": [],
+      "tags": [
+        "train",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-path-0024",
+      "name": "Exact path write 24",
+      "prompt": "Create notes/hello_24.txt containing exactly: hello sonec 24",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_24.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_24.txt",
+          "contains": "hello sonec 24",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
       "seed_files": {}
     }
   ]
