@@ -232,8 +232,9 @@ def build_trainbench_tasks(*, n: int = 120) -> list[EvalTask]:
                     id=f"train-cli-{i:04d}",
                     name=f"CLI parse_args {i}",
                     prompt=(
-                        "Create cli/main.py as valid Python defining parse_args "
-                        "and a main function."
+                        "Create cli/main.py as valid Python that defines BOTH "
+                        "a function named parse_args and a function named main. "
+                        "Do not only use if __name__ without def main."
                     ),
                     difficulty="medium",
                     tags=["train", "python", "cli", "write_first"],

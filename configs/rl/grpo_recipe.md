@@ -1,52 +1,47 @@
 # sonec RL — GRPO-lite (Apple Silicon / MLX)
 
-## What ships
+## Laptop-safe defaults (important)
+
+Large live GRPO (G=8 × n=24 × live agents + 12-layer LoRA) will thrash / OOM Macs.
+**Defaults are intentionally light and mock.**
 
 ```bash
-# Group-relative rollouts → advantage-weighted LoRA SFT
-sonec grpo --group-size 8 --train-n 24 --sft-iters 200 --live
-# Needs: sonec serve-llm on :8080 and ready adapters (`sonec weights`)
+# Safe densify (default) — oracle trajectories, G=2, n=8, 80 iters
+sonec grpo --mock
 
-# Offline densify (oracle tool_calls) when live inference is unavailable:
-sonec grpo --mock --group-size 6 --train-n 16 --sft-iters 150
+# Explicit light live (only if serve-llm is up and you accept the cost)
+sonec grpo --live --group-size 2 --train-n 8 --sft-iters 80
+
+# Refused automatically: --live with G>4 or train_n>16
 ```
+
+World board script keeps GRPO **off** unless you opt in:
+
+```bash
+SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh   # default
+SKIP_GRPO=0 ./scripts/world_rl_leaderboard.sh   # runs light --mock GRPO only
+LIVE_GRPO=1 SKIP_GRPO=0 ./scripts/world_rl_leaderboard.sh  # live (still capped)
+```
+
+## What it does
 
 Implementation: `sonec/training/grpo_lite.py`
 
 - Sample G rollouts per TrainBench prompt (same harness / graders)
-- Advantage = reward − group mean (Dr.GRPO-style; no length-std)
-- Densify positive-advantage trajectories → continue MLX LoRA
+- Advantage = reward − group mean (Dr.GRPO-style)
+- Densify positive-advantage trajectories → continue MLX LoRA (8 layers by default)
 
-This is **not** CUDA TRL/verl policy-gradient GRPO. It is the same *relative* training signal on MLX. For full GRPO on GPU clusters, see the external stacks below — keep sonec as the rollout env.
+This is **not** CUDA TRL/verl policy-gradient GRPO. Same *relative* signal on MLX.
 
-## Data export (optional)
+## Decision eval (not GRPO)
+
+Use sealed **CapabilityBench** (200 tasks) to see where sonec actually stands:
 
 ```bash
-sonec rollout --live -g 8 --limit 20 --out artifacts/rollouts/live
-sonec train --export -r artifacts/rollouts/live/rollouts.jsonl -o artifacts/train
-# artifacts/train/grpo_prompts.jsonl
+sonec capabilitybench   # writes examples/benchmarks/capabilitybench_v1.json
+sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json -o docs/results/leaderboard_2b
 ```
-
-## External stacks (CUDA)
-
-| Stack | Notes |
-| --- | --- |
-| [verl](https://github.com/volcengine/verl) | Production GRPO; wire sonec rollout worker as env |
-| [OpenRLHF](https://github.com/OpenRLHF/OpenRLHF) | Ray + vLLM rollouts |
-| [TRL GRPO](https://huggingface.co/docs/trl) | Smaller local experiments |
 
 ## Pinning
 
-Every RL run records in `artifacts/train/grpo_lite/grpo_stats.json`:
-
-- group size, prompt count, passers, corpus lines
-- base mlx model id, live vs mock
-- SFT report
-
-Harness or tool-schema change requires a migration eval before new training.
-
-## Collapse watches
-
-- Terminal-only / list-only loops
-- Entropy death (identical rollouts)
-- pass@1 up but pass@k flat
+`artifacts/train/grpo_lite/grpo_stats.json` records G, n, live/mock, corpus size, SFT report.

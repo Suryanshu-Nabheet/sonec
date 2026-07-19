@@ -1,18 +1,25 @@
 #!/usr/bin/env bash
-# Strict 2B-only multi-model leaderboard + optional GRPO-lite.
-# No 1B / 1.5B / 3B+ peers. Decision suite: ab_agent_2b_hard.
+# Strict 2B-only multi-model leaderboard + optional light GRPO-lite.
+# Decision suite default: CapabilityBench (200 sealed tasks).
+# GRPO is OFF by default — large live GRPO thrashs Macs.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 # shellcheck disable=SC1091
 source .venv/bin/activate
 
-mkdir -p artifacts/logs docs/results/leaderboard_2b
+mkdir -p artifacts/logs docs/results/leaderboard_2b examples/benchmarks
 LOG="artifacts/logs/world_rl_$(date +%Y%m%d_%H%M%S).log"
 exec > >(tee -a "$LOG") 2>&1
 
 echo "=== world RL + strict 2B leaderboard ==="
 echo "started=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+# Ensure sealed CapabilityBench exists
+if [[ ! -f examples/benchmarks/capabilitybench_v1.json ]]; then
+  echo "=== generate capabilitybench_v1.json ==="
+  sonec capabilitybench
+fi
 
 # Exact ~2B tags only.
 MODELS=(
@@ -76,10 +83,15 @@ for i in $(seq 1 60); do
   sleep 2
 done
 
-if [[ "${SKIP_GRPO:-0}" != "1" ]]; then
-  echo "=== GRPO-lite (group-relative RL → LoRA) ==="
-  sonec grpo --group-size 8 --train-n 24 --sft-iters 200 --live \
-    || sonec grpo --group-size 8 --train-n 24 --sft-iters 200 --mock
+if [[ "${SKIP_GRPO:-1}" != "1" ]]; then
+  echo "=== GRPO-lite light densify (default off — set SKIP_GRPO=0) ==="
+  # Laptop-safe: mock G=2 n=8. Live only if LIVE_GRPO=1 and still capped.
+  if [[ "${LIVE_GRPO:-0}" == "1" ]]; then
+    sonec grpo --group-size 2 --train-n 8 --sft-iters 80 --live \
+      || sonec grpo --group-size 2 --train-n 8 --sft-iters 80 --mock
+  else
+    sonec grpo --group-size 2 --train-n 8 --sft-iters 80 --mock
+  fi
   pkill -f "mlx_lm server.*8080" 2>/dev/null || true
   sleep 2
   python -m mlx_lm server \
@@ -94,14 +106,14 @@ if [[ "${SKIP_GRPO:-0}" != "1" ]]; then
   done
 fi
 
-SUITE="${SUITE:-examples/benchmarks/ab_agent_2b_hard.json}"
+SUITE="${SUITE:-examples/benchmarks/capabilitybench_v1.json}"
 echo "=== multi-model leaderboard ($SUITE) ==="
-# Default fresh board for 2B-only runs; RESUME=1 to keep arm dumps.
+# Default resume for 200-task runs (abort-safe). FORCE_FRESH=1 to re-run all arms.
 LB_FLAGS=(--suite "$SUITE" --arms "$ARMS_OUT" --out docs/results/leaderboard_2b)
-if [[ "${RESUME:-0}" == "1" ]]; then
-  LB_FLAGS+=(--resume)
-else
+if [[ "${FORCE_FRESH:-0}" == "1" ]]; then
   LB_FLAGS+=(--fresh)
+else
+  LB_FLAGS+=(--resume)
 fi
 sonec leaderboard "${LB_FLAGS[@]}"
 
@@ -109,3 +121,6 @@ echo "=== done $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
 echo "leaderboard: docs/results/leaderboard_2b/LEADERBOARD.md"
 echo "chart: docs/results/leaderboard_2b/LEADERBOARD_CHART.html"
 echo "log: $LOG"
+echo "Note: GRPO is OFF by default (SKIP_GRPO=1). Optional light mock densify:"
+echo "  SKIP_GRPO=0 ./scripts/world_rl_leaderboard.sh"
+echo "  # or: sonec grpo --mock   (never use large --live G on a laptop)"

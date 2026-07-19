@@ -186,6 +186,20 @@ def _load_cached_arm(path: Path) -> BenchmarkReport | None:
     return report
 
 
+def _arm_reachable(arm: ArmSpec, timeout: float = 3.0) -> str | None:
+    """Return None if /models responds; else an error string."""
+    import httpx
+
+    url = arm.base_url.rstrip("/") + "/models"
+    try:
+        r = httpx.get(url, timeout=timeout)
+        if r.status_code >= 400:
+            return f"HTTP {r.status_code} at {url}"
+    except Exception as exc:  # noqa: BLE001
+        return f"{type(exc).__name__}: {exc}"
+    return None
+
+
 def run_leaderboard_sync(
     *,
     suite: Path,
@@ -206,8 +220,22 @@ def run_leaderboard_sync(
             if resume:
                 cached = _load_cached_arm(out_path)
                 if cached is not None:
-                    reports[arm.name] = cached
-                    continue
+                    all_err = bool(cached.results) and all(
+                        any(
+                            "connection" in d.lower() or d.startswith("ERROR:")
+                            for d in r.details
+                        )
+                        for r in cached.results
+                    )
+                    if not all_err:
+                        reports[arm.name] = cached
+                        continue
+            unreachable = _arm_reachable(arm)
+            if unreachable:
+                raise RuntimeError(
+                    f"Arm {arm.name!r} unreachable at {arm.base_url}: {unreachable}. "
+                    "Start sonec serve-llm (LoRA) or ollama before leaderboard."
+                )
             reports[arm.name] = await run_arm(
                 arm=arm,
                 suite=suite,

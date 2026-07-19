@@ -1,54 +1,71 @@
 # Training proof — specialized LoRA weights
 
-Raw `*.safetensors` are gitignored. Reproduce with `sonec train --step` or `./scripts/overnight_specialize.sh`.
+Raw `*.safetensors` are gitignored. Reproduce with `./scripts/overnight_specialize.sh`.
 
-## What counts as sonec
+## Product
 
 | Claim | Status |
 | --- | --- |
-| Chat Modelfile only | Incomplete — runner without specialized weights |
-| MLX LoRA under `artifacts/train/checkpoints/sonec-sft-mlx` | Product |
-| Served via `sonec serve-llm` | Product |
+| Chat Modelfile only | Incomplete |
+| MLX LoRA `artifacts/train/checkpoints/sonec-sft-mlx` | Product |
+| `sonec serve-llm` | Product |
 
-Check: `sonec weights` → `ready=True`.
+## Latest live results (2026-07-19)
 
-## Latest specialization (2026-07-19)
+### MLX A/B compare (`ab_agent_2b_hard`)
 
-| Field | Value |
-| --- | --- |
-| Product | sonec by Suryanshu Nabheet — coding model |
-| Method | MLX LoRA SFT + rejection RFT (+ optional GRPO-lite) |
-| Corpus | TrainBench curriculum (incl. py-util / pkg-greet) + oracle-graded gold |
-| Checkpoints | `adapters.safetensors` |
-| Manifest | `artifacts/train/PRODUCT.json` |
+Source: [COMPARE_REPORT.md](COMPARE_REPORT.md) · generated `2026-07-19T07:36:47Z`
 
-Base weight lineage: [NOTICE](../../NOTICE) (Apache-2.0 · Qwen 3.5).
+| Arm | Pass | Mean duration |
+| --- | --- | ---: |
+| **sonec LoRA** (`:8080`) | **8/8 (100%)** | **8.6s** |
+| Qwen3.5-2B base (`:8081`) | 8/8 (100%) | 16.5s |
 
-## Weight-level proof
+Pass-rate tie; sonec ≈ **1.9× faster**.
 
-Gold-trajectory mean token NLL (n=8 probe) — lower is better:
+### Strict 2B multi-model board
 
-| Model | NLL |
+Source: [leaderboard_2b/LEADERBOARD.md](leaderboard_2b/LEADERBOARD.md) · generated `2026-07-19T07:39:54Z`
+
+Peers **only** ~2B: `qwen3.5:2b`, `gemma2:2b`, `codegemma:2b`.
+
+| Rank | Model | Pass | Mean duration |
+| ---: | --- | --- | ---: |
+| 1 | **sonec** (LoRA) | **8/8 (100%)** | **8.5s** |
+| 2 | qwen3.5:2b (Ollama) | 8/8 (100%) | 11.5s |
+| 3 | gemma2:2b | 0/8 | — |
+| 4 | codegemma:2b | 0/8 | — |
+
+**Winner:** sonec (pass-rate tie with qwen3.5:2b → specialized LoRA + speed).
+
+## Decision metric going forward
+
+Primary: **CapabilityBench** — 200 sealed tasks (`sonec capabilitybench` → `examples/benchmarks/capabilitybench_v1.json`).
+
+| Category | Count |
 | --- | ---: |
-| Base `Qwen3.5-2B-4bit` | 2.159 |
-| sonec LoRA | **0.022** |
+| Read-only repo understanding | 20 |
+| File editing | 20 |
+| Multi-file refactoring | 20 |
+| Bug fixing | 20 |
+| Verification (tests/build) | 20 |
+| Documentation updates | 20 |
+| Terminal/CLI tasks | 20 |
+| Git operations | 20 |
+| Tool restraint | 20 |
+| Long-horizon tasks | 20 |
+| **Total** | **200** |
 
-Source: [SFT_METRICS.json](SFT_METRICS.json). Adapter fit ≠ sealed agent ranking.
+Difficulty: 70 easy / 70 medium / 60 hard. Tags include filesystem, python, typescript, react, rust, go, docs, verify, architecture, patch, search, git.
 
-## Live A/B + multi-model board
-
-- A/B: [COMPARE_REPORT.md](COMPARE_REPORT.md) — `ab_agent_v1` saturated at **100%** for sonec and base after write-first harness fix.
-- Multi-model: [leaderboard_2b/LEADERBOARD.md](leaderboard_2b/LEADERBOARD.md) — sonec preferred on ties (`kind=lora`).
-
-Promote further adapters only when pass rate holds or improves with no restraint regression. Use sealed SonecBench / WorldBench for differentiation once `ab_agent_v1` is saturated.
+`ab_agent_2b_hard` remains the fast smoke (saturated for capable 2B tooling).
 
 ## Reproduce
 
 ```bash
-pip install -e ".[dev,train]"
 ./scripts/overnight_specialize.sh
-# multi-model board (resume-safe pulls + eval):
-./scripts/world_rl_leaderboard.sh
-# board only:
+sonec capabilitybench
 SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh
 ```
+
+GRPO: `sonec grpo --mock` only on laptops. Heavy live GRPO is refused (`G>4` or `n>16`).

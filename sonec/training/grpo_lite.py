@@ -44,29 +44,47 @@ def _group_advantages(rewards: list[float]) -> list[float]:
 def run_grpo_lite(
     *,
     root: Path,
-    group_size: int = 8,
-    train_n: int = 24,
-    sft_iters: int = 200,
-    live: bool = True,
+    group_size: int = 2,
+    train_n: int = 8,
+    sft_iters: int = 80,
+    live: bool = False,
     model: str | None = None,
     mlx_model: str = BASE_HF_MLX,
     adapter_path: Path | None = None,
-    oversample_pos: int = 3,
+    oversample_pos: int = 2,
+    lora_layers: int = 8,
 ) -> GrpoLiteResult:
-    """Roll out G completions per TrainBench prompt → advantage-weighted SFT."""
+    """Roll out G completions per TrainBench prompt → advantage-weighted SFT.
+
+    Defaults are intentionally light for laptop/MLX hosts (G=2, n=8, mock, 80 iters).
+    Live GRPO with large G/n will thrash memory — use explicit flags only when ready.
+    """
+    if group_size < 2:
+        raise ValueError("group_size must be >= 2")
+    if group_size > 4 and live:
+        raise ValueError(
+            f"group_size={group_size} with --live is too heavy for typical Macs "
+            "(each prompt runs G live agent sessions). Cap G at 4 for live, or use --mock."
+        )
+    if train_n > 16 and live:
+        raise ValueError(
+            f"train_n={train_n} with --live is too heavy "
+            f"(≈{train_n * group_size} live rollouts). Cap train_n at 16 for live, or use --mock."
+        )
+
     art = root / "artifacts" / "train" / "grpo_lite"
     art.mkdir(parents=True, exist_ok=True)
     adapter = adapter_path or (root / "artifacts" / "train" / "checkpoints" / "sonec-sft-mlx")
     inference_model = model or mlx_model
 
-    tasks = build_trainbench_tasks(n=train_n)
+    tasks = build_trainbench_tasks(n=max(train_n, 8))
     # Prefer write-first / python / architecture fuel for agentic RL.
     focus = [
         t
         for t in tasks
-        if any(tag in (t.tags or []) for tag in ("write_first", "python", "architecture", "multifile"))
+        if any(tag in (t.tags or []) for tag in ("write_first", "python", "architecture", "multifile", "patch"))
     ]
-    if len(focus) < max(8, train_n // 3):
+    if len(focus) < max(4, train_n // 3):
         focus = tasks[:train_n]
     else:
         focus = focus[:train_n]
@@ -130,8 +148,8 @@ def run_grpo_lite(
     lines = train.read_text(encoding="utf-8").splitlines() if train.exists() else []
     if not lines:
         raise RuntimeError(
-            "GRPO-lite produced empty corpus — need live inference with some positive rewards. "
-            "Ensure sonec serve-llm is up and SONEC_BASE_URL points at it."
+            "GRPO-lite produced empty corpus — need some positive rewards. "
+            "Try --mock, or ensure sonec serve-llm is up for --live."
         )
     (mlx_dir / "valid.jsonl").write_text(
         "\n".join(lines[: max(1, len(lines) // 10)]) + "\n", encoding="utf-8"
@@ -143,7 +161,7 @@ def run_grpo_lite(
         model=mlx_model,
         iters=sft_iters,
         learning_rate=2e-5,
-        lora_layers=12,
+        lora_layers=lora_layers,
     )
     stats_path = art / "grpo_stats.json"
     _write_json(
@@ -157,6 +175,7 @@ def run_grpo_lite(
             "absolute_passers": n_pass,
             "corpus_lines": len(lines),
             "live": live,
+            "lora_layers": lora_layers,
             "model": inference_model,
             "sft": sft.__dict__,
             "groups": group_stats,

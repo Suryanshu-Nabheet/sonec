@@ -651,11 +651,11 @@ def compare_cmd(
 @app.command("leaderboard")
 def leaderboard_cmd(
     suite: Path = typer.Option(
-        Path("examples/benchmarks/ab_agent_2b_hard.json"),
+        Path("examples/benchmarks/capabilitybench_v1.json"),
         "--suite",
         "-s",
         exists=True,
-        help="Strict 2B discrimination suite (default)",
+        help="Sealed CapabilityBench (200) — or ab_agent_2b_hard for a short smoke",
     ),
     arms: Path = typer.Option(
         Path("configs/leaderboard/arms_2b.json"),
@@ -703,13 +703,26 @@ def leaderboard_cmd(
 
 @app.command("grpo")
 def grpo_cmd(
-    group_size: int = typer.Option(8, "--group-size", "-g"),
-    train_n: int = typer.Option(24, "--train-n"),
-    sft_iters: int = typer.Option(200, "--sft-iters"),
-    live: bool = typer.Option(True, "--live/--mock"),
+    group_size: int = typer.Option(
+        2,
+        "--group-size",
+        "-g",
+        help="Rollouts per prompt (keep ≤4 for --live; default 2 is laptop-safe)",
+    ),
+    train_n: int = typer.Option(
+        8,
+        "--train-n",
+        help="TrainBench prompts (keep ≤16 for --live; default 8 is laptop-safe)",
+    ),
+    sft_iters: int = typer.Option(80, "--sft-iters", help="LoRA iters after densify"),
+    live: bool = typer.Option(
+        False,
+        "--live/--mock",
+        help="Live agent rollouts (heavy) vs oracle mock densify (default, safe)",
+    ),
     mlx_model: str = typer.Option("mlx-community/Qwen3.5-2B-4bit", "--mlx-model"),
 ) -> None:
-    """Real group-relative RL (GRPO-lite) → advantage-weighted LoRA SFT on MLX."""
+    """Light GRPO-lite densify. Default is mock + small G/n so it won't thrash the machine."""
     from sonec.training.grpo_lite import run_grpo_lite
     from sonec.training.weights import weight_status
 
@@ -718,9 +731,17 @@ def grpo_cmd(
         console.print(f"[red]{status.detail}[/]")
         console.print("Run sonec train --step first.")
         raise typer.Exit(code=1)
+    if live and (group_size > 4 or train_n > 16):
+        console.print(
+            "[red]Refusing heavy live GRPO[/] — use --group-size≤4 and --train-n≤16, "
+            "or --mock. Large live GRPO OOMs Apple Silicon hosts."
+        )
+        raise typer.Exit(code=2)
+    mode = "LIVE (heavy)" if live else "mock (safe)"
     console.print(
         Panel.fit(
-            f"GRPO-lite G={group_size} train_n={train_n} sft_iters={sft_iters} live={live}",
+            f"GRPO-lite {mode}\nG={group_size} train_n={train_n} sft_iters={sft_iters}\n"
+            f"Expected rollouts ≈ {group_size * train_n}",
             title="sonec grpo",
             border_style="magenta",
         )
@@ -742,6 +763,45 @@ def grpo_cmd(
     console.print(f"[{color}]sft[/]: {result.sft.detail}")
     console.print(f"stats: {result.stats_path}")
 
+
+@app.command("capabilitybench")
+def capabilitybench_cmd(
+    out: Path = typer.Option(
+        Path("examples/benchmarks/capabilitybench_v1.json"),
+        "--out",
+        "-o",
+    ),
+    write_only: bool = typer.Option(
+        True,
+        "--write-only/--no-write-only",
+        help="Only generate the sealed JSON (default)",
+    ),
+) -> None:
+    """Generate sealed 200-task CapabilityBench (10×20 categories, easy/medium/hard)."""
+    from sonec.eval.capabilitybench import (
+        CATEGORIES,
+        build_capabilitybench_tasks,
+        write_capabilitybench,
+    )
+
+    path = write_capabilitybench(out)
+    tasks = build_capabilitybench_tasks()
+    by_diff: dict[str, int] = {}
+    for t in tasks:
+        by_diff[t.difficulty] = by_diff.get(t.difficulty, 0) + 1
+    console.print(
+        Panel.fit(
+            f"wrote {path}\ntasks={len(tasks)}\n"
+            f"categories={len(CATEGORIES)}\n"
+            f"difficulty={by_diff}",
+            title="capabilitybench-v1",
+            border_style="cyan",
+        )
+    )
+    if write_only:
+        return
+    console.print("[yellow]Live run not requested — use sonec leaderboard -s "
+                  "examples/benchmarks/capabilitybench_v1.json[/]")
 
 @app.command("train")
 def train_cmd(
@@ -831,6 +891,9 @@ def train_cmd(
         for suite in (
             Path("examples/benchmarks/sonecbench_v1.json"),
             Path("examples/benchmarks/worldbench_v1.json"),
+            Path("examples/benchmarks/ab_agent_v1.json"),
+            Path("examples/benchmarks/ab_agent_2b_hard.json"),
+            Path("examples/benchmarks/capabilitybench_v1.json"),
         ):
             if suite.exists():
                 data = json.loads(suite.read_text(encoding="utf-8"))
@@ -972,9 +1035,10 @@ def doctor_cmd() -> None:
         "3) sonec serve-llm             # LoRA on :8080\n"
         "4) SONEC_BASE_URL=http://127.0.0.1:8080/v1 sonec run \"…\"\n"
         "5) sonec compare               # LoRA vs base A/B\n"
-        "6) sonec grpo                  # group-relative RL densify\n"
-        "7) sonec leaderboard           # multi-model 2B board\n"
-        "   ./scripts/world_rl_leaderboard.sh\n"
+        "6) sonec grpo --mock           # light densify only (never heavy live on laptop)\n"
+        "7) sonec capabilitybench       # sealed 200-task decision suite\n"
+        "8) sonec leaderboard           # multi-model 2B board (CapabilityBench default)\n"
+        "   SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh\n"
         "Product = LoRA *.safetensors (see sonec weights). Ollama Modelfile is a chat runner only."
     )
     if not status.ready:

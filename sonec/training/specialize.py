@@ -165,6 +165,110 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 0) -> int:
             ],
         ),
         (
+            "cli-parse-and-main",
+            (
+                "Create cli/main.py as valid Python that defines BOTH a function named "
+                "parse_args and a function named main. Do not only use if __name__ "
+                "without def main."
+            ),
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "Create cli/main.py as valid Python that defines BOTH a function "
+                        "named parse_args and a function named main. Do not only use "
+                        "if __name__ without def main."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c1",
+                            "fs_write",
+                            {
+                                "path": "cli/main.py",
+                                "content": (
+                                    "def parse_args():\n"
+                                    "    return []\n\n"
+                                    "def main():\n"
+                                    "    parse_args()\n"
+                                    "    return 0\n\n"
+                                    "if __name__ == '__main__':\n"
+                                    "    main()\n"
+                                ),
+                            },
+                        )
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c1",
+                    "content": "Wrote cli/main.py",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Created cli/main.py with def parse_args and def main.",
+                },
+            ],
+        ),
+        (
+            "clamp-bugfix",
+            (
+                "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns "
+                "max(lo, min(hi, x)). Do not rewrite unrelated files."
+            ),
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it "
+                        "returns max(lo, min(hi, x)). Do not rewrite unrelated files."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [_tc("c1", "fs_read", {"path": "mathutil.py"})],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_read",
+                    "tool_call_id": "c1",
+                    "content": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c2",
+                            "fs_write",
+                            {
+                                "path": "mathutil.py",
+                                "content": (
+                                    "def clamp(x, lo, hi):\n"
+                                    "    return max(lo, min(hi, x))\n"
+                                ),
+                            },
+                        )
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c2",
+                    "content": "Wrote mathutil.py",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Fixed clamp to max(lo, min(hi, x)). Removed x + 1.",
+                },
+            ],
+        ),
+        (
             "localize-then-patch",
             "Fix the off-by-one in util.py so count_to(n) returns list(range(n)).",
             [
@@ -411,6 +515,8 @@ def assemble_sft_corpus(
         Path("examples/benchmarks/sonecbench_v1.json"),
         Path("examples/benchmarks/worldbench_v1.json"),
         Path("examples/benchmarks/ab_agent_v1.json"),
+        Path("examples/benchmarks/ab_agent_2b_hard.json"),
+        Path("examples/benchmarks/capabilitybench_v1.json"),
     ):
         if suite.exists():
             data = json.loads(suite.read_text(encoding="utf-8"))

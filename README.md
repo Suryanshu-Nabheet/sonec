@@ -14,7 +14,7 @@ LoRA specialization of **Qwen 3.5 2B** for tool-using software engineering. Trai
 | **Serve** | `sonec serve-llm` → OpenAI-compatible `/v1` |
 | **Base** | `mlx-community/Qwen3.5-2B-4bit` (Qwen 3.5 2B) |
 | **License** | Apache-2.0 — code, adapters, and Qwen weight lineage ([NOTICE](NOTICE)) |
-| **Latest A/B** | Decision suite `ab_agent_2b_hard` + strict 2B-only leaderboard (`qwen3.5:2b` / `gemma2:2b` / `codegemma:2b`) |
+| **Latest A/B** | Smoke `ab_agent_2b_hard`: sonec **8/8 @ 8.5s** (board #1); CapabilityBench 200 is the next decision suite |
 
 ---
 
@@ -61,21 +61,34 @@ Optional Ollama / Modelfile tags are **chat runners**. They do not load the spec
 
 ## Results
 
-### Live agent A/B (primary claim)
+### Live agent A/B (latest smoke — 2026-07-19)
 
-Suite: [`examples/benchmarks/ab_agent_2b_hard.json`](examples/benchmarks/ab_agent_2b_hard.json) — **8-task strict 2B discrimination** (harder than saturated `ab_agent_v1`).
+Suite: [`examples/benchmarks/ab_agent_2b_hard.json`](examples/benchmarks/ab_agent_2b_hard.json) (8-task smoke).
 
-Protocol: identical frozen harness. Arms differ only by endpoint weights — sonec LoRA on `:8080` vs unmodified Qwen 3.5 2B on `:8081`.
+| Compare (MLX) | Pass | Mean duration |
+| --- | --- | ---: |
+| **sonec LoRA** | **8/8** | **8.6s** |
+| Qwen3.5-2B base | 8/8 | 16.5s |
 
-See [docs/results/COMPARE_REPORT.md](docs/results/COMPARE_REPORT.md) for the latest head-to-head.
+| 2B board | Pass | Mean duration |
+| --- | --- | ---: |
+| **sonec** | **8/8** | **8.5s** |
+| qwen3.5:2b | 8/8 | 11.5s |
+| gemma2:2b | 0/8 | — |
+| codegemma:2b | 0/8 | — |
+
+**Board winner:** sonec (tie on pass → LoRA + speed). Full reports: [COMPARE_REPORT.md](docs/results/COMPARE_REPORT.md) · [LEADERBOARD.md](docs/results/leaderboard_2b/LEADERBOARD.md).
+
+Primary decision suite going forward: [`capabilitybench_v1.json`](examples/benchmarks/capabilitybench_v1.json) — **200 sealed tasks** (10×20, easy/medium/hard). Generate with `sonec capabilitybench`. Smoke is saturated for tool-capable 2B arms.
 
 ### Strict 2B-only multi-model board
 
 Peers are **exactly ~2B** only (`qwen3.5:2b`, `gemma2:2b`, `codegemma:2b`). No 1B / 1.5B / 3B+ models.
 
 ```bash
-./scripts/world_rl_leaderboard.sh
-# or: sonec leaderboard -a configs/leaderboard/arms_2b.json -o docs/results/leaderboard_2b
+SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh
+# or: sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json \
+#        -a configs/leaderboard/arms_2b.json -o docs/results/leaderboard_2b
 ```
 
 See [docs/results/leaderboard_2b/LEADERBOARD.md](docs/results/leaderboard_2b/LEADERBOARD.md).
@@ -121,8 +134,8 @@ Source: [docs/results/SFT_METRICS.json](docs/results/SFT_METRICS.json). NLL prov
                              │
            ┌─────────────────┼─────────────────┐
            ▼                 ▼                 ▼
-    TrainBench fuel     SonecBench          WorldBench
-    (live rollouts)     (sealed eval)       (sealed eval)
+    TrainBench fuel     CapabilityBench     SonecBench / WorldBench
+    (live rollouts)     (200 sealed / primary)  (legacy sealed)
            │            never train fuel    never train fuel
            ▼
     SFT corpus (structured tool_calls)
@@ -342,21 +355,22 @@ Sealed eval suites (`sonecbench`, `worldbench`) must **never** become training f
 | Suite | Role |
 | --- | --- |
 | `examples/benchmarks/ab_agent_v1.json` | Fair sonec vs base A/B |
-| SonecBench | Sealed decision metric |
-| WorldBench | Sealed / harder decision metric |
+| SonecBench | Legacy sealed suite |
+| WorldBench | Legacy sealed / harder suite |
+| CapabilityBench | **Primary** sealed decision metric (200 tasks) |
 | TrainBench / smoke | Training fuel only |
 
 ```bash
-sonec bench --suite examples/benchmarks/smoke.json --live
-sonec sonecbench --help
-sonec worldbench --help
+sonec capabilitybench
+sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json -o docs/results/leaderboard_2b
+# smoke: sonec leaderboard -s examples/benchmarks/ab_agent_2b_hard.json …
 ```
 
 Gate checklist before calling a run “better than base”:
 
 1. `sonec weights` → `ready=True`
-2. `sonec compare` on `ab_agent_v1` with LoRA `:8080` and base `:8081`
-3. Pass rate **>** base; `restraint-q` still passes
+2. `sonec leaderboard` on CapabilityBench (or smoke `ab_agent_2b_hard`) with LoRA `:8080` vs peers
+3. Pass rate **>** peers on CapabilityBench; restraint category does not regress
 4. Inspect failing tasks in `arm_*.json` (infra 404s / wire bugs do not count as model skill)
 
 ---

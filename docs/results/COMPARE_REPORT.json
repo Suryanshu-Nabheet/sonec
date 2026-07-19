@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-07-19T02:54:03Z",
+  "generated_at": "2026-07-19T07:36:47Z",
   "summary": {
-    "suite": "examples/benchmarks/ab_agent_v1.json",
+    "suite": "examples/benchmarks/ab_agent_2b_hard.json",
     "arms": [
       {
         "name": "sonec_lora",
@@ -9,10 +9,10 @@
         "base_url": "http://127.0.0.1:8080/v1",
         "model": "mlx-community/Qwen3.5-2B-4bit",
         "pass_rate": 1.0,
-        "passed": 6,
-        "total": 6,
+        "passed": 8,
+        "total": 8,
         "mean_score": 1.0,
-        "mean_duration_s": 7.477247444666621,
+        "mean_duration_s": 8.616377307249422,
         "by_difficulty": {
           "easy": 1.0,
           "hard": 1.0,
@@ -20,14 +20,17 @@
         },
         "by_tag": {
           "architecture": 1.0,
+          "cli": 1.0,
           "docs": 1.0,
+          "edit": 1.0,
           "filesystem": 1.0,
+          "imports": 1.0,
+          "json": 1.0,
           "localize": 1.0,
           "patch": 1.0,
           "paths": 1.0,
           "python": 1.0,
-          "restraint": 1.0,
-          "verify": 1.0
+          "restraint": 1.0
         }
       },
       {
@@ -36,10 +39,10 @@
         "base_url": "http://127.0.0.1:8081/v1",
         "model": "mlx-community/Qwen3.5-2B-4bit",
         "pass_rate": 1.0,
-        "passed": 6,
-        "total": 6,
+        "passed": 8,
+        "total": 8,
         "mean_score": 1.0,
-        "mean_duration_s": 12.07922131249749,
+        "mean_duration_s": 16.547165078247417,
         "by_difficulty": {
           "easy": 1.0,
           "hard": 1.0,
@@ -47,82 +50,106 @@
         },
         "by_tag": {
           "architecture": 1.0,
+          "cli": 1.0,
           "docs": 1.0,
+          "edit": 1.0,
           "filesystem": 1.0,
+          "imports": 1.0,
+          "json": 1.0,
           "localize": 1.0,
           "patch": 1.0,
           "paths": 1.0,
           "python": 1.0,
-          "restraint": 1.0,
-          "verify": 1.0
+          "restraint": 1.0
         }
       }
     ],
     "winner": null,
     "delta_pass_rate": 0.0,
-    "note": "Same frozen harness; arms differ only by weights/endpoint. Tie on pass_rate \u2014 inspect mean_score / per-task diffs."
+    "note": "Same frozen harness; arms differ only by weights/endpoint. Tie on pass_rate; sonec LoRA ~1.9\u00d7 faster mean duration (8.6s vs 16.5s).",
+    "speed_ratio_base_over_lora": 1.92
   },
   "per_arm_task_ids": {
     "sonec_lora": [
       {
-        "task_id": "fs-nested-note",
+        "task_id": "hard-nested-readme",
         "passed": true,
         "score": 1.0
       },
       {
-        "task_id": "py-util-main",
+        "task_id": "hard-py-cli",
         "passed": true,
         "score": 1.0
       },
       {
-        "task_id": "pkg-greet",
+        "task_id": "hard-pkg-api",
         "passed": true,
         "score": 1.0
       },
       {
-        "task_id": "fix-seeded-bug",
+        "task_id": "hard-fix-clamp",
         "passed": true,
         "score": 1.0
       },
       {
-        "task_id": "verify-script",
+        "task_id": "hard-json-flag",
         "passed": true,
         "score": 1.0
       },
       {
-        "task_id": "restraint-q",
+        "task_id": "hard-verify-pair",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "hard-two-modules",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "hard-restraint",
         "passed": true,
         "score": 1.0
       }
     ],
     "qwen35_2b_base": [
       {
-        "task_id": "fs-nested-note",
+        "task_id": "hard-nested-readme",
         "passed": true,
         "score": 1.0
       },
       {
-        "task_id": "py-util-main",
+        "task_id": "hard-py-cli",
         "passed": true,
         "score": 1.0
       },
       {
-        "task_id": "pkg-greet",
+        "task_id": "hard-pkg-api",
         "passed": true,
         "score": 1.0
       },
       {
-        "task_id": "fix-seeded-bug",
+        "task_id": "hard-fix-clamp",
         "passed": true,
         "score": 1.0
       },
       {
-        "task_id": "verify-script",
+        "task_id": "hard-json-flag",
         "passed": true,
         "score": 1.0
       },
       {
-        "task_id": "restraint-q",
+        "task_id": "hard-verify-pair",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "hard-two-modules",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "hard-restraint",
         "passed": true,
         "score": 1.0
       }
