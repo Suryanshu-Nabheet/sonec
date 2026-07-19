@@ -10,6 +10,8 @@ from sonec.models import BASE_HF_MLX, BASE_MODEL, PRODUCT_MODEL
 
 DEFAULT_ADAPTER_DIR = Path("artifacts/train/checkpoints/sonec-sft-mlx")
 PRODUCT_MANIFEST = Path("artifacts/train/PRODUCT.json")
+# Reject empty / placeholder tensors as "ready".
+MIN_ADAPTER_BYTES = 1024
 
 
 @dataclass(frozen=True)
@@ -21,11 +23,13 @@ class WeightStatus:
     detail: str
     base_model: str = BASE_HF_MLX
     product: str = PRODUCT_MODEL
+    author: str = "Suryanshu Nabheet"
 
     def to_dict(self) -> dict[str, object]:
         return {
             "ready": self.ready,
             "product": self.product,
+            "author": self.author,
             "base_model": self.base_model,
             "adapter_dir": str(self.adapter_dir),
             "has_safetensors": self.has_safetensors,
@@ -37,20 +41,32 @@ class WeightStatus:
 def adapter_weight_files(adapter_dir: Path) -> list[Path]:
     if not adapter_dir.is_dir():
         return []
-    return sorted(adapter_dir.glob("*.safetensors"))
+    return sorted(
+        p
+        for p in adapter_dir.glob("*.safetensors")
+        if p.is_file() and p.stat().st_size >= MIN_ADAPTER_BYTES
+    )
 
 
 def weight_status(adapter_dir: Path | None = None) -> WeightStatus:
     path = (adapter_dir or DEFAULT_ADAPTER_DIR).expanduser().resolve()
     tensors = adapter_weight_files(path)
     has_cfg = (path / "adapter_config.json").exists()
-    if tensors:
+    if tensors and has_cfg:
         return WeightStatus(
             ready=True,
             adapter_dir=path,
             has_safetensors=True,
-            has_config=has_cfg,
+            has_config=True,
             detail=f"adapter weights: {', '.join(p.name for p in tensors)}",
+        )
+    if tensors and not has_cfg:
+        return WeightStatus(
+            ready=False,
+            adapter_dir=path,
+            has_safetensors=True,
+            has_config=False,
+            detail="*.safetensors present but adapter_config.json missing",
         )
     if has_cfg:
         return WeightStatus(
@@ -59,7 +75,7 @@ def weight_status(adapter_dir: Path | None = None) -> WeightStatus:
             has_safetensors=False,
             has_config=True,
             detail=(
-                "adapter_config.json present but no *.safetensors — "
+                "adapter_config.json present but no usable *.safetensors — "
                 "training incomplete; run sonec train --step"
             ),
         )

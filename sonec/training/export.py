@@ -79,7 +79,7 @@ def has_real_tool_use(messages: list[dict[str, Any]]) -> bool:
 
 def _trajectory_to_messages(traj_path: str) -> list[dict[str, Any]]:
     path = Path(traj_path)
-    if not path.exists():
+    if not traj_path or not path.is_file():
         return []
     messages: list[dict[str, Any]] = []
     for line in path.read_text(encoding="utf-8").splitlines():

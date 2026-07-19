@@ -414,6 +414,7 @@ def _verify(i: int, diff: str) -> EvalTask:
                     contains=f"def test_ok_{n}",
                 ),
                 EvalCheck(kind="python_parses", path=f"tests/test_ok_{n}.py"),
+                EvalCheck(kind="python_exec", path=f"tests/test_ok_{n}.py"),
             ],
         )
     if diff == "medium":
@@ -422,7 +423,7 @@ def _verify(i: int, diff: str) -> EvalTask:
             name=f"Fix failing test subject {n}",
             prompt=(
                 f"tests/test_add_{n}.py fails because add_{n}.py is wrong. "
-                f"Fix add_{n} so it returns a+b."
+                f"Fix add_{n} so it returns a+b. Then make sure the test would pass."
             ),
             difficulty=diff,
             tags=tags + ["patch"],
@@ -445,6 +446,7 @@ def _verify(i: int, diff: str) -> EvalTask:
                     contains="a - b",
                 ),
                 EvalCheck(kind="python_parses", path=f"add_{n}.py"),
+                EvalCheck(kind="python_exec", path=f"tests/test_add_{n}.py"),
             ],
         )
     return _task(
@@ -452,7 +454,7 @@ def _verify(i: int, diff: str) -> EvalTask:
         name=f"Verify script + checklist {n}",
         prompt=(
             f"Create scripts/check_{n}.sh that echoes PASS_{n}, and VERIFY_{n}.md "
-            f"that mentions scripts/check_{n}.sh."
+            f"that mentions scripts/check_{n}.sh. Make the script executable via shell."
         ),
         difficulty=diff,
         tags=["verify", "filesystem", "docs", "cli"],
@@ -468,6 +470,11 @@ def _verify(i: int, diff: str) -> EvalTask:
                 kind="file_contains",
                 path=f"VERIFY_{n}.md",
                 contains=f"scripts/check_{n}.sh",
+            ),
+            EvalCheck(
+                kind="command",
+                path=f"bash scripts/check_{n}.sh",
+                command_exit_zero=True,
             ),
         ],
     )

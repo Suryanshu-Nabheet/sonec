@@ -66,22 +66,31 @@ def rank_arms(reports: dict[str, BenchmarkReport], arms: list[ArmSpec]) -> Leade
                 "by_tag": report.by_tag,
             }
         )
-    # Prefer specialized sonec (lora) on ties; then higher score; then speed.
+    # Prefer higher pass_rate, then mean_score, then speed. No kind bias —
+    # LoRA must win on evidence, not label.
     rows.sort(
         key=lambda r: (
             r["pass_rate"],
             r["mean_score"],
-            1 if r["kind"] == "lora" else 0,
-            -r["mean_duration_s"],
+            -r["mean_duration_s"] if r["mean_duration_s"] > 0 else float("-inf"),
         ),
         reverse=True,
     )
-    winner = rows[0]["name"] if rows else None
+    # Drop unreachable peers (zero duration + zero passes) from winner choice.
+    reachable = [
+        r
+        for r in rows
+        if not (r["passed"] == 0 and float(r["mean_duration_s"] or 0) <= 0.0 and r["total"] > 0)
+    ]
+    winner = (reachable[0]["name"] if reachable else (rows[0]["name"] if rows else None))
     return LeaderboardSummary(
         suite="",
         arms=rows,
         winner=winner,
-        note="Ranked by pass_rate, then mean_score, then speed. Same frozen harness.",
+        note=(
+            "Ranked by pass_rate, then mean_score, then speed. "
+            "Same frozen harness. Author: Suryanshu Nabheet."
+        ),
     )
 
 

@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from sonec.core.coerce import coerce_bool, coerce_int
 from sonec.core.types import ToolResult, ToolSpec
 from sonec.core.workspace import Workspace
 from sonec.tools.registry import FunctionTool, Tool, json_content
@@ -135,8 +136,8 @@ class FilesystemTools:
 
     async def list_dir(self, arguments: Mapping[str, Any]) -> ToolResult:
         rel = str(arguments.get("path") or ".")
-        recursive = bool(arguments.get("recursive", False))
-        max_entries = int(arguments.get("max_entries") or 200)
+        recursive = coerce_bool(arguments.get("recursive", False), default=False)
+        max_entries = coerce_int(arguments.get("max_entries"), default=200) or 200
         root = self.workspace.resolve(rel)
         if not root.exists():
             return ToolResult(tool_call_id="", name="fs_list", content=f"Not found: {rel}", ok=False)
@@ -172,8 +173,8 @@ class FilesystemTools:
 
     async def read_file(self, arguments: Mapping[str, Any]) -> ToolResult:
         rel = str(arguments["path"])
-        offset = max(1, int(arguments.get("offset") or 1))
-        limit = max(1, int(arguments.get("limit") or 400))
+        offset = max(1, coerce_int(arguments.get("offset"), default=1) or 1)
+        limit = max(1, coerce_int(arguments.get("limit"), default=400) or 400)
         path = self.workspace.resolve(rel)
         if not path.exists() or not path.is_file():
             return ToolResult(tool_call_id="", name="fs_read", content=f"Not found: {rel}", ok=False)

@@ -21,10 +21,11 @@ Operating rules:
 - When asked to create or write files, call fs_write immediately — do not list empty directories first.
 - When asked to fix a bug in an existing file: fs_read it, then fs_write or fs_edit the fixed contents before finishing — never stop after only reading.
 - For whole-file content changes (VERSION, single-line configs), prefer fs_write with the full new contents over fs_edit.
-- Verify before claiming completion.
+- When the goal is a question only, answer in text and do not create or edit files.
+- Verify with terminal_run (or tests) before claiming completion when the goal asks to verify.
 - Do not invent unread file contents.
 
-Tools: filesystem, terminal, git, index.
+Core tools: fs_list, fs_read, fs_write, fs_edit, fs_search, terminal_run, git_*, index_*.
 """
 
 
@@ -47,7 +48,8 @@ class ContextAssembler:
             catalog = "; ".join(
                 f"{a.skill.id} ({a.skill.description[:60]})" for a in activations
             )
-            parts.append(f"Suggested skills (load if needed): {catalog}")
+            # Skills are advisory catalog only — meta load tools are outside CORE freeze.
+            parts.append(f"Relevant skill themes: {catalog}")
         if self.index is not None:
             if not self.index.files:
                 with suppress(Exception):

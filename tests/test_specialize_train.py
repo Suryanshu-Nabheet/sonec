@@ -58,7 +58,11 @@ def test_identity_examples() -> None:
     for e in gen.manifest().examples:
         text = " ".join(s.content for s in e.trajectory)
         assert "Suryanshu Nabheet" in text
-        assert "Qwen" not in text
+        assert "sonec" in text.lower()
+        assert "Cursor" not in text or "not Cursor" in text
+        # Must not claim to be the base weight lineage by name in the answer.
+        assert "I am Qwen" not in text
+        assert "I am Cursor" not in text
 
 
 def test_gold_zero_skips() -> None:

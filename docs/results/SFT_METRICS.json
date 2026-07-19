@@ -4,5 +4,6 @@
   "base_nll": 2.159080982208252,
   "sonec_lora_nll": 0.02194215916097164,
   "improvement_nll": 2.1371388230472803,
-  "note": "Lower NLL = better fit to specialized agent trajectories. Same base architecture; LoRA adapter only."
+  "author": "Suryanshu Nabheet",
+  "note": "Lower NLL = better fit to specialized agent trajectories on the gold probe. Same base architecture; LoRA adapter only. NLL is NOT a Cap200 / live agent skill claim — use CapabilityBench 200 for promotion."
 }

@@ -285,7 +285,7 @@ def eval_cmd(
                 settings=settings,
                 provider=llm,
                 persist_memory=False,
-                log_dir=ws / ".trajectories",
+                log_dir=ws.parent / f"{ws.name}-logs" / task.id,
                 goal_for_prompt=task.prompt,
             )
             return runtime
@@ -367,7 +367,7 @@ def bench_cmd(
                 settings=settings,
                 provider=llm,
                 persist_memory=False,
-                log_dir=ws / ".trajectories",
+                log_dir=ws.parent / f"{ws.name}-logs" / task.id,
                 goal_for_prompt=task.prompt,
             )
             return runtime
@@ -423,7 +423,7 @@ def sonecbench_cmd(
                     settings=settings,
                     provider=mock_provider_for_task(task),
                     persist_memory=False,
-                    log_dir=ws / ".trajectories",
+                    log_dir=ws.parent / f"{ws.name}-logs" / task.id,
                     goal_for_prompt=task.prompt,
                 )
                 return runtime
@@ -536,7 +536,7 @@ def worldbench_cmd(
                 settings=settings,
                 provider=llm,
                 persist_memory=False,
-                log_dir=ws / ".trajectories",
+                log_dir=ws.parent / f"{ws.name}-logs" / task.id,
                 goal_for_prompt=task.prompt,
             )
             return runtime
@@ -620,12 +620,18 @@ def compare_cmd(
         console.print(f"[red]{status.detail}[/]")
         console.print("Specialize first: sonec train --step && sonec serve-llm")
         raise typer.Exit(code=1)
+    if lora_url.rstrip("/") == base_url.rstrip("/"):
+        console.print(
+            "[red]lora-url and base-url are identical — A/B requires two endpoints.[/]"
+        )
+        raise typer.Exit(code=1)
 
     console.print(
         Panel.fit(
             f"suite={suite}\nlora={lora_url} ({lora_model})\n"
             f"base={base_url} ({base_model})\n"
-            "Same harness; only weights/endpoint differ.",
+            "Same harness; only weights/endpoint differ.\n"
+            "Author: Suryanshu Nabheet — promote on CapabilityBench, not smoke alone.",
             title="sonec compare",
             border_style="cyan",
         )
@@ -895,17 +901,9 @@ def train_cmd(
         raise typer.Exit(code=0)
     sealed: set[str] = set()
     if exclude_sealed:
-        for suite in (
-            Path("examples/benchmarks/sonecbench_v1.json"),
-            Path("examples/benchmarks/worldbench_v1.json"),
-            Path("examples/benchmarks/ab_agent_v1.json"),
-            Path("examples/benchmarks/ab_agent_2b_hard.json"),
-            Path("examples/benchmarks/capabilitybench_v1.json"),
-        ):
-            if suite.exists():
-                data = json.loads(suite.read_text(encoding="utf-8"))
-                for t in data.get("tasks") or []:
-                    sealed.add(t["id"])
+        from sonec.eval.sealed import collect_sealed_task_ids
+
+        sealed = collect_sealed_task_ids()
     written = export_from_rollouts(rollouts, out, sealed_ids=sealed)
     for name, path in written.items():
         console.print(f"{name}: {path}")
@@ -1027,25 +1025,44 @@ def doctor_cmd() -> None:
         Path("NOTICE"),
         Path("LICENSE"),
         Path("artifacts/train/PRODUCT.json"),
+        Path("examples/benchmarks/capabilitybench_v1.json"),
+        Path("examples/benchmarks/ab_agent_2b_hard.json"),
         Path("examples/benchmarks/worldbench_v1.json"),
         Path("configs/sft/mlx_lora.yaml"),
     ):
         rows.append((str(p), "ok" if p.exists() else "MISSING"))
+    cap = Path("examples/benchmarks/capabilitybench_v1.json")
+    if cap.exists():
+        try:
+            data = json.loads(cap.read_text(encoding="utf-8"))
+            rows.append(
+                (
+                    "capabilitybench",
+                    (
+                        f"sealed={data.get('sealed')} "
+                        f"tasks={data.get('task_count') or len(data.get('tasks') or [])}"
+                    ),
+                )
+            )
+            if data.get("sealed") is not True or int(data.get("task_count") or 0) != 200:
+                rows.append(("capabilitybench_gate", "FAIL — expect sealed=true task_count=200"))
+        except Exception as exc:  # noqa: BLE001
+            rows.append(("capabilitybench", f"unreadable ({exc})"))
+    rows.append(("author", "Suryanshu Nabheet"))
     table = Table("Check", "Status")
     for k, v in rows:
         table.add_row(k, v)
     console.print(table)
     console.print(
-        "\nProduction path:\n"
+        "\nProduction path (Suryanshu Nabheet / sonec):\n"
         "1) sonec train --step          # or ./scripts/overnight_specialize.sh\n"
         "2) sonec weights\n"
         "3) sonec serve-llm             # LoRA on :8080\n"
         "4) SONEC_BASE_URL=http://127.0.0.1:8080/v1 sonec run \"…\"\n"
-        "5) sonec compare               # LoRA vs base A/B\n"
-        "6) sonec grpo --mock           # light densify only (never heavy live on laptop)\n"
-        "7) sonec capabilitybench       # sealed 200-task decision suite\n"
-        "8) sonec leaderboard           # multi-model 2B board (CapabilityBench default)\n"
-        "   SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh\n"
+        "5) sonec compare -s examples/benchmarks/ab_agent_2b_hard.json  # smoke\n"
+        "6) SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh  # Cap200 decision gate\n"
+        "7) sonec grpo --mock           # light densify only (never heavy live on laptop)\n"
+        "Promote only when CapabilityBench pass rate improves (smoke may saturate).\n"
         "Product = LoRA *.safetensors (see sonec weights). Ollama Modelfile is a chat runner only."
     )
     if not status.ready:

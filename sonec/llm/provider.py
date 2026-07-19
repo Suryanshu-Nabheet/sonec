@@ -163,6 +163,10 @@ class OpenAICompatibleProvider:
             parsed = parse_qwen_tool_calls(content if isinstance(content, str) else None)
             if parsed:
                 tool_calls = parsed
+        # Once tools are structured, strip XML / markup from content so trajectories
+        # stay clean for the next turn and for SFT export filters.
+        if tool_calls and isinstance(content, str) and "<tool_call>" in content.lower():
+            content = ""
 
         message = Message(
             role=Role.ASSISTANT,

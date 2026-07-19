@@ -15,6 +15,12 @@ from sonec.eval.harness import EvalTask
 EXPLORE_TOOLS = frozenset(
     {
         "fs_list",
+        "fs_read",
+        "fs_search",
+        "git_status",
+        "git_diff",
+        "git_log",
+        "git_branch",
         "index_build",
         "index_search",
         "index_symbols",
@@ -29,7 +35,7 @@ WRITE_TOOLS = frozenset({"fs_write", "fs_edit"})
 VERIFY_TOOLS = frozenset({"terminal_run"})
 
 # Max explore tool calls allowed before first write without penalty.
-MAX_EXPLORE_BEFORE_WRITE = 2
+MAX_EXPLORE_BEFORE_WRITE = 4
 
 
 def _tool_names_in_order(trajectory_path: str) -> list[str]:
@@ -74,7 +80,13 @@ def task_expects_files(task: EvalTask) -> bool:
 
 
 def task_expects_verify(task: EvalTask) -> bool:
-    return any(c.kind == "command" for c in task.checks) or "verify" in (task.tags or [])
+    """True only when graders require a live command / python_exec check.
+
+    Cap200 category tag ``verify`` alone is not enough — those tasks are often
+    file-evidence graded. Penalizing passers without ``terminal_run`` then
+    mis-ranks good trajectories.
+    """
+    return any(c.kind in {"command", "python_exec"} for c in task.checks)
 
 
 def compute_agent_reward(

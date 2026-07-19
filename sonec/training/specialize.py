@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from sonec.eval.sealed import collect_sealed_task_ids
 from sonec.eval.trainbench import build_trainbench_tasks, write_trainbench
 from sonec.models import BASE_HF, BASE_HF_MLX, BASE_MODEL, PRODUCT_MODEL, PRODUCT_SYSTEM
 from sonec.training.export import export_from_rollouts
@@ -62,7 +63,8 @@ def generate_identity_examples(gen: DatasetGenerator, *, n: int = 12) -> int:
     if n <= 0:
         return 0
     answer = (
-        "I am sonec, a coding model created by Suryanshu Nabheet."
+        "I am sonec, a coding model created by Suryanshu Nabheet. "
+        "I am not Cursor and not Copilot — I am sonec."
     )
     prompts = [
         "Who are you?",
@@ -77,6 +79,9 @@ def generate_identity_examples(gen: DatasetGenerator, *, n: int = 12) -> int:
         "Brief introduction.",
         "What product are you?",
         "Name yourself.",
+        "Are you Cursor?",
+        "Are you Qwen?",
+        "Are you Copilot?",
     ]
     created = 0
     while created < n:
@@ -167,17 +172,16 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 0) -> int:
         (
             "cli-parse-and-main",
             (
-                "Create cli/main.py as valid Python that defines BOTH a function named "
-                "parse_args and a function named main. Do not only use if __name__ "
-                "without def main."
+                "Write tools/cli_entry.py as valid Python defining BOTH parse_flags "
+                "and run_cli. Do not rely on a bare if __name__ without run_cli."
             ),
             [
                 {
                     "role": "user",
                     "content": (
-                        "Create cli/main.py as valid Python that defines BOTH a function "
-                        "named parse_args and a function named main. Do not only use "
-                        "if __name__ without def main."
+                        "Write tools/cli_entry.py as valid Python defining BOTH "
+                        "parse_flags and run_cli. Do not rely on a bare if __name__ "
+                        "without run_cli."
                     ),
                 },
                 {
@@ -188,15 +192,15 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 0) -> int:
                             "c1",
                             "fs_write",
                             {
-                                "path": "cli/main.py",
+                                "path": "tools/cli_entry.py",
                                 "content": (
-                                    "def parse_args():\n"
+                                    "def parse_flags():\n"
                                     "    return []\n\n"
-                                    "def main():\n"
-                                    "    parse_args()\n"
+                                    "def run_cli():\n"
+                                    "    parse_flags()\n"
                                     "    return 0\n\n"
                                     "if __name__ == '__main__':\n"
-                                    "    main()\n"
+                                    "    run_cli()\n"
                                 ),
                             },
                         )
@@ -206,38 +210,41 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 0) -> int:
                     "role": "tool",
                     "name": "fs_write",
                     "tool_call_id": "c1",
-                    "content": "Wrote cli/main.py",
+                    "content": "Wrote tools/cli_entry.py",
                 },
                 {
                     "role": "assistant",
-                    "content": "Created cli/main.py with def parse_args and def main.",
+                    "content": "Created tools/cli_entry.py with parse_flags and run_cli.",
                 },
             ],
         ),
         (
             "clamp-bugfix",
             (
-                "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns "
-                "max(lo, min(hi, x)). Do not rewrite unrelated files."
+                "bounds.py has a bug in clip_value. Fix clip_value(x, lo, hi) so it "
+                "returns max(lo, min(hi, x)). Do not rewrite unrelated files."
             ),
             [
                 {
                     "role": "user",
                     "content": (
-                        "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it "
-                        "returns max(lo, min(hi, x)). Do not rewrite unrelated files."
+                        "bounds.py has a bug in clip_value. Fix clip_value(x, lo, hi) "
+                        "so it returns max(lo, min(hi, x)). Do not rewrite unrelated files."
                     ),
                 },
                 {
                     "role": "assistant",
                     "content": "",
-                    "tool_calls": [_tc("c1", "fs_read", {"path": "mathutil.py"})],
+                    "tool_calls": [_tc("c1", "fs_read", {"path": "bounds.py"})],
                 },
                 {
                     "role": "tool",
                     "name": "fs_read",
                     "tool_call_id": "c1",
-                    "content": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+                    "content": (
+                        "def clip_value(x, lo, hi):\n"
+                        "    return max(lo, min(hi, x + 1))\n"
+                    ),
                 },
                 {
                     "role": "assistant",
@@ -247,9 +254,9 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 0) -> int:
                             "c2",
                             "fs_write",
                             {
-                                "path": "mathutil.py",
+                                "path": "bounds.py",
                                 "content": (
-                                    "def clamp(x, lo, hi):\n"
+                                    "def clip_value(x, lo, hi):\n"
                                     "    return max(lo, min(hi, x))\n"
                                 ),
                             },
@@ -260,11 +267,11 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 0) -> int:
                     "role": "tool",
                     "name": "fs_write",
                     "tool_call_id": "c2",
-                    "content": "Wrote mathutil.py",
+                    "content": "Wrote bounds.py",
                 },
                 {
                     "role": "assistant",
-                    "content": "Fixed clamp to max(lo, min(hi, x)). Removed x + 1.",
+                    "content": "Fixed clip_value to max(lo, min(hi, x)). Removed x + 1.",
                 },
             ],
         ),
@@ -861,18 +868,7 @@ def assemble_sft_corpus(
     )
 
     out_dir.mkdir(parents=True, exist_ok=True)
-    sealed: set[str] = set()
-    for suite in (
-        Path("examples/benchmarks/sonecbench_v1.json"),
-        Path("examples/benchmarks/worldbench_v1.json"),
-        Path("examples/benchmarks/ab_agent_v1.json"),
-        Path("examples/benchmarks/ab_agent_2b_hard.json"),
-        Path("examples/benchmarks/capabilitybench_v1.json"),
-    ):
-        if suite.exists():
-            data = json.loads(suite.read_text(encoding="utf-8"))
-            for t in data.get("tasks") or []:
-                sealed.add(t["id"])
+    sealed = collect_sealed_task_ids()
 
     export_from_rollouts(rollouts_jsonl, out_dir / "from_rollouts", sealed_ids=sealed)
     gen = DatasetGenerator("sonec-sft")
@@ -921,9 +917,20 @@ def assemble_sft_corpus(
             "SFT corpus empty — need live passing trajectories. "
             "Run: sonec rollout --live --group-size 8 --limit 40"
         )
-    (mlx_dir / "valid.jsonl").write_text(
-        "\n".join(lines[: max(1, len(lines) // 10)]) + "\n", encoding="utf-8"
-    )
+    # Hold out by hash of line content (task-ish), not a contiguous prefix of train.
+    valid_lines: list[str] = []
+    train_lines: list[str] = []
+    for line in lines:
+        bucket = sum(ord(c) for c in line[:64]) % 10
+        if bucket == 0 and len(valid_lines) < max(1, len(lines) // 10):
+            valid_lines.append(line)
+        else:
+            train_lines.append(line)
+    if not train_lines:
+        train_lines = list(lines)
+        valid_lines = lines[:1]
+    mlx_train.write_text("\n".join(train_lines) + "\n", encoding="utf-8")
+    (mlx_dir / "valid.jsonl").write_text("\n".join(valid_lines) + "\n", encoding="utf-8")
     manifest.save(out_dir / "manifest.json")
     pipeline.write_config(model=PRODUCT_MODEL, dataset_file="train_chat.jsonl")
     _write_json(
@@ -933,7 +940,11 @@ def assemble_sft_corpus(
             "gold_n": gold_n,
             "live_kept": kept,
             "mlx_train": str(mlx_train),
+            "mlx_train_n": len(train_lines),
+            "mlx_valid_n": len(valid_lines),
+            "sealed_excluded_n": len(sealed),
             "format": "openai_tool_calls",
+            "author": "Suryanshu Nabheet",
         },
     )
     return {"chat": jsonl, "mlx_train": mlx_train, "mlx_dir": mlx_dir}
@@ -991,7 +1002,6 @@ def run_mlx_sft(
     log_path.write_text((proc.stdout or "") + "\n" + (proc.stderr or ""), encoding="utf-8")
     ok = proc.returncode == 0 and (
         (adapter_path / "adapters.safetensors").exists()
-        or (adapter_path / "adapter_config.json").exists()
         or any(adapter_path.glob("*.safetensors"))
     )
     return TrainReport(
@@ -1039,7 +1049,7 @@ def run_rl_rejection_round(
         export_from_rollouts(
             out_dir / "rollouts" / "rollouts.jsonl",
             out_dir / "rft_export",
-            sealed_ids=set(),
+            sealed_ids=collect_sealed_task_ids(),
         )
     _write_json(
         out_dir / "rl_stats.json",

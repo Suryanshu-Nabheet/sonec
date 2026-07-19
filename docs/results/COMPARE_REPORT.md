@@ -16,4 +16,8 @@ Same frozen harness; arms differ only by weights/endpoint (LoRA `:8080` vs base 
 
 Product sonec = LoRA adapter served via `sonec serve-llm`.
 
+Author: **Suryanshu Nabheet**. Smoke may saturate at 8/8 for tool-capable 2B models — use CapabilityBench 200 for discriminating pass-rate claims.
+
 Per-task: all 8 hard tasks passed on both arms (`hard-nested-readme`, `hard-py-cli`, `hard-pkg-api`, `hard-fix-clamp`, `hard-json-flag`, `hard-verify-pair`, `hard-two-modules`, `hard-restraint`).
+
+Note: `hard-restraint` now grades with `only_files` + bait seed (not empty checks). Re-run live compare on Apple Silicon after specialize to refresh durations if the suite contract changed.

@@ -23,7 +23,7 @@ Reports: [COMPARE_REPORT.md](results/COMPARE_REPORT.md) · [LEADERBOARD.md](resu
 4. Rejection sampling → second SFT (RFT)
 5. Optional light GRPO-lite (`sonec grpo --mock`) — never heavy live on a laptop
 6. `sonec serve-llm`
-7. Promote via smoke compare, then CapabilityBench when discriminating scores are needed
+7. Promote via CapabilityBench 200 (primary). Smoke (`ab_agent_2b_hard`) is a health check — it may saturate at 8/8.
 
 ## Commands
 
@@ -31,18 +31,20 @@ Reports: [COMPARE_REPORT.md](results/COMPARE_REPORT.md) · [LEADERBOARD.md](resu
 # Specialize
 ./scripts/overnight_specialize.sh
 
-# Smoke board (minutes)
+# Smoke board (minutes — may saturate)
 SKIP_GRPO=1 SUITE=examples/benchmarks/ab_agent_2b_hard.json \
   ./scripts/world_rl_leaderboard.sh
 
-# CapabilityBench 200 (hours)
+# CapabilityBench 200 (hours) — REQUIRED before pass-rate promotion claims
 SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh
 ```
 
-Promote only when sealed pass rate holds or improves without restraint regression.
+**Promotion rule (Suryanshu Nabheet / sonec):** keep an adapter only when CapabilityBench sealed pass rate exceeds peers (or ties with clear speed + no restraint regression). Smoke speed wins alone are not skill claims.
 
 ## Harness notes (production)
 
 - Small-file `fs_read` returns **raw** text (no `N|` line prefixes) so `fs_edit` / `fs_write` work.
-- Restraint tasks use `only_files` grading — extra files fail the task.
+- Restraint tasks use `only_files` grading — harness dirs (`.trajectories`, `.sonec`) are ignored; extra agent files fail.
+- Command / `python_exec` checks require exit 0 by default (wired through TerminalService).
+- Sealed suite ids are collected centrally (`sonec.eval.sealed`) and applied to SFT + RFT export.
 - Live GRPO with `G>4` or `train_n>16` is refused.

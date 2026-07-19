@@ -3398,6 +3398,13 @@
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_ok_1.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
         }
       ],
       "tags": [
@@ -3430,6 +3437,13 @@
         },
         {
           "kind": "python_parses",
+          "path": "tests/test_ok_2.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_exec",
           "path": "tests/test_ok_2.py",
           "contains": null,
           "command_exit_zero": null,
@@ -3470,6 +3484,13 @@
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_ok_3.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
         }
       ],
       "tags": [
@@ -3502,6 +3523,13 @@
         },
         {
           "kind": "python_parses",
+          "path": "tests/test_ok_4.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_exec",
           "path": "tests/test_ok_4.py",
           "contains": null,
           "command_exit_zero": null,
@@ -3542,6 +3570,13 @@
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_ok_5.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
         }
       ],
       "tags": [
@@ -3574,6 +3609,13 @@
         },
         {
           "kind": "python_parses",
+          "path": "tests/test_ok_6.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_exec",
           "path": "tests/test_ok_6.py",
           "contains": null,
           "command_exit_zero": null,
@@ -3614,6 +3656,13 @@
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_ok_7.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
         }
       ],
       "tags": [
@@ -3628,7 +3677,7 @@
     {
       "id": "cap-verify-08",
       "name": "Fix failing test subject 8",
-      "prompt": "tests/test_add_8.py fails because add_8.py is wrong. Fix add_8 so it returns a+b.",
+      "prompt": "tests/test_add_8.py fails because add_8.py is wrong. Fix add_8 so it returns a+b. Then make sure the test would pass.",
       "checks": [
         {
           "kind": "file_contains",
@@ -3647,6 +3696,13 @@
         {
           "kind": "python_parses",
           "path": "add_8.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_add_8.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -3668,7 +3724,7 @@
     {
       "id": "cap-verify-09",
       "name": "Fix failing test subject 9",
-      "prompt": "tests/test_add_9.py fails because add_9.py is wrong. Fix add_9 so it returns a+b.",
+      "prompt": "tests/test_add_9.py fails because add_9.py is wrong. Fix add_9 so it returns a+b. Then make sure the test would pass.",
       "checks": [
         {
           "kind": "file_contains",
@@ -3687,6 +3743,13 @@
         {
           "kind": "python_parses",
           "path": "add_9.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_add_9.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -3708,7 +3771,7 @@
     {
       "id": "cap-verify-10",
       "name": "Fix failing test subject 10",
-      "prompt": "tests/test_add_10.py fails because add_10.py is wrong. Fix add_10 so it returns a+b.",
+      "prompt": "tests/test_add_10.py fails because add_10.py is wrong. Fix add_10 so it returns a+b. Then make sure the test would pass.",
       "checks": [
         {
           "kind": "file_contains",
@@ -3727,6 +3790,13 @@
         {
           "kind": "python_parses",
           "path": "add_10.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_add_10.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -3748,7 +3818,7 @@
     {
       "id": "cap-verify-11",
       "name": "Fix failing test subject 11",
-      "prompt": "tests/test_add_11.py fails because add_11.py is wrong. Fix add_11 so it returns a+b.",
+      "prompt": "tests/test_add_11.py fails because add_11.py is wrong. Fix add_11 so it returns a+b. Then make sure the test would pass.",
       "checks": [
         {
           "kind": "file_contains",
@@ -3767,6 +3837,13 @@
         {
           "kind": "python_parses",
           "path": "add_11.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_add_11.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -3788,7 +3865,7 @@
     {
       "id": "cap-verify-12",
       "name": "Fix failing test subject 12",
-      "prompt": "tests/test_add_12.py fails because add_12.py is wrong. Fix add_12 so it returns a+b.",
+      "prompt": "tests/test_add_12.py fails because add_12.py is wrong. Fix add_12 so it returns a+b. Then make sure the test would pass.",
       "checks": [
         {
           "kind": "file_contains",
@@ -3807,6 +3884,13 @@
         {
           "kind": "python_parses",
           "path": "add_12.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_add_12.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -3828,7 +3912,7 @@
     {
       "id": "cap-verify-13",
       "name": "Fix failing test subject 13",
-      "prompt": "tests/test_add_13.py fails because add_13.py is wrong. Fix add_13 so it returns a+b.",
+      "prompt": "tests/test_add_13.py fails because add_13.py is wrong. Fix add_13 so it returns a+b. Then make sure the test would pass.",
       "checks": [
         {
           "kind": "file_contains",
@@ -3847,6 +3931,13 @@
         {
           "kind": "python_parses",
           "path": "add_13.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_add_13.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -3868,7 +3959,7 @@
     {
       "id": "cap-verify-14",
       "name": "Fix failing test subject 14",
-      "prompt": "tests/test_add_14.py fails because add_14.py is wrong. Fix add_14 so it returns a+b.",
+      "prompt": "tests/test_add_14.py fails because add_14.py is wrong. Fix add_14 so it returns a+b. Then make sure the test would pass.",
       "checks": [
         {
           "kind": "file_contains",
@@ -3890,6 +3981,13 @@
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
+        },
+        {
+          "kind": "python_exec",
+          "path": "tests/test_add_14.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
         }
       ],
       "tags": [
@@ -3908,7 +4006,7 @@
     {
       "id": "cap-verify-15",
       "name": "Verify script + checklist 15",
-      "prompt": "Create scripts/check_15.sh that echoes PASS_15, and VERIFY_15.md that mentions scripts/check_15.sh.",
+      "prompt": "Create scripts/check_15.sh that echoes PASS_15, and VERIFY_15.md that mentions scripts/check_15.sh. Make the script executable via shell.",
       "checks": [
         {
           "kind": "file_exists",
@@ -3937,6 +4035,13 @@
           "contains": "scripts/check_15.sh",
           "command_exit_zero": null,
           "pattern": null
+        },
+        {
+          "kind": "command",
+          "path": "bash scripts/check_15.sh",
+          "contains": null,
+          "command_exit_zero": true,
+          "pattern": null
         }
       ],
       "tags": [
@@ -3952,7 +4057,7 @@
     {
       "id": "cap-verify-16",
       "name": "Verify script + checklist 16",
-      "prompt": "Create scripts/check_16.sh that echoes PASS_16, and VERIFY_16.md that mentions scripts/check_16.sh.",
+      "prompt": "Create scripts/check_16.sh that echoes PASS_16, and VERIFY_16.md that mentions scripts/check_16.sh. Make the script executable via shell.",
       "checks": [
         {
           "kind": "file_exists",
@@ -3981,6 +4086,13 @@
           "contains": "scripts/check_16.sh",
           "command_exit_zero": null,
           "pattern": null
+        },
+        {
+          "kind": "command",
+          "path": "bash scripts/check_16.sh",
+          "contains": null,
+          "command_exit_zero": true,
+          "pattern": null
         }
       ],
       "tags": [
@@ -3996,7 +4108,7 @@
     {
       "id": "cap-verify-17",
       "name": "Verify script + checklist 17",
-      "prompt": "Create scripts/check_17.sh that echoes PASS_17, and VERIFY_17.md that mentions scripts/check_17.sh.",
+      "prompt": "Create scripts/check_17.sh that echoes PASS_17, and VERIFY_17.md that mentions scripts/check_17.sh. Make the script executable via shell.",
       "checks": [
         {
           "kind": "file_exists",
@@ -4025,6 +4137,13 @@
           "contains": "scripts/check_17.sh",
           "command_exit_zero": null,
           "pattern": null
+        },
+        {
+          "kind": "command",
+          "path": "bash scripts/check_17.sh",
+          "contains": null,
+          "command_exit_zero": true,
+          "pattern": null
         }
       ],
       "tags": [
@@ -4040,7 +4159,7 @@
     {
       "id": "cap-verify-18",
       "name": "Verify script + checklist 18",
-      "prompt": "Create scripts/check_18.sh that echoes PASS_18, and VERIFY_18.md that mentions scripts/check_18.sh.",
+      "prompt": "Create scripts/check_18.sh that echoes PASS_18, and VERIFY_18.md that mentions scripts/check_18.sh. Make the script executable via shell.",
       "checks": [
         {
           "kind": "file_exists",
@@ -4069,6 +4188,13 @@
           "contains": "scripts/check_18.sh",
           "command_exit_zero": null,
           "pattern": null
+        },
+        {
+          "kind": "command",
+          "path": "bash scripts/check_18.sh",
+          "contains": null,
+          "command_exit_zero": true,
+          "pattern": null
         }
       ],
       "tags": [
@@ -4084,7 +4210,7 @@
     {
       "id": "cap-verify-19",
       "name": "Verify script + checklist 19",
-      "prompt": "Create scripts/check_19.sh that echoes PASS_19, and VERIFY_19.md that mentions scripts/check_19.sh.",
+      "prompt": "Create scripts/check_19.sh that echoes PASS_19, and VERIFY_19.md that mentions scripts/check_19.sh. Make the script executable via shell.",
       "checks": [
         {
           "kind": "file_exists",
@@ -4113,6 +4239,13 @@
           "contains": "scripts/check_19.sh",
           "command_exit_zero": null,
           "pattern": null
+        },
+        {
+          "kind": "command",
+          "path": "bash scripts/check_19.sh",
+          "contains": null,
+          "command_exit_zero": true,
+          "pattern": null
         }
       ],
       "tags": [
@@ -4128,7 +4261,7 @@
     {
       "id": "cap-verify-20",
       "name": "Verify script + checklist 20",
-      "prompt": "Create scripts/check_20.sh that echoes PASS_20, and VERIFY_20.md that mentions scripts/check_20.sh.",
+      "prompt": "Create scripts/check_20.sh that echoes PASS_20, and VERIFY_20.md that mentions scripts/check_20.sh. Make the script executable via shell.",
       "checks": [
         {
           "kind": "file_exists",
@@ -4156,6 +4289,13 @@
           "path": "VERIFY_20.md",
           "contains": "scripts/check_20.sh",
           "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "command",
+          "path": "bash scripts/check_20.sh",
+          "contains": null,
+          "command_exit_zero": true,
           "pattern": null
         }
       ],

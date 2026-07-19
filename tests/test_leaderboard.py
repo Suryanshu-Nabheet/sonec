@@ -40,7 +40,40 @@ def test_hard_suite_exists() -> None:
     assert "hard-restraint" in ids
 
 
-def test_rank_arms_prefers_lora_on_tie() -> None:
+def test_rank_arms_prefers_speed_on_pass_tie() -> None:
+    arms = [
+        ArmSpec("base", "http://127.0.0.1:11434/v1", "qwen", kind="base"),
+        ArmSpec("sonec", "http://127.0.0.1:8080/v1", "mlx", kind="lora"),
+    ]
+
+    def _rep(name: str, duration: float) -> BenchmarkReport:
+        return BenchmarkReport(
+            name=name,
+            results=[
+                EvalResult(
+                    task_id="t",
+                    passed=True,
+                    score=1.0,
+                    details=[],
+                    duration_s=duration,
+                )
+            ],
+            pass_rate=1.0,
+            mean_duration_s=duration,
+            mean_score=1.0,
+            passed=1,
+            total=1,
+        )
+
+    summary = rank_arms(
+        {"base": _rep("base", 2.0), "sonec": _rep("sonec", 1.0)},
+        arms,
+    )
+    assert summary.winner == "sonec"
+    assert summary.arms[0]["name"] == "sonec"
+
+
+def test_rank_arms_no_kind_bias_when_equal() -> None:
     arms = [
         ArmSpec("base", "http://127.0.0.1:11434/v1", "qwen", kind="base"),
         ArmSpec("sonec", "http://127.0.0.1:8080/v1", "mlx", kind="lora"),
@@ -66,8 +99,9 @@ def test_rank_arms_prefers_lora_on_tie() -> None:
         )
 
     summary = rank_arms({"base": _rep("base"), "sonec": _rep("sonec")}, arms)
-    assert summary.winner == "sonec"
-    assert summary.arms[0]["name"] == "sonec"
+    # Equal evidence — either may win; kind alone must not force sonec.
+    assert summary.winner in {"base", "sonec"}
+    assert len(summary.arms) == 2
 
 
 def test_arms_catalog_json_valid() -> None:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import asyncio
 import json
 import time
 from collections.abc import Awaitable, Callable
@@ -13,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from sonec.core.errors import EvalError
 from sonec.core.types import AgentRunResult, Message, Role, ToolCall, utc_now
+from sonec.eval.sealed import is_harness_path
 from sonec.llm.provider import MockProvider
 
 
@@ -74,10 +76,33 @@ class EvalHarness:
         *,
         workspace: Path,
         run_command: Callable[[str], Awaitable[dict[str, Any]]] | None = None,
+        enable_default_commands: bool = True,
     ) -> None:
         self.workspace = workspace.resolve()
         self.workspace.mkdir(parents=True, exist_ok=True)
-        self.run_command = run_command
+        if run_command is not None:
+            self.run_command = run_command
+        elif enable_default_commands:
+            self.run_command = self._default_run_command
+        else:
+            self.run_command = None
+
+    async def _default_run_command(self, command: str) -> dict[str, Any]:
+        """Run a shell command inside the graded workspace via TerminalService."""
+        from sonec.core.workspace import Workspace
+        from sonec.terminal.service import TerminalService
+
+        terminal = TerminalService(
+            Workspace(self.workspace),
+            timeout_s=120.0,
+            allow_network=False,
+        )
+        result = await terminal.run(command, timeout_s=120.0)
+        return {
+            "exit_code": int(result.get("exit_code", 1)),
+            "ok": int(result.get("exit_code", 1)) == 0 and not result.get("timed_out"),
+            "content": result,
+        }
 
     @staticmethod
     def load_tasks(path: Path) -> list[EvalTask]:
@@ -87,6 +112,18 @@ class EvalHarness:
         if not isinstance(data, list):
             raise EvalError("Eval task file must be a list or {tasks: [...]}")
         return [EvalTask.model_validate(item) for item in data]
+
+    def _workspace_files(self) -> set[str]:
+        """Relative posix paths of files, ignoring harness/cache directories."""
+        found: set[str] = set()
+        for path in self.workspace.rglob("*"):
+            if not path.is_file():
+                continue
+            rel = path.relative_to(self.workspace).as_posix()
+            if is_harness_path(rel):
+                continue
+            found.add(rel)
+        return found
 
     async def grade(self, task: EvalTask, agent_result: AgentRunResult) -> EvalResult:
         details: list[str] = []
@@ -100,11 +137,26 @@ class EvalHarness:
             else:
                 details.append(f"FAIL {check.kind}: {label}")
         total = max(len(task.checks), 1)
+        restraint = "restraint" in {t.lower() for t in task.tags}
         if not task.checks:
-            # Question-only / no-edit: environment evidence is "completed turn".
-            score = 1.0 if agent_result.completed else 0.0
-            passed = bool(agent_result.completed)
-            details.append("No file checks; evidence=completed turn")
+            # Question-only / no-edit: require a completed turn AND an empty workspace
+            # (aside from seeds already applied). Empty checks alone must not pass
+            # if the agent wrote junk.
+            files = self._workspace_files()
+            no_extra = len(files) == 0
+            if restraint and not no_extra:
+                score = 0.0
+                passed = False
+                details.append(
+                    f"FAIL restraint: unexpected files {sorted(files)[:12]}"
+                )
+            else:
+                score = 1.0 if agent_result.completed and (not restraint or no_extra) else 0.0
+                passed = bool(agent_result.completed) and (not restraint or no_extra)
+                details.append(
+                    "No file checks; evidence=completed turn"
+                    + (" + empty workspace" if restraint else "")
+                )
         else:
             score = passed_checks / total
             passed = passed_checks == total
@@ -135,10 +187,7 @@ class EvalHarness:
             if check.contains is None:
                 return False
             allowed = {p.strip() for p in check.contains.split(",") if p.strip()}
-            found: set[str] = set()
-            for path in self.workspace.rglob("*"):
-                if path.is_file():
-                    found.add(path.relative_to(self.workspace).as_posix())
+            found = self._workspace_files()
             return found == allowed
         if check.kind == "file_contains":
             if not check.path or check.contains is None:
@@ -165,11 +214,33 @@ class EvalHarness:
                 return True
             except SyntaxError:
                 return False
+        if check.kind == "python_exec":
+            # Execute a Python file; require exit 0 by default.
+            if not check.path:
+                return False
+            path = self.workspace / check.path
+            if not path.exists():
+                return False
+            if self.run_command is None:
+                return False
+            # Prefer pytest when path looks like a test module.
+            cmd = (
+                f"python -m pytest -q {check.path}"
+                if "test" in Path(check.path).name
+                else f"python {check.path}"
+            )
+            result = await self.run_command(cmd)
+            require_zero = True if check.command_exit_zero is None else check.command_exit_zero
+            if require_zero:
+                return result.get("exit_code") == 0
+            return True
         if check.kind == "command":
             if self.run_command is None or not check.path:
                 return False
             result = await self.run_command(check.path)
-            if check.command_exit_zero:
+            # Default: require exit 0. Explicit False skips the exit check.
+            require_zero = True if check.command_exit_zero is None else check.command_exit_zero
+            if require_zero:
                 return result.get("exit_code") == 0
             return True
         raise EvalError(f"Unknown check kind: {check.kind}")
@@ -181,10 +252,42 @@ class EvalHarness:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8")
 
+    def reset_workspace(self) -> None:
+        """Clear the graded workspace so tasks do not contaminate each other."""
+        import shutil
+
+        if not self.workspace.exists():
+            self.workspace.mkdir(parents=True, exist_ok=True)
+            return
+        for child in self.workspace.iterdir():
+            if child.is_dir():
+                shutil.rmtree(child)
+            else:
+                child.unlink()
+
     async def run_task(self, task: EvalTask, agent: RunnableAgent) -> EvalResult:
         started = time.perf_counter()
+        self.reset_workspace()
         self.apply_seeds(task)
-        agent_result = await agent.run(task.prompt)
+        try:
+            agent_result = await asyncio.wait_for(
+                agent.run(task.prompt),
+                timeout=max(1.0, float(task.timeout_s)),
+            )
+        except TimeoutError:
+            timed_out = AgentRunResult(
+                run_id="timeout",
+                goal=task.prompt,
+                success=False,
+                final_message=f"Timed out after {task.timeout_s}s",
+                completed=False,
+            )
+            graded = await self.grade(task, timed_out)
+            graded.duration_s = time.perf_counter() - started
+            graded.details = [f"ERROR: timeout after {task.timeout_s}s", *graded.details]
+            graded.passed = False
+            graded.score = 0.0
+            return graded
         graded = await self.grade(task, agent_result)
         graded.duration_s = time.perf_counter() - started
         return graded

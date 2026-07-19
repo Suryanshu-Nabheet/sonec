@@ -21,6 +21,7 @@ import re
 import uuid
 from typing import Any
 
+from sonec.core.coerce import coerce_bool, coerce_int
 from sonec.core.types import ToolCall
 
 _TOOL_BLOCK = re.compile(
@@ -32,6 +33,21 @@ _PARAM = re.compile(
     re.DOTALL | re.IGNORECASE,
 )
 
+_BOOL_KEYS = frozenset({"recursive", "enabled", "force", "all"})
+_INT_KEYS = frozenset(
+    {"max_entries", "offset", "limit", "max_matches", "max_results", "timeout"}
+)
+
+
+def _coerce_param(key: str, raw: str) -> Any:
+    text = raw.strip()
+    if key in _BOOL_KEYS:
+        return coerce_bool(text, default=False)
+    if key in _INT_KEYS:
+        coerced = coerce_int(text, default=None)
+        return coerced if coerced is not None else text
+    return text
+
 
 def parse_qwen_tool_calls(content: str | None) -> list[ToolCall]:
     if not content or "<tool_call>" not in content:
@@ -42,7 +58,8 @@ def parse_qwen_tool_calls(content: str | None) -> list[ToolCall]:
         body = match.group(2)
         arguments: dict[str, Any] = {}
         for pm in _PARAM.finditer(body):
-            arguments[pm.group(1).strip()] = pm.group(2)
+            key = pm.group(1).strip()
+            arguments[key] = _coerce_param(key, pm.group(2))
         if not name:
             continue
         calls.append(

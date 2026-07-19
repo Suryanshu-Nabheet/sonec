@@ -16,15 +16,11 @@ from typing import Any
 from sonec.app import build_runtime
 from sonec.core.config import load_settings
 from sonec.eval.harness import BenchmarkReport, EvalHarness
+from sonec.harness.versioning import CORE_TOOL_NAMES
 
-# Focused tool surface for 2B-class A/B (matches gold curriculum).
-# fs_list omitted on purpose — empty-workspace create tasks collapse into list loops.
-COMPARE_TOOL_ALLOWLIST = {
-    "fs_write",
-    "fs_read",
-    "fs_edit",
-    "terminal_run",
-}
+# Align live A/B with the frozen CORE tool surface used for training rollouts.
+# (Previously a write-first subset understated Cap200 readonly / search skill.)
+COMPARE_TOOL_ALLOWLIST = set(CORE_TOOL_NAMES)
 
 
 @dataclass
@@ -86,12 +82,14 @@ async def run_arm(
         )
         harness = EvalHarness(workspace=ws)
 
-        def factory(t, _settings=settings, _ws=ws):
+        def factory(t, _settings=settings, _ws=ws, _arm_root=arm_root):
+            # Keep trajectory logs outside the graded workspace so only_files
+            # restraint checks are not poisoned by .trajectories/*.jsonl.
             runtime, *_ = build_runtime(
                 settings=_settings,
                 provider=None,
                 persist_memory=False,
-                log_dir=_ws / ".trajectories",
+                log_dir=_arm_root / "_logs" / t.id,
                 goal_for_prompt=t.prompt,
                 tool_allowlist=COMPARE_TOOL_ALLOWLIST,
             )
@@ -149,16 +147,40 @@ def summarize(
     base = next((x for x in rows if x["kind"] == "base"), None)
     winner: str | None = None
     delta = 0.0
+    speed_ratio: float | None = None
     note = "Same frozen harness; arms differ only by weights/endpoint."
     if lora and base:
         delta = float(lora["pass_rate"]) - float(base["pass_rate"])
+        ld = float(lora["mean_duration_s"] or 0.0)
+        bd = float(base["mean_duration_s"] or 0.0)
+        if ld > 0 and bd > 0:
+            speed_ratio = bd / ld
         if delta > 1e-9:
             winner = lora["name"]
         elif delta < -1e-9:
             winner = base["name"]
         else:
-            winner = None
-            note += " Tie on pass_rate — inspect mean_score / per-task diffs."
+            # Pass-rate tie: prefer clear speed win, else declare tie.
+            if speed_ratio is not None and speed_ratio >= 1.15:
+                winner = lora["name"]
+                note += (
+                    f" Pass-rate tie; sonec faster "
+                    f"(base/lora duration ≈ {speed_ratio:.2f}×)."
+                )
+            elif speed_ratio is not None and speed_ratio <= (1 / 1.15):
+                winner = base["name"]
+                note += (
+                    f" Pass-rate tie; base faster "
+                    f"(base/lora duration ≈ {speed_ratio:.2f}×)."
+                )
+            else:
+                winner = None
+                note += " Tie on pass_rate — inspect mean_score / per-task diffs."
+                if speed_ratio is not None:
+                    note += f" Speed ratio base/lora ≈ {speed_ratio:.2f}×."
+    for row in rows:
+        if speed_ratio is not None and row.get("kind") in {"lora", "base"}:
+            row["speed_ratio_base_over_lora"] = round(speed_ratio, 4)
     return CompareSummary(
         suite=str(suite),
         arms=rows,
@@ -192,6 +214,8 @@ def write_compare_report(
     lines = [
         "# sonec vs base — live compare",
         "",
+        f"Generated: `{payload['generated_at']}`",
+        "",
         f"Suite: `{summary.suite}`",
         "",
         "| Arm | Kind | Pass rate | Passed | Mean score | Mean duration |",
@@ -203,17 +227,39 @@ def write_compare_report(
             f"{a['passed']}/{a['total']} | {a['mean_score']:.2f} | "
             f"{a['mean_duration_s']:.1f}s |"
         )
+    speed = None
+    for a in summary.arms:
+        if a.get("speed_ratio_base_over_lora") is not None:
+            speed = a["speed_ratio_base_over_lora"]
+            break
     lines.extend(
         [
             "",
             f"**Winner:** {summary.winner or 'tie'}",
             f"**Delta pass_rate (lora − base):** {summary.delta_pass_rate:+.0%}",
+        ]
+    )
+    if speed is not None:
+        lines.append(f"**Speed (base / lora duration):** {speed:.2f}×")
+    lines.extend(
+        [
             "",
             summary.note,
             "",
             "Product sonec = LoRA adapter served via sonec serve-llm.",
+            "Author: Suryanshu Nabheet. Smoke suites may saturate — prefer CapabilityBench 200 for pass-rate claims.",
+            "",
+            "## Per-task",
+            "",
         ]
     )
+    for name, report in reports.items():
+        lines.append(f"### {name}")
+        lines.append("")
+        for r in report.results:
+            flag = "PASS" if r.passed else "FAIL"
+            lines.append(f"- `{r.task_id}`: {flag} ({r.score:.2f})")
+        lines.append("")
     md.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return path
 
