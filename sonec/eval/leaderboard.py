@@ -220,19 +220,17 @@ def run_leaderboard_sync(
             out_path = out_dir / f"arm_{arm.name}.json"
             if resume:
                 cached = _load_cached_arm(out_path)
-                if cached is not None:
-                    # Resume only if dump matches expected task count (when limited).
-                    if limit is None or cached.total == limit:
-                        all_err = bool(cached.results) and all(
-                            any(
-                                "connection" in d.lower() or d.startswith("ERROR:")
-                                for d in r.details
-                            )
-                            for r in cached.results
+                if cached is not None and (limit is None or cached.total == limit):
+                    all_err = bool(cached.results) and all(
+                        any(
+                            "connection" in d.lower() or d.startswith("ERROR:")
+                            for d in r.details
                         )
-                        if not all_err:
-                            reports[arm.name] = cached
-                            continue
+                        for r in cached.results
+                    )
+                    if not all_err:
+                        reports[arm.name] = cached
+                        continue
             unreachable = _arm_reachable(arm)
             if unreachable:
                 raise RuntimeError(

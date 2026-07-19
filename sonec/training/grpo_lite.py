@@ -84,10 +84,7 @@ def run_grpo_lite(
         for t in tasks
         if any(tag in (t.tags or []) for tag in ("write_first", "python", "architecture", "multifile", "patch"))
     ]
-    if len(focus) < max(4, train_n // 3):
-        focus = tasks[:train_n]
-    else:
-        focus = focus[:train_n]
+    focus = tasks[:train_n] if len(focus) < max(4, train_n // 3) else focus[:train_n]
 
     records = run_rollouts_sync(
         focus,

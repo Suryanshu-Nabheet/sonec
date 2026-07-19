@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from sonec.app import build_runtime
 from sonec.core.config import load_settings
 from sonec.core.types import AgentRunResult, Message, Role
@@ -16,7 +15,7 @@ from sonec.eval.harness import (
     mock_provider_for_task,
 )
 from sonec.eval.sonecbench import build_sonecbench_tasks
-from sonec.harness.versioning import HARNESS_VERSION, CORE_TOOL_NAMES
+from sonec.harness.versioning import CORE_TOOL_NAMES, HARNESS_VERSION
 from sonec.llm.provider import MockProvider
 from sonec.training.pipeline import DatasetGenerator, TrainingPipeline
 from sonec.training.rollouts import run_rollouts_sync

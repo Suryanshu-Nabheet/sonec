@@ -1,0 +1,260 @@
+{
+  "generated_at": "2026-07-19T09:24:19Z",
+  "ok": true,
+  "checks": [
+    {
+      "name": "capabilitybench_shape",
+      "ok": true,
+      "detail": "tasks=200 by_diff={'easy': 70, 'medium': 70, 'hard': 60} cats=10"
+    },
+    {
+      "name": "pytest",
+      "ok": true,
+      "detail": "70 passed in 0.97s"
+    },
+    {
+      "name": "mock_bench",
+      "ok": true,
+      "detail": "suite=ab_agent_2b_hard.json passed=8/8"
+    }
+  ],
+  "capabilitybench": {
+    "task_count": 200,
+    "by_difficulty": {
+      "easy": 70,
+      "medium": 70,
+      "hard": 60
+    },
+    "categories": [
+      {
+        "id": "readonly",
+        "label": "Read-only repo understanding"
+      },
+      {
+        "id": "edit",
+        "label": "File editing"
+      },
+      {
+        "id": "refactor",
+        "label": "Multi-file refactoring"
+      },
+      {
+        "id": "bugfix",
+        "label": "Bug fixing"
+      },
+      {
+        "id": "verify",
+        "label": "Verification (tests/build)"
+      },
+      {
+        "id": "docs",
+        "label": "Documentation updates"
+      },
+      {
+        "id": "cli",
+        "label": "Terminal/CLI tasks"
+      },
+      {
+        "id": "git",
+        "label": "Git operations"
+      },
+      {
+        "id": "restraint",
+        "label": "Tool restraint"
+      },
+      {
+        "id": "horizon",
+        "label": "Long-horizon tasks"
+      }
+    ]
+  },
+  "published_smoke": {
+    "note": "Live Cap200 scores require local Apple Silicon; CI records suite integrity + mock harness.",
+    "compare_winner": null,
+    "board_winner": "sonec",
+    "compare_arms": [
+      {
+        "name": "sonec_lora",
+        "kind": "lora",
+        "base_url": "http://127.0.0.1:8080/v1",
+        "model": "mlx-community/Qwen3.5-2B-4bit",
+        "pass_rate": 1.0,
+        "passed": 8,
+        "total": 8,
+        "mean_score": 1.0,
+        "mean_duration_s": 8.616377307249422,
+        "by_difficulty": {
+          "easy": 1.0,
+          "hard": 1.0,
+          "medium": 1.0
+        },
+        "by_tag": {
+          "architecture": 1.0,
+          "cli": 1.0,
+          "docs": 1.0,
+          "edit": 1.0,
+          "filesystem": 1.0,
+          "imports": 1.0,
+          "json": 1.0,
+          "localize": 1.0,
+          "patch": 1.0,
+          "paths": 1.0,
+          "python": 1.0,
+          "restraint": 1.0
+        }
+      },
+      {
+        "name": "qwen35_2b_base",
+        "kind": "base",
+        "base_url": "http://127.0.0.1:8081/v1",
+        "model": "mlx-community/Qwen3.5-2B-4bit",
+        "pass_rate": 1.0,
+        "passed": 8,
+        "total": 8,
+        "mean_score": 1.0,
+        "mean_duration_s": 16.547165078247417,
+        "by_difficulty": {
+          "easy": 1.0,
+          "hard": 1.0,
+          "medium": 1.0
+        },
+        "by_tag": {
+          "architecture": 1.0,
+          "cli": 1.0,
+          "docs": 1.0,
+          "edit": 1.0,
+          "filesystem": 1.0,
+          "imports": 1.0,
+          "json": 1.0,
+          "localize": 1.0,
+          "patch": 1.0,
+          "paths": 1.0,
+          "python": 1.0,
+          "restraint": 1.0
+        }
+      }
+    ],
+    "board_arms": [
+      {
+        "name": "sonec",
+        "kind": "lora",
+        "base_url": "http://127.0.0.1:8080/v1",
+        "model": "mlx-community/Qwen3.5-2B-4bit",
+        "pass_rate": 1.0,
+        "passed": 8,
+        "total": 8,
+        "mean_score": 1.0,
+        "mean_duration_s": 8.53642772387866,
+        "by_difficulty": {
+          "easy": 1.0,
+          "hard": 1.0,
+          "medium": 1.0
+        },
+        "by_tag": {
+          "architecture": 1.0,
+          "cli": 1.0,
+          "docs": 1.0,
+          "edit": 1.0,
+          "filesystem": 1.0,
+          "imports": 1.0,
+          "json": 1.0,
+          "localize": 1.0,
+          "patch": 1.0,
+          "paths": 1.0,
+          "python": 1.0,
+          "restraint": 1.0
+        }
+      },
+      {
+        "name": "qwen3.5-2b",
+        "kind": "base",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "qwen3.5:2b",
+        "pass_rate": 1.0,
+        "passed": 8,
+        "total": 8,
+        "mean_score": 1.0,
+        "mean_duration_s": 11.454339854253703,
+        "by_difficulty": {
+          "easy": 1.0,
+          "hard": 1.0,
+          "medium": 1.0
+        },
+        "by_tag": {
+          "architecture": 1.0,
+          "cli": 1.0,
+          "docs": 1.0,
+          "edit": 1.0,
+          "filesystem": 1.0,
+          "imports": 1.0,
+          "json": 1.0,
+          "localize": 1.0,
+          "patch": 1.0,
+          "paths": 1.0,
+          "python": 1.0,
+          "restraint": 1.0
+        }
+      },
+      {
+        "name": "gemma2-2b",
+        "kind": "external",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "gemma2:2b",
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 8,
+        "mean_score": 0.0,
+        "mean_duration_s": 0.0,
+        "by_difficulty": {
+          "easy": 0.0,
+          "hard": 0.0,
+          "medium": 0.0
+        },
+        "by_tag": {
+          "architecture": 0.0,
+          "cli": 0.0,
+          "docs": 0.0,
+          "edit": 0.0,
+          "filesystem": 0.0,
+          "imports": 0.0,
+          "json": 0.0,
+          "localize": 0.0,
+          "patch": 0.0,
+          "paths": 0.0,
+          "python": 0.0,
+          "restraint": 0.0
+        }
+      },
+      {
+        "name": "codegemma-2b",
+        "kind": "external",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "codegemma:2b",
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 8,
+        "mean_score": 0.0,
+        "mean_duration_s": 0.0,
+        "by_difficulty": {
+          "easy": 0.0,
+          "hard": 0.0,
+          "medium": 0.0
+        },
+        "by_tag": {
+          "architecture": 0.0,
+          "cli": 0.0,
+          "docs": 0.0,
+          "edit": 0.0,
+          "filesystem": 0.0,
+          "imports": 0.0,
+          "json": 0.0,
+          "localize": 0.0,
+          "patch": 0.0,
+          "paths": 0.0,
+          "python": 0.0,
+          "restraint": 0.0
+        }
+      }
+    ]
+  }
+}

@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 import pytest
-
 from sonec.eval.capabilitybench import (
     CATEGORIES,
     build_capabilitybench_tasks,

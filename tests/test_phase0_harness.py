@@ -5,12 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from sonec.app import build_runtime
 from sonec.core.config import load_settings
 from sonec.core.types import Message, Role, ToolCall
 from sonec.harness.compaction import compact_messages
-from sonec.harness.context import ContextAssembler, MAX_ALWAYS_ON_CHARS
+from sonec.harness.context import MAX_ALWAYS_ON_CHARS, ContextAssembler
 from sonec.harness.versioning import HARNESS_VERSION, tool_schema_hash
 from sonec.llm.provider import MockProvider
 

@@ -38,9 +38,7 @@ def compact_messages(
     head_start = 1 if system else 0
     # Skip original user in the "middle" slice if it sits right after system
     mid_start = head_start
-    if user_goal is not None and mid_start < len(messages) and messages[mid_start] is user_goal:
-        mid_start += 1
-    elif (
+    if user_goal is not None and mid_start < len(messages) and messages[mid_start] is user_goal or (
         user_goal is not None
         and mid_start < len(messages)
         and messages[mid_start].role == Role.USER

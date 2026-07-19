@@ -83,3 +83,5 @@ configs/leaderboard/arms_resolved.json
 !docs/results/COMPARE_REPORT.json
 !docs/results/TRAIN_PROOF.md
 !docs/results/SFT_METRICS.json
+!docs/results/DAILY_STATUS.md
+!docs/results/DAILY_STATUS.json

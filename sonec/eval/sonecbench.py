@@ -30,8 +30,8 @@ def build_sonecbench_tasks() -> list[EvalTask]:
                 ],
                 "seed_files": {
                     f"util_{i}.py": (
-                        f"def count_to(n: int) -> list[int]:\n"
-                        f"    return list(range(n + 1))  # bug\n"
+                        "def count_to(n: int) -> list[int]:\n"
+                        "    return list(range(n + 1))  # bug\n"
                     )
                 },
             }

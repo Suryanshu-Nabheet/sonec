@@ -499,6 +499,7 @@ Raw `*.safetensors` are gitignored. Reproduce with `sonec train --step`.
 | [Compare report](docs/results/COMPARE_REPORT.md) | Latest live A/B (smoke) |
 | [2B leaderboard](docs/results/leaderboard_2b/LEADERBOARD.md) | Multi-model smoke ranking |
 | [GRPO recipe](configs/rl/grpo_recipe.md) | Laptop-safe densify |
+| [Daily status](docs/results/DAILY_STATUS.md) | Nightly CI suite integrity + mock smoke |
 | [SFT metrics](docs/results/SFT_METRICS.json) | NLL specialization proof |
 | [NOTICE](NOTICE) | Base weight lineage |
 

@@ -874,7 +874,7 @@ def assemble_sft_corpus(
             for t in data.get("tasks") or []:
                 sealed.add(t["id"])
 
-    written = export_from_rollouts(rollouts_jsonl, out_dir / "from_rollouts", sealed_ids=sealed)
+    export_from_rollouts(rollouts_jsonl, out_dir / "from_rollouts", sealed_ids=sealed)
     gen = DatasetGenerator("sonec-sft")
     generate_identity_examples(gen, n=12)
     generate_gold_agent_examples(gen, n=gold_n)
@@ -1107,7 +1107,7 @@ def run_train_step(
     model: str | None = None,
 ) -> list[TrainReport]:
     """One specialization step on live passing trajectories (not mock chat)."""
-    from sonec.training.weights import write_product_manifest, weight_status
+    from sonec.training.weights import weight_status, write_product_manifest
 
     reports: list[TrainReport] = []
     art = root / "artifacts" / "train"

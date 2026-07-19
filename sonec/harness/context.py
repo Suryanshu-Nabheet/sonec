@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
+
 from sonec.harness.versioning import HARNESS_VERSION
 from sonec.indexing.index import RepositoryIndex
 from sonec.models import PRODUCT_IDENTITY
@@ -48,10 +50,8 @@ class ContextAssembler:
             parts.append(f"Suggested skills (load if needed): {catalog}")
         if self.index is not None:
             if not self.index.files:
-                try:
+                with suppress(Exception):
                     self.index.build()
-                except Exception:  # noqa: BLE001
-                    pass
             if self.index.files:
                 summary = self.index.summary()
                 parts.append(

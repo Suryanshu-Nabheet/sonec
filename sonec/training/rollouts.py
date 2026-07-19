@@ -15,7 +15,7 @@ from sonec.app import build_runtime
 from sonec.core.config import load_settings
 from sonec.eval.harness import EvalHarness, EvalTask, mock_provider_for_task
 from sonec.harness.versioning import HARNESS_VERSION
-from sonec.llm.provider import LLMProvider, MockProvider
+from sonec.llm.provider import LLMProvider
 from sonec.training.rewards import compute_agent_reward
 
 

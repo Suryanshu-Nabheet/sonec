@@ -878,7 +878,7 @@ def train_cmd(
             color = "green" if r.ok else "red"
             console.print(f"[{color}]{r.phase}[/]: {r.detail}")
         status = weight_status()
-        console.print(f"Report: artifacts/train/TRAIN_REPORT.json")
+        console.print("Report: artifacts/train/TRAIN_REPORT.json")
         console.print(f"Weights: {'ready' if status.ready else 'not ready'} — {status.detail}")
         if status.ready:
             console.print("Serve specialized model: sonec serve-llm")

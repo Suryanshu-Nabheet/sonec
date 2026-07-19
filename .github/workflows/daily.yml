@@ -1,0 +1,52 @@
+name: Daily
+
+# Nightly suite integrity + mock harness smoke. Commits DAILY_STATUS.* when changed.
+# Live Cap200 / MLX LoRA eval stays local (Apple Silicon) — see scripts/capabilitybench_e2e.sh.
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 06:00 UTC daily
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-status
+  cancel-in-progress: false
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Ruff
+        run: ruff check sonec tests scripts
+
+      - name: Daily stats (pytest + Cap200 shape + mock bench)
+        run: python scripts/ci_daily_stats.py
+
+      - name: Commit status artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/results/DAILY_STATUS.md docs/results/DAILY_STATUS.json examples/benchmarks/capabilitybench_v1.json
+          if git diff --staged --quiet; then
+            echo "No daily status changes"
+          else
+            git commit -m "chore(ci): daily status $(date -u +%Y-%m-%d)"
+            git push
+          fi
