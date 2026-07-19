@@ -188,11 +188,18 @@ class FilesystemTools:
         text = path.read_text(encoding="utf-8", errors="replace")
         lines = text.splitlines()
         sliced = lines[offset - 1 : offset - 1 + limit]
-        numbered = "\n".join(f"{i + offset:>6}|{line}" for i, line in enumerate(sliced))
+        # Small / full-file reads: raw text so agents can copy into fs_edit/fs_write.
+        # Large slices keep line numbers for navigation only (not for edit paste).
+        if len(sliced) <= 80 and offset == 1 and limit >= len(lines):
+            body = "\n".join(sliced)
+            if text.endswith("\n") and body:
+                body += "\n"
+        else:
+            body = "\n".join(f"{i + offset:>6}|{line}" for i, line in enumerate(sliced))
         return ToolResult(
             tool_call_id="",
             name="fs_read",
-            content=numbered or "(empty file)",
+            content=body or "(empty file)",
             ok=True,
             data={"path": rel, "total_lines": len(lines)},
         )
@@ -219,22 +226,30 @@ class FilesystemTools:
         if not path.exists():
             return ToolResult(tool_call_id="", name="fs_edit", content=f"Not found: {rel}", ok=False)
         text = path.read_text(encoding="utf-8")
-        count = text.count(old)
-        if count == 0:
+        # Models often paste numbered fs_read lines (e.g. "     1|0.0.0") into old_string.
+        candidates = [old]
+        stripped = "\n".join(
+            line.split("|", 1)[1] if "|" in line[:12] and line.lstrip()[:1].isdigit() else line
+            for line in old.splitlines()
+        )
+        if stripped != old:
+            candidates.append(stripped)
+        match = next((c for c in candidates if text.count(c) == 1), None)
+        if match is None:
+            if any(text.count(c) == 0 for c in candidates):
+                return ToolResult(
+                    tool_call_id="",
+                    name="fs_edit",
+                    content="old_string not found in file",
+                    ok=False,
+                )
             return ToolResult(
                 tool_call_id="",
                 name="fs_edit",
-                content="old_string not found in file",
+                content="old_string matched multiple times; must be unique",
                 ok=False,
             )
-        if count > 1:
-            return ToolResult(
-                tool_call_id="",
-                name="fs_edit",
-                content=f"old_string matched {count} times; must be unique",
-                ok=False,
-            )
-        path.write_text(text.replace(old, new, 1), encoding="utf-8")
+        path.write_text(text.replace(match, new, 1), encoding="utf-8")
         return ToolResult(
             tool_call_id="",
             name="fs_edit",

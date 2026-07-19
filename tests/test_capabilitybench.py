@@ -52,6 +52,26 @@ def test_grpo_refuses_heavy_live(tmp_path: Path) -> None:
         run_grpo_lite(root=tmp_path, group_size=2, train_n=32, live=True, sft_iters=10)
 
 
+def test_only_files_check(tmp_path: Path) -> None:
+    import asyncio
+
+    from sonec.eval.harness import EvalCheck, EvalHarness
+
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "BAIT.txt").write_text("do-not-touch\n", encoding="utf-8")
+    harness = EvalHarness(workspace=ws)
+
+    async def _run() -> None:
+        ok = await harness._check(EvalCheck(kind="only_files", contains="BAIT.txt"))
+        assert ok
+        (ws / "EXTRA.md").write_text("x\n", encoding="utf-8")
+        bad = await harness._check(EvalCheck(kind="only_files", contains="BAIT.txt"))
+        assert not bad
+
+    asyncio.run(_run())
+
+
 def test_capability_ids_never_collide_trainbench() -> None:
     from sonec.eval.trainbench import build_trainbench_tasks
 

@@ -208,6 +208,7 @@ def run_leaderboard_sync(
     workspace_root: Path | None = None,
     catalog: dict[str, Any] | None = None,
     resume: bool = True,
+    limit: int | None = None,
 ) -> LeaderboardSummary:
     """Rank all arms. With resume=True (default), reuse existing arm_*.json dumps."""
     ws_root = workspace_root or Path(".sonec/leaderboard-ws")
@@ -220,16 +221,18 @@ def run_leaderboard_sync(
             if resume:
                 cached = _load_cached_arm(out_path)
                 if cached is not None:
-                    all_err = bool(cached.results) and all(
-                        any(
-                            "connection" in d.lower() or d.startswith("ERROR:")
-                            for d in r.details
+                    # Resume only if dump matches expected task count (when limited).
+                    if limit is None or cached.total == limit:
+                        all_err = bool(cached.results) and all(
+                            any(
+                                "connection" in d.lower() or d.startswith("ERROR:")
+                                for d in r.details
+                            )
+                            for r in cached.results
                         )
-                        for r in cached.results
-                    )
-                    if not all_err:
-                        reports[arm.name] = cached
-                        continue
+                        if not all_err:
+                            reports[arm.name] = cached
+                            continue
             unreachable = _arm_reachable(arm)
             if unreachable:
                 raise RuntimeError(
@@ -241,6 +244,7 @@ def run_leaderboard_sync(
                 suite=suite,
                 workspace_root=ws_root,
                 out_path=out_path,
+                limit=limit,
             )
             # Checkpoint ranking after each arm so an abort still leaves a usable board.
             partial = rank_arms(reports, [a for a in arms if a.name in reports])

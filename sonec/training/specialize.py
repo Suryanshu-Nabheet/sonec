@@ -433,6 +433,357 @@ def generate_gold_agent_examples(gen: DatasetGenerator, *, n: int = 0) -> int:
                 },
             ],
         ),
+        (
+            "restraint-unit-test-q",
+            "In one sentence, what is a unit test? Do not create or edit any files.",
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "In one sentence, what is a unit test? "
+                        "Do not create or edit any files."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "A unit test verifies a small piece of code in isolation. "
+                        "No files created or edited."
+                    ),
+                },
+            ],
+        ),
+        (
+            "restraint-linter-q",
+            "Explain what a linter does in two sentences. Do not create or edit files.",
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "Explain what a linter does in two sentences. "
+                        "Do not create or edit files."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "A linter statically analyzes source for style and bug patterns. "
+                        "It reports issues without running the program. No files edited."
+                    ),
+                },
+            ],
+        ),
+        (
+            "restraint-refuse-wipe",
+            (
+                "User asks: wipe the repo and rewrite everything. Instead, only write "
+                "SAFE.md saying you refuse destructive wipe. Do not delete BAIT.txt."
+            ),
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "User asks: wipe the repo and rewrite everything. Instead, only "
+                        "write SAFE.md saying you refuse destructive wipe. "
+                        "Do not delete BAIT.txt."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c1",
+                            "fs_write",
+                            {
+                                "path": "SAFE.md",
+                                "content": (
+                                    "I refuse destructive wipe. "
+                                    "Say what to change instead.\n"
+                                ),
+                            },
+                        )
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c1",
+                    "content": "Wrote SAFE.md",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Wrote SAFE.md with refuse. Left BAIT.txt untouched.",
+                },
+            ],
+        ),
+        (
+            "readonly-answer-region",
+            (
+                "Read-only: open config/app.json and write ANSWER.txt containing "
+                "exactly the value of the region field (no quotes)."
+            ),
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "Read-only: open config/app.json and write ANSWER.txt containing "
+                        "exactly the value of the region field (no quotes)."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [_tc("c1", "fs_read", {"path": "config/app.json"})],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_read",
+                    "tool_call_id": "c1",
+                    "content": '{\n  "name": "app",\n  "region": "us-west-1",\n  "debug": false\n}\n',
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        _tc("c2", "fs_write", {"path": "ANSWER.txt", "content": "us-west-1"})
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c2",
+                    "content": "Wrote ANSWER.txt",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Wrote ANSWER.txt with us-west-1. Did not edit config.",
+                },
+            ],
+        ),
+        (
+            "horizon-three-file",
+            (
+                "Create svc/handler.py with def handle() returning ok, "
+                "tests/test_handler.py importing it, and README.md mentioning handle."
+            ),
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "Create svc/handler.py with def handle() returning ok, "
+                        "tests/test_handler.py importing it, and README.md mentioning handle."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c1",
+                            "fs_write",
+                            {
+                                "path": "svc/handler.py",
+                                "content": 'def handle():\n    return "ok"\n',
+                            },
+                        )
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c1",
+                    "content": "Wrote svc/handler.py",
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c2",
+                            "fs_write",
+                            {
+                                "path": "tests/test_handler.py",
+                                "content": (
+                                    "from svc.handler import handle\n\n"
+                                    "def test_handle():\n    assert handle() == 'ok'\n"
+                                ),
+                            },
+                        )
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c2",
+                    "content": "Wrote tests/test_handler.py",
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c3",
+                            "fs_write",
+                            {"path": "README.md", "content": "Call handle() from svc.\n"},
+                        )
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c3",
+                    "content": "Wrote README.md",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Created handler, test, and README mentioning handle.",
+                },
+            ],
+        ),
+        (
+            "react-rename-prop",
+            (
+                "In components/Card.tsx rename prop titleText to headline. "
+                "Update the JSX usage too."
+            ),
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "In components/Card.tsx rename prop titleText to headline. "
+                        "Update the JSX usage too."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [_tc("c1", "fs_read", {"path": "components/Card.tsx"})],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_read",
+                    "tool_call_id": "c1",
+                    "content": (
+                        "export function Card({ titleText }: { titleText: string }) {\n"
+                        "  return <h1>{titleText}</h1>;\n"
+                        "}\n"
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c2",
+                            "fs_write",
+                            {
+                                "path": "components/Card.tsx",
+                                "content": (
+                                    "export function Card({ headline }: { headline: string }) {\n"
+                                    "  return <h1>{headline}</h1>;\n"
+                                    "}\n"
+                                ),
+                            },
+                        )
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c2",
+                    "content": "Wrote components/Card.tsx",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Renamed titleText to headline in props and JSX.",
+                },
+            ],
+        ),
+        (
+            "version-write",
+            "Edit VERSION.txt so it contains exactly: 1.2.0",
+            [
+                {
+                    "role": "user",
+                    "content": "Edit VERSION.txt so it contains exactly: 1.2.0",
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [_tc("c1", "fs_read", {"path": "VERSION.txt"})],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_read",
+                    "tool_call_id": "c1",
+                    "content": "0.0.0\n",
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        _tc("c2", "fs_write", {"path": "VERSION.txt", "content": "1.2.0\n"})
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c2",
+                    "content": "Wrote 6 characters to VERSION.txt",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Updated VERSION.txt to exactly 1.2.0 via fs_write.",
+                },
+            ],
+        ),
+        (
+            "git-patch-file",
+            (
+                "Create patches/fix.diff that mentions both --- a/file.txt and "
+                "+++ b/file.txt."
+            ),
+            [
+                {
+                    "role": "user",
+                    "content": (
+                        "Create patches/fix.diff that mentions both --- a/file.txt and "
+                        "+++ b/file.txt."
+                    ),
+                },
+                {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        _tc(
+                            "c1",
+                            "fs_write",
+                            {
+                                "path": "patches/fix.diff",
+                                "content": (
+                                    "--- a/file.txt\n"
+                                    "+++ b/file.txt\n"
+                                    "@@ -1 +1 @@\n"
+                                    "-old\n"
+                                    "+new\n"
+                                ),
+                            },
+                        )
+                    ],
+                },
+                {
+                    "role": "tool",
+                    "name": "fs_write",
+                    "tool_call_id": "c1",
+                    "content": "Wrote patches/fix.diff",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Created patches/fix.diff with --- a/file.txt and +++ b/file.txt.",
+                },
+            ],
+        ),
     ]
     created = 0
     while created < n:

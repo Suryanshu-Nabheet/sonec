@@ -1,23 +1,32 @@
 # sonec architecture
 
-**sonec** is a coding model. This repository also ships the training and serving stack around it: thin identity, tools, a frozen harness, and graded evidence. Training starts from an Apache-2.0 base (see NOTICE); the product name is the specialized adapter `sonec`.
+**sonec** is a coding model plus the training/serving stack: thin identity, tools, frozen harness, graded evidence. Base weights are Apache-2.0 (NOTICE); the product name is the specialized LoRA adapter `sonec`.
 
 ```
 CLI / MCP / HTTP
   → thin identity + tools
   → AgentRuntime (frozen)
-    → evidence graders
-  → TrainBench → SFT (MLX) → RFT → optional light GRPO-lite → product LoRA (sonec)
-  → compare (LoRA vs base) · leaderboard (CapabilityBench 200 / smoke ab_agent_2b_hard)
+    → evidence graders (files, parses, only_files restraint, …)
+  → TrainBench → SFT (MLX) → RFT → optional light GRPO-lite → product LoRA
+  → compare / leaderboard
+      smoke: ab_agent_2b_hard (minutes)
+      decision: CapabilityBench 200 (hours)
 ```
 
-| Layer | Canonical entry |
+| Layer | Entry |
 | --- | --- |
-| Specialize overnight | `./scripts/overnight_specialize.sh` |
-| Multi-model board | `SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh` |
+| Specialize | `./scripts/overnight_specialize.sh` or `sonec train --step` |
+| Smoke board | `SUITE=…/ab_agent_2b_hard.json SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh` |
+| Cap200 board | `SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh` |
 | Decision metric | CapabilityBench 200 (sealed; never training fuel) |
-| Smoke | `ab_agent_2b_hard` (8 tasks) |
 | Training fuel | TrainBench + verified live trajectories |
-| Inference | OpenAI-compatible `/v1` via `sonec serve-llm` |
+| Inference | `sonec serve-llm` → OpenAI-compatible `/v1` |
 
-Scripts under `scripts/` are the only long-running entrypoints. Large live GRPO is refused on laptops.
+## Harness details that matter
+
+- **Write-first / patch-after-read** in the system prompt — agents must not stop after `fs_read` alone.
+- **Small-file `fs_read`** returns raw text (no `N|` prefixes) so edits paste correctly.
+- **`only_files` checks** — restraint tasks fail if unexpected files appear.
+- **Sealed exclusion** — Cap / Sonec / World / `ab_agent_*` ids never enter SFT fuel.
+
+Scripts under `scripts/` are the long-running entrypoints. Heavy live GRPO (`G>4` or `n>16`) is refused on laptops.

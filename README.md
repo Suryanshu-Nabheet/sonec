@@ -14,7 +14,7 @@ LoRA specialization of **Qwen 3.5 2B** for tool-using software engineering. Trai
 | **Serve** | `sonec serve-llm` → OpenAI-compatible `/v1` |
 | **Base** | `mlx-community/Qwen3.5-2B-4bit` (Qwen 3.5 2B) |
 | **License** | Apache-2.0 — code, adapters, and Qwen weight lineage ([NOTICE](NOTICE)) |
-| **Latest A/B** | Smoke `ab_agent_2b_hard`: sonec **8/8 @ 8.5s** (board #1); CapabilityBench 200 is the next decision suite |
+| **Latest A/B** | Smoke: sonec **8/8 @ 8.5s** (2B board #1). Decision suite: CapabilityBench **200** |
 
 ---
 
@@ -61,9 +61,9 @@ Optional Ollama / Modelfile tags are **chat runners**. They do not load the spec
 
 ## Results
 
-### Live agent A/B (latest smoke — 2026-07-19)
+### Live agent A/B (published smoke — 2026-07-19)
 
-Suite: [`examples/benchmarks/ab_agent_2b_hard.json`](examples/benchmarks/ab_agent_2b_hard.json) (8-task smoke).
+Suite: [`ab_agent_2b_hard.json`](examples/benchmarks/ab_agent_2b_hard.json) (8 tasks; fast, saturated for tool-capable 2B).
 
 | Compare (MLX) | Pass | Mean duration |
 | --- | --- | ---: |
@@ -77,21 +77,29 @@ Suite: [`examples/benchmarks/ab_agent_2b_hard.json`](examples/benchmarks/ab_agen
 | gemma2:2b | 0/8 | — |
 | codegemma:2b | 0/8 | — |
 
-**Board winner:** sonec (tie on pass → LoRA + speed). Full reports: [COMPARE_REPORT.md](docs/results/COMPARE_REPORT.md) · [LEADERBOARD.md](docs/results/leaderboard_2b/LEADERBOARD.md).
+**Board winner:** sonec (pass-rate tie → LoRA + speed).  
+Reports: [COMPARE_REPORT.md](docs/results/COMPARE_REPORT.md) · [LEADERBOARD.md](docs/results/leaderboard_2b/LEADERBOARD.md).
 
-Primary decision suite going forward: [`capabilitybench_v1.json`](examples/benchmarks/capabilitybench_v1.json) — **200 sealed tasks** (10×20, easy/medium/hard). Generate with `sonec capabilitybench`. Smoke is saturated for tool-capable 2B arms.
+### CapabilityBench 200 (decision suite)
 
-### Strict 2B-only multi-model board
+Sealed **200** tasks (10 categories × 20, easy/medium/hard, tagged). Not training fuel.
 
-Peers are **exactly ~2B** only (`qwen3.5:2b`, `gemma2:2b`, `codegemma:2b`). No 1B / 1.5B / 3B+ models.
+```bash
+sonec capabilitybench
+# Full run (hours):  ./scripts/capabilitybench_e2e.sh
+# Eval only:         SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh
+# Fast probe:        sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json --limit 40 --fresh
+```
+
+Suite file: [`capabilitybench_v1.json`](examples/benchmarks/capabilitybench_v1.json).
+
+### Strict 2B-only peers
+
+Peers are **exactly ~2B** (`qwen3.5:2b`, `gemma2:2b`, `codegemma:2b`). No 1B / 1.5B / 3B+.
 
 ```bash
 SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh
-# or: sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json \
-#        -a configs/leaderboard/arms_2b.json -o docs/results/leaderboard_2b
 ```
-
-See [docs/results/leaderboard_2b/LEADERBOARD.md](docs/results/leaderboard_2b/LEADERBOARD.md).
 
 ### Weight-level proof (not a prompt)
 
@@ -288,14 +296,20 @@ sonec serve          # harness HTTP gateway
 sonec mcp            # MCP bridge for IDE hosts
 ```
 
-### 4. Evaluate (fair A/B)
+### 4. Evaluate
 
-With LoRA on `:8080` and base on `:8081`:
+**Smoke (minutes)** — published claim:
 
 ```bash
-sonec compare \
-  --suite examples/benchmarks/ab_agent_v1.json \
-  --out docs/results
+sonec compare -s examples/benchmarks/ab_agent_2b_hard.json -o docs/results
+```
+
+**CapabilityBench 200 (hours)** — discriminating decision suite:
+
+```bash
+SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh
+# or: sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json \
+#        -a configs/leaderboard/arms_2b.json -o docs/results/leaderboard_cap --fresh
 ```
 
 | Flag | Default |
@@ -308,10 +322,9 @@ sonec compare \
 | --- | --- |
 | `COMPARE_REPORT.md` | Human summary + winner |
 | `COMPARE_REPORT.json` | Machine summary + per-task pass flags |
-| `arm_sonec_lora.json` | Full sonec traces |
-| `arm_qwen35_2b_base.json` | Full base traces |
+| `leaderboard_2b/LEADERBOARD.md` | Multi-model ranking |
 
-**Promotion rule:** keep an adapter only when pass rate **exceeds** the base arm on the sealed suite, with no restraint regression.
+**Promotion rule:** keep an adapter when sealed pass rate **exceeds** peers (or ties with clear speed + specialization), with no restraint regression. Prefer CapabilityBench over saturated smoke for pass-rate claims.
 
 ---
 
@@ -346,7 +359,7 @@ sonec rollout --live --group-size 8 --limit 40 \
   --out artifacts/rollouts
 ```
 
-Sealed eval suites (`sonecbench`, `worldbench`) must **never** become training fuel.
+Sealed eval suites (`capabilitybench`, `sonecbench`, `worldbench`, `ab_agent_*`) must **never** become training fuel.
 
 ---
 
@@ -354,24 +367,24 @@ Sealed eval suites (`sonecbench`, `worldbench`) must **never** become training f
 
 | Suite | Role |
 | --- | --- |
-| `examples/benchmarks/ab_agent_v1.json` | Fair sonec vs base A/B |
-| SonecBench | Legacy sealed suite |
-| WorldBench | Legacy sealed / harder suite |
-| CapabilityBench | **Primary** sealed decision metric (200 tasks) |
+| **CapabilityBench** (`capabilitybench_v1.json`) | **Primary** sealed decision metric (200) |
+| `ab_agent_2b_hard.json` | Fast smoke / published 2B board |
+| `ab_agent_v1.json` | Legacy A/B |
+| SonecBench / WorldBench | Legacy sealed |
 | TrainBench / smoke | Training fuel only |
 
 ```bash
 sonec capabilitybench
-sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json -o docs/results/leaderboard_2b
-# smoke: sonec leaderboard -s examples/benchmarks/ab_agent_2b_hard.json …
+sonec leaderboard -s examples/benchmarks/capabilitybench_v1.json -o docs/results/leaderboard_cap
+# smoke: sonec leaderboard -s examples/benchmarks/ab_agent_2b_hard.json -o docs/results/leaderboard_2b
 ```
 
 Gate checklist before calling a run “better than base”:
 
 1. `sonec weights` → `ready=True`
-2. `sonec leaderboard` on CapabilityBench (or smoke `ab_agent_2b_hard`) with LoRA `:8080` vs peers
-3. Pass rate **>** peers on CapabilityBench; restraint category does not regress
-4. Inspect failing tasks in `arm_*.json` (infra 404s / wire bugs do not count as model skill)
+2. Smoke compare or CapabilityBench leaderboard with LoRA `:8080` vs peers
+3. Pass rate **>** peers on CapabilityBench when claiming skill; smoke may tie on pass
+4. Inspect failing tasks in `arm_*.json` (infra / connection errors do not count as model skill)
 
 ---
 
@@ -414,13 +427,13 @@ SONEC_MODEL=your-served-id
 | `sonec mcp` | MCP bridge |
 | `sonec run` | Single agent goal in a workspace |
 | `sonec compare` | Fair A/B vs unmodified base |
-| `sonec leaderboard` | Multi-model 2B-class agent board |
-| `sonec grpo` | Group-relative RL densify (MLX) |
+| `sonec leaderboard` | Multi-model 2B board (`--limit` for probes) |
+| `sonec capabilitybench` | Generate sealed 200-task decision suite |
+| `sonec grpo` | Light densify (`--mock` default; heavy live refused) |
 | `sonec rollout` | Collect graded trajectories |
-| `sonec bench` | Run a benchmark suite |
-| `sonec eval` | Task-suite evaluation |
-| `sonec sonecbench` / `worldbench` | Sealed suite helpers |
-| `sonec index` / `review` / `refactor` | Workspace analysis helpers |
+| `sonec bench` / `sonec eval` | Suite evaluation |
+| `sonec sonecbench` / `worldbench` | Legacy sealed helpers |
+| `sonec index` / `review` / `refactor` | Workspace helpers |
 | `sonec skills` / `rules` | Skill and rule surfaces |
 
 ```bash
@@ -443,7 +456,7 @@ sonec/
 │   ├── architecture.md
 │   ├── GATE_REPORT_MODEL_STACK.md
 │   └── results/           # COMPARE_REPORT, TRAIN_PROOF, SFT_METRICS
-├── scripts/               # overnight_specialize.sh, world_rl_leaderboard.sh
+├── scripts/               # overnight_specialize · world_rl_leaderboard · capabilitybench_e2e
 ├── configs/leaderboard/   # arms_2b.json catalog
 ├── configs/rl/            # grpo_recipe.md
 ├── Modelfile              # Optional chat runner (not the product)
@@ -469,10 +482,9 @@ Raw `*.safetensors` are gitignored. Reproduce with `sonec train --step`.
 
 **Next**
 
-- Flip `py-util-main` and `pkg-greet` (multi-file create; stop explore-only loops)
-- Scale live verified trajectories and stronger rejection / RL
-- Widen sealed eval before claiming broader superiority than the 6-task slice
-- Keep promoting adapters only on pass-rate gates
+- Publish CapabilityBench 200 multi-model scores (hours-long; `SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh`)
+- Scale live verified trajectories; keep sealed ids out of fuel
+- Promote adapters only on CapabilityBench pass-rate gates (smoke is saturated)
 
 ---
 
@@ -480,13 +492,15 @@ Raw `*.safetensors` are gitignored. Reproduce with `sonec train --step`.
 
 | Doc | Purpose |
 | --- | --- |
-| [Getting started](docs/getting-started.md) | Short first-run path |
+| [Getting started](docs/getting-started.md) | Install → serve → smoke / Cap200 |
 | [Architecture](docs/architecture.md) | Harness + train layout |
-| [Training gate](docs/GATE_REPORT_MODEL_STACK.md) | Stack decisions and promote rule |
-| [Training proof](docs/results/TRAIN_PROOF.md) | What counts as the product |
-| [Compare report](docs/results/COMPARE_REPORT.md) | Latest live A/B |
+| [Training gate](docs/GATE_REPORT_MODEL_STACK.md) | Promote rules + harness notes |
+| [Training proof](docs/results/TRAIN_PROOF.md) | Published numbers + Cap200 map |
+| [Compare report](docs/results/COMPARE_REPORT.md) | Latest live A/B (smoke) |
+| [2B leaderboard](docs/results/leaderboard_2b/LEADERBOARD.md) | Multi-model smoke ranking |
+| [GRPO recipe](configs/rl/grpo_recipe.md) | Laptop-safe densify |
 | [SFT metrics](docs/results/SFT_METRICS.json) | NLL specialization proof |
-| [NOTICE](NOTICE) | Attribution and base weight lineage |
+| [NOTICE](NOTICE) | Base weight lineage |
 
 ---
 

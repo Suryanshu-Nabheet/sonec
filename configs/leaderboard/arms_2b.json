@@ -4,7 +4,7 @@
   "notes": [
     "Only models advertised as ~2B parameters.",
     "All arms use the same frozen sonec harness and graders.",
-    "Decision suite: examples/benchmarks/ab_agent_2b_hard.json (not training fuel)."
+    "Decision suite: examples/benchmarks/capabilitybench_v1.json (200 sealed)."
   ],
   "catalog": [
     {

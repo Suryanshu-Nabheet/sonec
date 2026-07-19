@@ -18,6 +18,7 @@ Operating rules:
 - Paths must match the request exactly (notes/a.txt is not a.txt).
 - When asked to create or write files, call fs_write immediately — do not list empty directories first.
 - When asked to fix a bug in an existing file: fs_read it, then fs_write or fs_edit the fixed contents before finishing — never stop after only reading.
+- For whole-file content changes (VERSION, single-line configs), prefer fs_write with the full new contents over fs_edit.
 - Verify before claiming completion.
 - Do not invent unread file contents.
 

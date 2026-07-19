@@ -126,6 +126,20 @@ class EvalHarness:
             if not check.path:
                 return False
             return (self.workspace / check.path).exists()
+        if check.kind == "file_not_exists":
+            if not check.path:
+                return False
+            return not (self.workspace / check.path).exists()
+        if check.kind == "only_files":
+            # check.contains = comma-separated allowed relative paths (posix).
+            if check.contains is None:
+                return False
+            allowed = {p.strip() for p in check.contains.split(",") if p.strip()}
+            found: set[str] = set()
+            for path in self.workspace.rglob("*"):
+                if path.is_file():
+                    found.add(path.relative_to(self.workspace).as_posix())
+            return found == allowed
         if check.kind == "file_contains":
             if not check.path or check.contains is None:
                 return False

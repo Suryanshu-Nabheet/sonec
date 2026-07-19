@@ -584,7 +584,7 @@ def corpora_cmd(
 @app.command("compare")
 def compare_cmd(
     suite: Path = typer.Option(
-        Path("examples/benchmarks/ab_agent_v1.json"),
+        Path("examples/benchmarks/capabilitybench_v1.json"),
         "--suite",
         "-s",
         exists=True,
@@ -670,6 +670,11 @@ def leaderboard_cmd(
         "--resume/--fresh",
         help="Reuse existing arm_*.json dumps (default); --fresh re-runs every arm",
     ),
+    limit: int = typer.Option(
+        0,
+        "--limit",
+        help="Optional max tasks (0=all). Useful for stratified probes before full 200.",
+    ),
 ) -> None:
     """Multi-model agent leaderboard (2B-class rivals + specialized sonec)."""
     from sonec.eval.leaderboard import load_arms, run_leaderboard_sync
@@ -679,7 +684,8 @@ def leaderboard_cmd(
     arm_list = load_arms(arms)
     console.print(
         Panel.fit(
-            f"suite={suite}\narms={len(arm_list)} from {arms}\nout={out}\nresume={resume}",
+            f"suite={suite}\narms={len(arm_list)} from {arms}\nout={out}\n"
+            f"resume={resume} limit={limit or 'all'}",
             title="sonec leaderboard",
             border_style="cyan",
         )
@@ -690,6 +696,7 @@ def leaderboard_cmd(
         out_dir=out,
         catalog={"entries": catalog} if catalog else None,
         resume=resume,
+        limit=limit or None,
     )
     for i, arm in enumerate(summary.arms, start=1):
         color = "green" if arm["kind"] == "lora" else "white"

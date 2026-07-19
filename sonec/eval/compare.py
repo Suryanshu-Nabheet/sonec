@@ -55,6 +55,7 @@ async def run_arm(
     suite: Path,
     workspace_root: Path,
     out_path: Path,
+    limit: int | None = None,
 ) -> BenchmarkReport:
     """Run one live arm; fresh workspace per task."""
     data = json.loads(suite.read_text(encoding="utf-8"))
@@ -62,6 +63,8 @@ async def run_arm(
     tasks = EvalHarness.load_tasks(suite)
     if isinstance(data, dict) and data.get("limit"):
         tasks = tasks[: int(data["limit"])]
+    if limit is not None and limit > 0:
+        tasks = tasks[:limit]
 
     arm_root = (workspace_root / arm.name).resolve()
     if arm_root.exists():
