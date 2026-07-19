@@ -47,8 +47,17 @@ def _backend_for_dir(path: Path) -> str:
         return "unsloth"
     if "axolotl" in name:
         return "axolotl"
+    if "cpu" in name:
+        return "cpu"
     if "mlx" in name:
         return "mlx"
+    # Content-based fallback for PEFT vs MLX
+    if (path / "adapter_model.safetensors").exists() or (path / "adapter_model.bin").exists():
+        return "peft"
+    if (path / "adapters.safetensors").exists():
+        return "mlx"
+    if (path / "adapter_config.json").exists():
+        return "peft"
     return "unknown"
 
 
@@ -83,7 +92,12 @@ def weight_status(adapter_dir: Path | None = None) -> WeightStatus:
         tensors = adapter_weight_files(path)
         has_cfg = _has_adapter_config(path)
         backend = _backend_for_dir(path)
-        base = BASE_HF if backend in {"unsloth", "axolotl"} else BASE_HF_MLX
+        if backend in {"unsloth", "axolotl", "cpu", "peft"}:
+            from sonec.training.backends import CPU_BASE_HF
+
+            base = CPU_BASE_HF if backend == "cpu" else BASE_HF
+        else:
+            base = BASE_HF_MLX
         if tensors and has_cfg:
             status = WeightStatus(
                 ready=True,
@@ -133,7 +147,7 @@ def weight_status(adapter_dir: Path | None = None) -> WeightStatus:
         has_config=False,
         detail=(
             "no adapter directory — run: sonec train --step "
-            "(--backend auto|mlx|unsloth|axolotl)"
+            "(--backend auto|mlx|unsloth|axolotl|cpu)"
         ),
         backend=_backend_for_dir(path),
     )
@@ -159,6 +173,8 @@ def write_product_manifest(
         "mlx": "mlx_lora_adapter",
         "unsloth": "peft_qlora_adapter",
         "axolotl": "peft_qlora_adapter",
+        "cpu": "peft_lora_adapter",
+        "peft": "peft_lora_adapter",
     }.get(backend or status.backend, "lora_adapter")
     serve_hint = (
         f"sonec serve-llm --adapter {adapter_rel}"
@@ -183,7 +199,7 @@ def write_product_manifest(
         "note": (
             "Product sonec is the LoRA adapter under the adapter path. "
             "Optional chat Modelfiles are runners only. "
-            "Linux CUDA: Unsloth (preferred) or Axolotl; Apple Silicon: MLX."
+            "Backends: MLX (Apple Silicon), Unsloth/Axolotl (CUDA), CPU PEFT (zero-GPU proof)."
         ),
     }
     out = root / PRODUCT_MANIFEST
@@ -199,12 +215,14 @@ def mlx_server_command(
     host: str = "127.0.0.1",
     port: int = 8080,
 ) -> list[str]:
+    import sys
+
     status = weight_status(adapter_dir)
     if not status.ready:
         raise RuntimeError(status.detail)
     base = model or BASE_HF_MLX
     return [
-        "python",
+        sys.executable,
         "-m",
         "mlx_lm",
         "server",
@@ -226,17 +244,16 @@ def peft_server_command(
     host: str = "127.0.0.1",
     port: int = 8080,
 ) -> list[str]:
-    """Serve PEFT/Unsloth/Axolotl adapters via text-generation-inference style helper.
+    """Serve PEFT/Unsloth/Axolotl/CPU adapters via a local OpenAI-compatible server."""
+    import sys
 
-    Uses a small local OpenAI-compatible server script when vLLM/TGI are absent.
-    """
     status = weight_status(adapter_dir)
     if not status.ready:
         raise RuntimeError(status.detail)
     base = model or BASE_HF
     script = Path(__file__).with_name("peft_serve.py")
     return [
-        "python",
+        sys.executable,
         str(script),
         "--model",
         base,

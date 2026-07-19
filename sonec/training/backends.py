@@ -1,9 +1,10 @@
-"""LoRA training backends — MLX (Apple Silicon) and CUDA (Unsloth / Axolotl).
+"""LoRA training backends — MLX, CUDA (Unsloth / Axolotl), and CPU PEFT.
 
 Auto-select:
   - Apple Silicon + mlx-lm → mlx
   - CUDA + unsloth → unsloth (preferred on Linux)
   - CUDA + axolotl → axolotl
+  - torch + peft (no GPU) → cpu (zero-GPU smoke / pipeline proof)
   - else → dry guidance (no fake success)
 """
 
@@ -21,12 +22,15 @@ from typing import Literal
 
 from sonec.models import BASE_HF, BASE_HF_MLX
 
-BackendName = Literal["auto", "mlx", "unsloth", "axolotl"]
+BackendName = Literal["auto", "mlx", "unsloth", "axolotl", "cpu"]
+
+CPU_BASE_HF = "Qwen/Qwen2.5-0.5B-Instruct"
 
 ADAPTER_DIRS = {
     "mlx": Path("artifacts/train/checkpoints/sonec-sft-mlx"),
     "unsloth": Path("artifacts/train/checkpoints/sonec-sft-unsloth"),
     "axolotl": Path("artifacts/train/checkpoints/sonec-sft-axolotl"),
+    "cpu": Path("artifacts/train/checkpoints/sonec-sft-cpu"),
 }
 
 
@@ -99,6 +103,21 @@ def detect_backend(preferred: BackendName = "auto") -> BackendInfo:
             adapter_dir=ADAPTER_DIRS["unsloth"],
             base_model=BASE_HF,
         )
+    if preferred == "cpu":
+        ok = _module_available("torch") and _module_available("peft") and _module_available(
+            "transformers"
+        )
+        return BackendInfo(
+            name="cpu",
+            available=ok,
+            detail=(
+                "CPU PEFT ready (zero-GPU)"
+                if ok
+                else "pip install torch transformers peft datasets accelerate trl"
+            ),
+            adapter_dir=ADAPTER_DIRS["cpu"],
+            base_model=CPU_BASE_HF,
+        )
     if preferred == "axolotl":
         ok = cuda_available() and shutil.which("accelerate") is not None
         # axolotl may be installed as module without top-level import name always.
@@ -144,17 +163,20 @@ def detect_backend(preferred: BackendName = "auto") -> BackendInfo:
         )
     if _module_available("mlx_lm"):
         return detect_backend("mlx")
+    cpu = detect_backend("cpu")
+    if cpu.available:
+        return cpu
     return BackendInfo(
-        name="mlx",
+        name="cpu",
         available=False,
         detail=(
-            "No training backend ready. Apple Silicon: pip install 'sonec[train]'. "
-            "Linux CUDA: pip install 'sonec[train-cuda]' (Unsloth) or "
-            "'sonec[train-axolotl]'. H2O LLM Studio is a GUI alternative "
-            "(import artifacts/train/sft_corpus/train_chat.jsonl)."
+            "No training backend ready. Zero-GPU: pip install torch transformers peft "
+            "datasets accelerate trl then `sonec train --backend cpu`. "
+            "Apple Silicon: pip install 'sonec[train]'. "
+            "Linux CUDA: pip install 'sonec[train-cuda]'."
         ),
-        adapter_dir=ADAPTER_DIRS["mlx"],
-        base_model=BASE_HF_MLX,
+        adapter_dir=ADAPTER_DIRS["cpu"],
+        base_model=CPU_BASE_HF,
     )
 
 
@@ -327,6 +349,54 @@ def run_axolotl_sft(
     )
 
 
+def run_cpu_sft(
+    *,
+    data_dir: Path,
+    adapter_path: Path,
+    model: str = CPU_BASE_HF,
+    iters: int = 60,
+    learning_rate: float = 2e-4,
+    max_seq_length: int = 512,
+) -> SFTReport:
+    adapter_path.mkdir(parents=True, exist_ok=True)
+    dataset = write_unsloth_dataset(data_dir, adapter_path / "train_messages.jsonl")
+    script = Path(__file__).with_name("cpu_train.py")
+    cmd = [
+        sys.executable,
+        str(script),
+        "--model",
+        model,
+        "--data",
+        str(dataset),
+        "--out",
+        str(adapter_path),
+        "--steps",
+        str(max(1, iters)),
+        "--lr",
+        str(learning_rate),
+        "--max-seq-length",
+        str(max_seq_length),
+    ]
+    started = time.perf_counter()
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    except OSError as exc:
+        return SFTReport("sft", False, str(exc), {}, backend="cpu")
+    log_path = adapter_path / "sft_log.txt"
+    log_path.write_text((proc.stdout or "") + "\n" + (proc.stderr or ""), encoding="utf-8")
+    ok = proc.returncode == 0 and _adapter_ready(adapter_path)
+    return SFTReport(
+        phase="sft",
+        ok=ok,
+        detail=(
+            f"backend=cpu steps={iters} model={model} "
+            f"elapsed_s={time.perf_counter() - started:.1f} rc={proc.returncode}"
+        ),
+        paths={"adapter": str(adapter_path), "log": str(log_path), "data": str(dataset)},
+        backend="cpu",
+    )
+
+
 def _adapter_ready(adapter_path: Path) -> bool:
     tensors = list(adapter_path.glob("*.safetensors")) + list(
         adapter_path.glob("**/adapter_model.safetensors")
@@ -382,6 +452,13 @@ def run_sft(
         )
     if info.name == "unsloth":
         return run_unsloth_sft(
+            data_dir=data_dir,
+            adapter_path=out,
+            model=base,
+            iters=iters,
+        )
+    if info.name == "cpu":
+        return run_cpu_sft(
             data_dir=data_dir,
             adapter_path=out,
             model=base,

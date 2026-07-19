@@ -1,5 +1,5 @@
-# Ollama chat tag (optional runner). Product weights: artifacts/train/checkpoints/sonec-sft-mlx
-# Ready: True — adapter weights: 0000040_adapters.safetensors, 0000080_adapters.safetensors, 0000120_adapters.safetensors, 0000160_adapters.safetensors, 0000200_adapters.safetensors, 0000240_adapters.safetensors, 0000280_adapters.safetensors, 0000320_adapters.safetensors, 0000360_adapters.safetensors, 0000400_adapters.safetensors, 0000440_adapters.safetensors, 0000480_adapters.safetensors, 0000520_adapters.safetensors, 0000560_adapters.safetensors, 0000600_adapters.safetensors, adapters.safetensors
+# Ollama chat tag (optional runner). Product weights: artifacts/train/checkpoints/sonec-sft-*
+# Ready: check with `sonec weights`
 # Serve specialized weights: sonec serve-llm
 # Rebuild: ollama create sonec -f Modelfile
 # Chat: ollama run sonec --think=false

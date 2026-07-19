@@ -26,14 +26,14 @@ def main() -> None:
         from transformers import AutoModelForCausalLM, AutoTokenizer
     except ImportError as exc:
         raise SystemExit(
-            "Missing PEFT serve deps. pip install 'sonec[train-cuda]'"
+            "Missing PEFT serve deps. pip install 'sonec[train-cuda]' or 'sonec[train-cpu]'"
         ) from exc
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
     base = AutoModelForCausalLM.from_pretrained(
         args.model,
-        torch_dtype=torch.bfloat16 if device == "cuda" else torch.float32,
+        dtype=torch.bfloat16 if device == "cuda" else torch.float32,
         device_map="auto" if device == "cuda" else None,
         trust_remote_code=True,
     )

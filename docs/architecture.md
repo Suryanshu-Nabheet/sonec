@@ -7,7 +7,7 @@ CLI / MCP / HTTP
   → thin identity + tools
   → AgentRuntime (frozen)
     → evidence graders (files, parses, only_files restraint, …)
-  → TrainBench → SFT (MLX) → RFT → optional light GRPO-lite → product LoRA
+  → TrainBench → SFT (MLX / Unsloth / Axolotl / CPU) → RFT → product LoRA
   → compare / leaderboard
       smoke: ab_agent_2b_hard (minutes)
       decision: CapabilityBench 200 (hours)
@@ -17,6 +17,7 @@ CLI / MCP / HTTP
 | --- | --- |
 | Specialize | `./scripts/overnight_specialize.sh` or `sonec train --step --backend auto` |
 | Linux CUDA | `sonec train --step --backend unsloth` (or `axolotl`) |
+| Zero-GPU | `sonec train --step --backend cpu --mock-fuel` (pipeline proof) |
 | Smoke board | `SUITE=…/ab_agent_2b_hard.json SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh` |
 | Cap200 board | `SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh` |
 | Decision metric | CapabilityBench 200 (sealed; never training fuel) |
