@@ -27,7 +27,9 @@ Base weight lineage for redistribution: [NOTICE](../../NOTICE).
 
 ## Live A/B (after tool-argument wire fix)
 
-See [COMPARE_REPORT.md](COMPARE_REPORT.md). Protocol fix required `arguments` as a JSON string on the OpenAI wire. Post-fix result: **50% vs 50%** on `ab_agent_v1` (tie). Promote only when pass rate exceeds base.
+See [COMPARE_REPORT.md](COMPARE_REPORT.md). Protocol fix required `arguments` as a JSON string on the OpenAI wire.
+
+**Latest sealed result (`ab_agent_v1`):** sonec LoRA **4/6 (67%)** vs base **3/6 (50%)** — **+17%** pass rate. Decisive delta: `verify-script`. Promote further adapters only when pass rate still exceeds base.
 
 ## Reproduce
 
