@@ -76,7 +76,19 @@ def analyze_tool_trace(trajectory_path: str) -> dict[str, Any]:
 
 
 def task_expects_files(task: EvalTask) -> bool:
-    return any(c.kind in {"file_exists", "file_contains", "python_parses"} for c in task.checks)
+    return any(
+        c.kind
+        in {
+            "file_exists",
+            "file_contains",
+            "file_not_contains",
+            "file_not_exists",
+            "only_files",
+            "python_parses",
+            "python_exec",
+        }
+        for c in task.checks
+    )
 
 
 def task_expects_verify(task: EvalTask) -> bool:

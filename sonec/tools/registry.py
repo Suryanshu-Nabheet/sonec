@@ -74,7 +74,24 @@ class ToolRegistry:
         name: str,
         arguments: Mapping[str, Any],
     ) -> ToolResult:
-        tool = self.get(name)
+        if not name or not str(name).strip():
+            return ToolResult(
+                tool_call_id=tool_call_id,
+                name=name or "",
+                content="Tool error: empty tool name",
+                ok=False,
+                data={"error": "empty tool name", "type": "ToolError"},
+            )
+        try:
+            tool = self.get(name)
+        except ToolError as exc:
+            return ToolResult(
+                tool_call_id=tool_call_id,
+                name=name,
+                content=f"Tool error: {exc}",
+                ok=False,
+                data={"error": str(exc), "type": "ToolError"},
+            )
         try:
             result = await tool.run(arguments)
         except Exception as exc:  # noqa: BLE001 — surface tool failures to the model

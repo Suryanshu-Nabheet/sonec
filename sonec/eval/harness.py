@@ -353,6 +353,67 @@ def mock_provider_for_task(task: EvalTask) -> MockProvider:
 
     Used for CI / harness self-tests. Live runs use the real model + tools.
     """
+    tags = {t.lower() for t in task.tags}
+    only_files_check = next((c for c in task.checks if c.kind == "only_files"), None)
+    allowed: set[str] | None = None
+    if only_files_check is not None and only_files_check.contains:
+        allowed = {p.strip() for p in only_files_check.contains.split(",") if p.strip()}
+
+    # Pure restraint / question-only: answer in text; do not rewrite seed bait.
+    if "restraint" in tags and (
+        not task.checks
+        or (
+            allowed is not None
+            and set(task.seed_files) >= allowed
+            and all(c.kind in {"only_files", "file_contains", "file_not_contains"} for c in task.checks)
+            and all(
+                (c.path in task.seed_files) or c.kind == "only_files"
+                for c in task.checks
+                if c.path
+            )
+        )
+    ):
+        # Hard restraint that allows SAFE_*.md still needs a write of that file.
+        needs_write = [
+            c
+            for c in task.checks
+            if c.kind in {"file_exists", "file_contains"}
+            and c.path
+            and c.path not in task.seed_files
+        ]
+        scripted: list[Message] = []
+        for index, check in enumerate(needs_write, start=1):
+            path = check.path or "SAFE.md"
+            content = (check.contains or "refuse") + "\n"
+            if check.kind == "file_exists":
+                content = "refuse destructive wipe\n"
+            scripted.append(
+                Message(
+                    role=Role.ASSISTANT,
+                    content=None,
+                    tool_calls=[
+                        ToolCall(
+                            id=f"bench_{index}",
+                            name="fs_write",
+                            arguments={"path": path, "content": content},
+                        )
+                    ],
+                )
+            )
+        scripted.append(
+            Message(
+                role=Role.ASSISTANT,
+                content=(
+                    f"Benchmark task `{task.id}` answered without editing "
+                    "protected seed files."
+                ),
+            )
+        )
+        return MockProvider(
+            scripted,
+            default=Message(role=Role.ASSISTANT, content="Benchmark phase complete."),
+        )
+
     targets: dict[str, dict[str, Any]] = {}
     for check in task.checks:
         if not check.path:
@@ -362,7 +423,11 @@ def mock_provider_for_task(task: EvalTask) -> MockProvider:
             "file_contains",
             "file_not_contains",
             "python_parses",
+            "python_exec",
         }:
+            continue
+        # Never rewrite seed-only bait when only_files is active.
+        if allowed is not None and check.path not in allowed:
             continue
         meta = targets.setdefault(
             check.path,
@@ -372,36 +437,60 @@ def mock_provider_for_task(task: EvalTask) -> MockProvider:
             meta["contains_all"].append(check.contains)
         if check.kind == "file_not_contains" and check.contains is not None:
             meta["not_contains"].append(check.contains)
-        if check.kind == "python_parses":
+        if check.kind in {"python_parses", "python_exec"}:
             meta["python"] = True
         meta["exists"] = True
 
-    scripted: list[Message] = []
+    scripted = []
     for index, (path, meta) in enumerate(targets.items(), start=1):
         contains_all: list[str] = list(meta.get("contains_all") or [])
         not_contains_list: list[str] = list(meta.get("not_contains") or [])
+        seed = task.seed_files.get(path)
+        # If seed already satisfies every content check, skip rewriting.
+        if seed is not None and all(c in seed for c in contains_all) and all(
+            b not in seed for b in not_contains_list
+        ):
+            continue
         if meta.get("python"):
             primary = next((c for c in contains_all if c.startswith("def ")), None)
-            if primary:
+            if primary and "test_" in primary:
+                name = primary.removeprefix("def ").split("(")[0].strip() or "test_ok"
+                content = f"def {name}() -> None:\n    assert True\n"
+            elif primary:
                 name = primary.removeprefix("def ").split("(")[0].strip() or "main"
                 content = f"def {name}() -> str:\n    return 'hello'\n"
             elif contains_all:
                 joined = "\n".join(f"# {c}" for c in contains_all)
                 content = f"{joined}\ndef main() -> None:\n    return None\n"
             else:
-                content = "def main() -> None:\n    return None\n"
+                if "test" in path:
+                    fn = Path(path).stem
+                    content = f"def {fn}() -> None:\n    assert True\n"
+                else:
+                    content = "def main() -> None:\n    return None\n"
             for needle in contains_all:
                 if needle not in content:
                     content = f"# {needle}\n" + content
+        elif seed is not None:
+            content = seed
+            if '"enabled": true' in contains_all and '"enabled": false' in content:
+                content = content.replace('"enabled": false', '"enabled": true')
+            if "a - b" in content and any("a + b" in c for c in contains_all):
+                content = content.replace("a - b", "a + b")
+            if "x + 1" in content and any("min(hi, x)" in c for c in contains_all):
+                content = content.replace("x + 1", "x")
+            for banned in not_contains_list:
+                content = content.replace(banned, "")
+            for needle in contains_all:
+                if needle not in content:
+                    content = content.rstrip() + "\n" + needle + "\n"
         elif path.endswith(".json"):
-            # Merge all required substrings into a JSON-ish document.
             blob = " ".join(contains_all) if contains_all else "sonec"
             content = "{\n"
             for i, needle in enumerate(contains_all or ["sonec"]):
                 content += f'  "k{i}": "{needle}",\n'
             content += f'  "note": "{blob}"\n}}\n'
         elif contains_all:
-            # Ensure every required substring appears.
             content = "\n".join(contains_all) + "\n"
         else:
             content = "sonec\n"
@@ -423,6 +512,23 @@ def mock_provider_for_task(task: EvalTask) -> MockProvider:
                 ],
             )
         )
+
+    # Optional command verify for shell scripts.
+    for index, check in enumerate(task.checks, start=len(scripted) + 1):
+        if check.kind == "command" and check.path:
+            scripted.append(
+                Message(
+                    role=Role.ASSISTANT,
+                    content=None,
+                    tool_calls=[
+                        ToolCall(
+                            id=f"bench_cmd_{index}",
+                            name="terminal_run",
+                            arguments={"command": check.path},
+                        )
+                    ],
+                )
+            )
 
     scripted.append(
         Message(

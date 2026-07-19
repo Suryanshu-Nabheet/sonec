@@ -1,13 +1,13 @@
 # Daily status
 
-Generated: `2026-07-19T10:51:14Z`
+Generated: `2026-07-19T11:01:07Z`
 
 **Overall:** PASS
 
 | Check | OK | Detail |
 | --- | --- | --- |
 | `capabilitybench_shape` | yes | tasks=200 by_diff={'easy': 70, 'medium': 70, 'hard': 60} cats=10 |
-| `pytest` | yes | 84 passed in 0.50s |
+| `pytest` | yes | 91 passed in 0.52s |
 | `mock_bench` | yes | suite=ab_agent_2b_hard.json passed=8/8 |
 
 ## CapabilityBench

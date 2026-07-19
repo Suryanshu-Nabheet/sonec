@@ -1,4 +1,4 @@
-"""MCP stdio server — embed sonec into Cursor / VS Code / Claude Desktop.
+"""MCP stdio server — embed sonec into IDE hosts.
 
 Implements a minimal Model Context Protocol subset over newline-delimited
 JSON-RPC without requiring the `mcp` package.
@@ -29,6 +29,15 @@ TOOLS = [
             "properties": {
                 "goal": {"type": "string"},
                 "workspace": {"type": "string", "description": "Absolute workspace path"},
+                "provider": {
+                    "type": "string",
+                    "description": "local|openai|openai_compatible|mock",
+                },
+                "model": {"type": "string"},
+                "base_url": {
+                    "type": "string",
+                    "description": "OpenAI-compatible root including /v1",
+                },
             },
             "required": ["goal"],
         },
@@ -60,9 +69,23 @@ def _error(msg_id: Any, code: int, message: str) -> None:
     sys.stdout.flush()
 
 
-async def _sonec_run(goal: str, workspace: str | None) -> dict[str, Any]:
+async def _sonec_run(
+    goal: str,
+    workspace: str | None,
+    *,
+    provider: str | None = None,
+    model: str | None = None,
+    base_url: str | None = None,
+) -> dict[str, Any]:
     ws = Path(workspace or Path.cwd()).expanduser().resolve()
-    settings = load_settings(workspace=ws)
+    overrides: dict[str, object] = {"workspace": ws}
+    if provider:
+        overrides["provider"] = provider
+    if model:
+        overrides["model"] = model
+    if base_url:
+        overrides["base_url"] = base_url
+    settings = load_settings(**overrides)
     runtime, *_ = build_runtime(
         settings=settings,
         persist_memory=False,
@@ -93,11 +116,18 @@ def handle_message(msg: dict[str, Any]) -> None:
             {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {"tools": {}},
-                "serverInfo": {"name": "sonec", "version": __version__},
+                "serverInfo": {
+                    "name": "sonec",
+                    "version": __version__,
+                    "author": "Suryanshu Nabheet",
+                },
             },
         )
         return
     if method == "notifications/initialized":
+        return
+    if method == "ping":
+        _reply(msg_id, {})
         return
     if method == "tools/list":
         _reply(msg_id, {"tools": TOOLS})
@@ -116,6 +146,7 @@ def handle_message(msg: dict[str, Any]) -> None:
                                 {
                                     "version": __version__,
                                     "harness_version": HARNESS_VERSION,
+                                    "author": "Suryanshu Nabheet",
                                 }
                             ),
                         }
@@ -129,7 +160,15 @@ def handle_message(msg: dict[str, Any]) -> None:
                 _error(msg_id, -32602, "goal required")
                 return
             try:
-                result = asyncio.run(_sonec_run(goal, args.get("workspace")))
+                result = asyncio.run(
+                    _sonec_run(
+                        goal,
+                        args.get("workspace"),
+                        provider=args.get("provider"),
+                        model=args.get("model"),
+                        base_url=args.get("base_url"),
+                    )
+                )
                 _reply(
                     msg_id,
                     {"content": [{"type": "text", "text": json.dumps(result, indent=2)}]},

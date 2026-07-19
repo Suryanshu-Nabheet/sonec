@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import shlex
+import signal
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -14,11 +16,17 @@ from sonec.tools.registry import FunctionTool, Tool, json_content
 
 BLOCKED_PATTERNS = (
     "rm -rf /",
+    "rm -rf/*",
+    "rm -rf ~",
+    "rm -rf~",
     "mkfs",
     ":(){",
     "shutdown",
     "reboot",
     "dd if=",
+    "mkfifo",
+    "> /dev/",
+    "chmod 777 /",
 )
 
 
@@ -58,17 +66,46 @@ class TerminalService:
         ]
 
     def _validate_command(self, command: str) -> None:
-        lowered = command.lower()
+        lowered = " ".join(command.lower().split())
         for pattern in BLOCKED_PATTERNS:
             if pattern in lowered:
                 raise SecurityError(f"Blocked dangerous command pattern: {pattern}")
         if not self.allow_network:
-            for token in ("curl ", "wget ", "nc ", "ssh ", "scp "):
+            network_tokens = (
+                "curl ",
+                "curl\t",
+                "wget ",
+                "wget\t",
+                "nc ",
+                "ncat ",
+                "ssh ",
+                "scp ",
+                "sftp ",
+                "/usr/bin/curl",
+                "/usr/bin/wget",
+            )
+            for token in network_tokens:
                 if token in lowered:
                     raise SecurityError(
                         f"Network command blocked ({token.strip()}). "
                         "Enable allow_network_tools to permit."
                     )
+
+    async def _kill_process_tree(self, process: asyncio.subprocess.Process) -> None:
+        if process.returncode is not None:
+            return
+        try:
+            if process.pid:
+                os.killpg(process.pid, signal.SIGKILL)
+        except (ProcessLookupError, PermissionError, OSError):
+            try:
+                process.kill()
+            except ProcessLookupError:
+                return
+        try:
+            await process.communicate()
+        except Exception:  # noqa: BLE001
+            return
 
     async def run(
         self,
@@ -85,6 +122,7 @@ class TerminalService:
                 cwd=str(self.workspace.root),
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                start_new_session=True,
             )
         else:
             process = await asyncio.create_subprocess_exec(
@@ -92,12 +130,12 @@ class TerminalService:
                 cwd=str(self.workspace.root),
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                start_new_session=True,
             )
         try:
             stdout_b, stderr_b = await asyncio.wait_for(process.communicate(), timeout=timeout)
         except TimeoutError:
-            process.kill()
-            await process.communicate()
+            await self._kill_process_tree(process)
             return {
                 "command": command,
                 "exit_code": None,

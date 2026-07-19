@@ -123,70 +123,113 @@ class AgentRuntime:
         iterations = 0
         total_usage: dict[str, int] = {}
 
-        for iteration in range(1, self.max_iterations + 1):
-            iterations = iteration
-            if should_compact(messages, max_messages=self.compact_after):
-                messages = compact_messages(messages, goal=goal)
-                self._emit(AgentEventKind.WARNING, "context compacted", iteration=iteration)
+        try:
+            for iteration in range(1, self.max_iterations + 1):
+                iterations = iteration
+                if should_compact(messages, max_messages=self.compact_after):
+                    messages = compact_messages(messages, goal=goal)
+                    self._emit(AgentEventKind.WARNING, "context compacted", iteration=iteration)
 
-            self._emit(AgentEventKind.STEP, f"iteration {iteration}", iteration=iteration)
-            t0 = time.perf_counter()
-            response = await self.provider.complete(
-                CompletionRequest(messages=messages, tools=self.core_specs)
-            )
-            latency = time.perf_counter() - t0
-            for k, v in response.usage.items():
-                total_usage[k] = total_usage.get(k, 0) + int(v)
-            if logger:
-                logger.log_usage(response.usage, latency_s=latency)
-
-            assistant = response.message
-            messages.append(assistant)
-            self.memory.add_message(assistant)
-            if logger:
-                logger.log_message(assistant)
-            self._emit(
-                AgentEventKind.MESSAGE,
-                assistant.content or "",
-                finish_reason=response.finish_reason,
-            )
-
-            if not assistant.tool_calls:
-                final_message = assistant.content or ""
-                break
-
-            for call in assistant.tool_calls:
-                self._emit(
-                    AgentEventKind.TOOL_CALL,
-                    call.name,
-                    tool=call.name,
-                    arguments=call.arguments,
-                    tool_call_id=call.id,
-                )
-                result: ToolResult = await self.tools.execute(
-                    tool_call_id=call.id,
-                    name=call.name,
-                    arguments=call.arguments,
-                )
-                tool_message = Message(
-                    role=Role.TOOL,
-                    content=result.content,
-                    name=result.name,
-                    tool_call_id=result.tool_call_id or call.id,
-                )
-                messages.append(tool_message)
-                self.memory.add_message(tool_message)
+                self._emit(AgentEventKind.STEP, f"iteration {iteration}", iteration=iteration)
+                t0 = time.perf_counter()
+                try:
+                    response = await self.provider.complete(
+                        CompletionRequest(messages=messages, tools=self.core_specs)
+                    )
+                except Exception as exc:  # noqa: BLE001 — never leave open trajectories
+                    final_message = f"LLM error: {exc}"
+                    result = AgentRunResult(
+                        run_id=run_id,
+                        goal=goal,
+                        success=False,
+                        final_message=final_message,
+                        messages=messages,
+                        events=list(self.events.history),
+                        iterations=iterations,
+                        harness_version=HARNESS_VERSION,
+                        tool_schema_hash=self.tool_hash,
+                        model_id=self.model_id,
+                        usage=total_usage,
+                        evidence_success=None,
+                        completed=False,
+                    )
+                    self._emit(AgentEventKind.FAILED, final_message, error=type(exc).__name__)
+                    if logger:
+                        logger.close(result)
+                    return result
+                latency = time.perf_counter() - t0
+                for k, v in response.usage.items():
+                    total_usage[k] = total_usage.get(k, 0) + int(v)
                 if logger:
-                    logger.log_message(tool_message)
+                    logger.log_usage(response.usage, latency_s=latency)
+
+                assistant = response.message
+                messages.append(assistant)
+                self.memory.add_message(assistant)
+                if logger:
+                    logger.log_message(assistant)
                 self._emit(
-                    AgentEventKind.TOOL_RESULT,
-                    result.content[:500],
-                    tool=result.name,
-                    ok=result.ok,
-                    tool_call_id=result.tool_call_id or call.id,
+                    AgentEventKind.MESSAGE,
+                    assistant.content or "",
+                    finish_reason=response.finish_reason,
                 )
-        else:
-            final_message = "Stopped: reached max iterations."
+
+                if not assistant.tool_calls:
+                    final_message = assistant.content or ""
+                    break
+
+                for call in assistant.tool_calls:
+                    self._emit(
+                        AgentEventKind.TOOL_CALL,
+                        call.name,
+                        tool=call.name,
+                        arguments=call.arguments,
+                        tool_call_id=call.id,
+                    )
+                    result_tool: ToolResult = await self.tools.execute(
+                        tool_call_id=call.id,
+                        name=call.name,
+                        arguments=call.arguments,
+                    )
+                    tool_message = Message(
+                        role=Role.TOOL,
+                        content=result_tool.content,
+                        name=result_tool.name,
+                        tool_call_id=result_tool.tool_call_id or call.id,
+                    )
+                    messages.append(tool_message)
+                    self.memory.add_message(tool_message)
+                    if logger:
+                        logger.log_message(tool_message)
+                    self._emit(
+                        AgentEventKind.TOOL_RESULT,
+                        result_tool.content[:500],
+                        tool=result_tool.name,
+                        ok=result_tool.ok,
+                        tool_call_id=result_tool.tool_call_id or call.id,
+                    )
+            else:
+                final_message = "Stopped: reached max iterations."
+                result = AgentRunResult(
+                    run_id=run_id,
+                    goal=goal,
+                    success=False,
+                    final_message=final_message,
+                    messages=messages,
+                    events=list(self.events.history),
+                    iterations=iterations,
+                    harness_version=HARNESS_VERSION,
+                    tool_schema_hash=self.tool_hash,
+                    model_id=self.model_id,
+                    usage=total_usage,
+                    evidence_success=None,
+                )
+                self._emit(AgentEventKind.FAILED, final_message)
+                if logger:
+                    logger.close(result)
+                return result
+        except Exception as exc:  # noqa: BLE001 — last-resort harness guard
+            final_message = f"Runtime error: {exc}"
             result = AgentRunResult(
                 run_id=run_id,
                 goal=goal,
@@ -200,8 +243,9 @@ class AgentRuntime:
                 model_id=self.model_id,
                 usage=total_usage,
                 evidence_success=None,
+                completed=False,
             )
-            self._emit(AgentEventKind.FAILED, final_message)
+            self._emit(AgentEventKind.FAILED, final_message, error=type(exc).__name__)
             if logger:
                 logger.close(result)
             return result

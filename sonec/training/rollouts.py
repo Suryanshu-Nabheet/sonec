@@ -155,11 +155,36 @@ class RolloutFactory:
             del registry
             harness = EvalHarness(workspace=ws)
             harness.apply_seeds(task)
-            agent_result = await runtime.run(task.prompt)
+            timed_out = False
+            try:
+                agent_result = await asyncio.wait_for(
+                    runtime.run(task.prompt),
+                    timeout=max(1.0, float(task.timeout_s)),
+                )
+            except TimeoutError:
+                timed_out = True
+                from sonec.core.types import AgentRunResult
+
+                agent_result = AgentRunResult(
+                    run_id="timeout",
+                    goal=task.prompt,
+                    success=False,
+                    final_message=f"Timed out after {task.timeout_s}s",
+                    completed=False,
+                    harness_version=HARNESS_VERSION,
+                )
             graded = await harness.grade(task, agent_result)
+            if timed_out:
+                graded.passed = False
+                graded.score = 0.0
+                graded.details = [
+                    f"ERROR: timeout after {task.timeout_s}s",
+                    *graded.details,
+                ]
             failure = classify_failure(
                 graded.details,
                 completed=agent_result.completed,
+                timed_out=timed_out,
             )
             traj_files = sorted(traj_dir.glob("*.jsonl"))
             traj_path = str(traj_files[-1]) if traj_files else ""

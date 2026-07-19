@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     base_url: str | None = None
     temperature: float = 0.1
     max_tokens: int = 8192
-    max_iterations: int = 32
+    max_iterations: int = 48
     request_timeout_s: float = 120.0
     terminal_timeout_s: float = 60.0
     allow_network_tools: bool = False
