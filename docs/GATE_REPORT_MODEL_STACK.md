@@ -47,4 +47,7 @@ SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh
 - Restraint tasks use `only_files` grading — harness dirs (`.trajectories`, `.sonec`) are ignored; extra agent files fail.
 - Command / `python_exec` checks require exit 0 by default (wired through TerminalService).
 - Sealed suite ids are collected centrally (`sonec.eval.sealed`) and applied to SFT + RFT export.
+- Unknown / empty tool names return `ok=False` to the model (do not crash the run).
+- LLM / runtime errors close trajectories and emit `FAILED`.
+- Agent gateway defaults to `127.0.0.1`; optional `SONEC_SERVE_TOKEN` for Bearer auth.
 - Live GRPO with `G>4` or `train_n>16` is refused.
