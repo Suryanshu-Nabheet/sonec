@@ -31,4 +31,4 @@ CLI / MCP / HTTP
 
 Scripts under `scripts/` are the long-running entrypoints. Heavy live GRPO (`G>4` or `n>16`) is refused on laptops.
 
-CI: `.github/workflows/ci.yml` (push/PR) · Daily: `.github/workflows/daily.yml` (06:00 UTC) writes `docs/results/DAILY_STATUS.*`.
+CI: `.github/workflows/ci.yml` (push/PR) · Daily: `.github/workflows/daily.yml` (06:00 UTC) uploads `DAILY_STATUS.*` as workflow artifacts (no auto-commits).

@@ -21,4 +21,5 @@ Generated: `2026-07-19T09:25:33Z`
 - Board winner: `sonec`
 
 Live Cap200 / MLX A/B is run locally (`SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh`).
-This daily job validates the codebase and sealed suite on GitHub Actions.
+This daily job validates the codebase and sealed suite on GitHub Actions and uploads
+fresh `DAILY_STATUS.*` as workflow artifacts (it does not auto-commit to `main`).
