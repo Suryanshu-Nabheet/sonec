@@ -14,7 +14,7 @@ LoRA specialization of **Qwen 3.5 2B** for tool-using software engineering. Trai
 | **Serve** | `sonec serve-llm` → OpenAI-compatible `/v1` |
 | **Base** | `mlx-community/Qwen3.5-2B-4bit` (Qwen 3.5 2B) |
 | **License** | Apache-2.0 — code, adapters, and Qwen weight lineage ([NOTICE](NOTICE)) |
-| **Latest A/B** | **67% vs 50%** vs unmodified base (**+17%**) on `ab_agent_v1` (6 tasks) |
+| **Latest A/B** | Decision suite `ab_agent_2b_hard` + strict 2B-only leaderboard (`qwen3.5:2b` / `gemma2:2b` / `codegemma:2b`) |
 
 ---
 
@@ -63,33 +63,22 @@ Optional Ollama / Modelfile tags are **chat runners**. They do not load the spec
 
 ### Live agent A/B (primary claim)
 
-Suite: [`examples/benchmarks/ab_agent_v1.json`](examples/benchmarks/ab_agent_v1.json) — **6 sealed tasks**.
+Suite: [`examples/benchmarks/ab_agent_2b_hard.json`](examples/benchmarks/ab_agent_2b_hard.json) — **8-task strict 2B discrimination** (harder than saturated `ab_agent_v1`).
 
-Protocol: identical frozen harness, tool allowlist, and system prompt. Arms differ only by endpoint weights — sonec LoRA on `:8080` vs unmodified Qwen 3.5 2B on `:8081`.
+Protocol: identical frozen harness. Arms differ only by endpoint weights — sonec LoRA on `:8080` vs unmodified Qwen 3.5 2B on `:8081`.
 
-| Arm | Kind | Pass rate | Passed | Mean score | Mean duration |
-| --- | --- | ---: | ---: | ---: | ---: |
-| **sonec** | LoRA | **67%** | **4/6** | **0.67** | 19.8s |
-| Qwen 3.5 2B base | base | 50% | 3/6 | 0.50 | 21.6s |
+See [docs/results/COMPARE_REPORT.md](docs/results/COMPARE_REPORT.md) for the latest head-to-head.
 
-**Winner: sonec** · **Delta: +17%** absolute pass rate
+### Strict 2B-only multi-model board
 
-| Task ID | sonec | Base | Notes |
-| --- | :---: | :---: | --- |
-| `fs-nested-note` | Pass | Pass | Exact nested path write |
-| `fix-seeded-bug` | Pass | Pass | Localize + `fs_edit` |
-| `restraint-q` | Pass | Pass | Answer without tools |
-| `verify-script` | **Pass** | Fail | sonec writes artifacts; base explores only |
-| `py-util-main` | Fail | Fail | Explore loop — no required writes |
-| `pkg-greet` | Fail | Fail | Explore loop — no package scaffold |
+Peers are **exactly ~2B** only (`qwen3.5:2b`, `gemma2:2b`, `codegemma:2b`). No 1B / 1.5B / 3B+ models.
 
-**Scope:** this proves sonec beats the same 2B base on this agent suite — not general chat superiority, and not every SE task. Widen sealed eval before broader claims.
+```bash
+./scripts/world_rl_leaderboard.sh
+# or: sonec leaderboard -a configs/leaderboard/arms_2b.json -o docs/results/leaderboard_2b
+```
 
-Full traces and machine summary:
-
-- [docs/results/COMPARE_REPORT.md](docs/results/COMPARE_REPORT.md)
-- [docs/results/COMPARE_REPORT.json](docs/results/COMPARE_REPORT.json)
-- `docs/results/arm_sonec_lora.json` / `arm_qwen35_2b_base.json` (regenerate with `sonec compare`)
+See [docs/results/leaderboard_2b/LEADERBOARD.md](docs/results/leaderboard_2b/LEADERBOARD.md).
 
 ### Weight-level proof (not a prompt)
 
@@ -411,6 +400,8 @@ SONEC_MODEL=your-served-id
 | `sonec mcp` | MCP bridge |
 | `sonec run` | Single agent goal in a workspace |
 | `sonec compare` | Fair A/B vs unmodified base |
+| `sonec leaderboard` | Multi-model 2B-class agent board |
+| `sonec grpo` | Group-relative RL densify (MLX) |
 | `sonec rollout` | Collect graded trajectories |
 | `sonec bench` | Run a benchmark suite |
 | `sonec eval` | Task-suite evaluation |
@@ -438,7 +429,9 @@ sonec/
 │   ├── architecture.md
 │   ├── GATE_REPORT_MODEL_STACK.md
 │   └── results/           # COMPARE_REPORT, TRAIN_PROOF, SFT_METRICS
-├── scripts/               # overnight_specialize.sh, helpers
+├── scripts/               # overnight_specialize.sh, world_rl_leaderboard.sh
+├── configs/leaderboard/   # arms_2b.json catalog
+├── configs/rl/            # grpo_recipe.md
 ├── Modelfile              # Optional chat runner (not the product)
 ├── NOTICE                 # Attribution + Qwen lineage
 └── LICENSE                # Apache-2.0

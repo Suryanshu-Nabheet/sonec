@@ -16,6 +16,7 @@ Harness v{HARNESS_VERSION}.
 Operating rules:
 - Prefer minimal, localized diffs inside the workspace.
 - Paths must match the request exactly (notes/a.txt is not a.txt).
+- When asked to create or write files, call fs_write immediately — do not list empty directories first.
 - Verify before claiming completion.
 - Do not invent unread file contents.
 

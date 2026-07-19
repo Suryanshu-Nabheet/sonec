@@ -33,6 +33,20 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
+def _concat_jsonl(sources: list[Path], dest: Path) -> int:
+    """Concatenate JSONL sources into dest. Returns line count written."""
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    n = 0
+    with dest.open("w", encoding="utf-8") as out:
+        for src in sources:
+            if not src.is_file():
+                continue
+            for line in src.read_text(encoding="utf-8").splitlines():
+                if line.strip():
+                    out.write(line + "\n")
+                    n += 1
+    return n
+
 
 def _tc(call_id: str, name: str, arguments: dict) -> dict:
     """OpenAI-style assistant tool_calls entry."""
@@ -734,6 +748,45 @@ def run_train_step(
             model=inference_model,
         )
     )
+
+    # Rejection → second SFT (RFT): fuel + RL rollouts densify write-first Python.
+    fuel_rollouts = art / "fuel" / "rollouts.jsonl"
+    rl_rollouts = art / "rl" / "rollouts" / "rollouts.jsonl"
+    winners_path = art / "rl" / "winners.jsonl"
+    if (
+        not skip_sft
+        and corpus_dir is None
+        and winners_path.is_file()
+        and winners_path.stat().st_size > 0
+        and fuel_rollouts.is_file()
+    ):
+        combined = art / "sft_corpus_rft" / "combined_rollouts.jsonl"
+        sources = [p for p in (fuel_rollouts, rl_rollouts) if p.is_file()]
+        n_lines = _concat_jsonl(sources, combined)
+        if n_lines > 0:
+            try:
+                rft_paths = assemble_sft_corpus(
+                    rollouts_jsonl=combined,
+                    out_dir=art / "sft_corpus_rft",
+                    gold_n=max(gold_n, 64),
+                )
+                rft_iters = max(80, sft_iters // 3)
+                rft = run_mlx_sft(
+                    data_dir=Path(rft_paths["mlx_dir"]),
+                    adapter_path=adapter,
+                    model=mlx_base,
+                    iters=rft_iters,
+                )
+                reports.append(
+                    TrainReport(
+                        phase="rft_sft",
+                        ok=rft.ok,
+                        detail=f"{rft.detail}; combined_lines={n_lines}",
+                        paths={**rft.paths, "combined": str(combined)},
+                    )
+                )
+            except Exception as exc:  # noqa: BLE001
+                reports.append(TrainReport("rft_sft", False, str(exc), {}))
 
     manifest = write_product_manifest(adapter_dir=adapter, mlx_base=mlx_base, root=root)
     status = weight_status(adapter)

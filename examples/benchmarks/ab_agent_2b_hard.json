@@ -1,0 +1,115 @@
+{
+  "name": "ab-agent-2b-hard",
+  "version": "1.0.0",
+  "description": "Strict 2B discrimination suite. Harder than ab_agent_v1; not training fuel.",
+  "tasks": [
+    {
+      "id": "hard-nested-readme",
+      "name": "Nested README with exact title",
+      "prompt": "Create docs/guide/README.md containing exactly the line: # Sonec Agent Guide",
+      "difficulty": "easy",
+      "tags": ["filesystem", "paths"],
+      "checks": [
+        {"kind": "file_exists", "path": "docs/guide/README.md"},
+        {"kind": "file_contains", "path": "docs/guide/README.md", "contains": "# Sonec Agent Guide"}
+      ]
+    },
+    {
+      "id": "hard-py-cli",
+      "name": "CLI module with parse_args",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
+      "difficulty": "medium",
+      "tags": ["python", "cli"],
+      "checks": [
+        {"kind": "file_exists", "path": "cli/main.py"},
+        {"kind": "python_parses", "path": "cli/main.py"},
+        {"kind": "file_contains", "path": "cli/main.py", "contains": "def parse_args"},
+        {"kind": "file_contains", "path": "cli/main.py", "contains": "def main"}
+      ]
+    },
+    {
+      "id": "hard-pkg-api",
+      "name": "Package with version and ping",
+      "prompt": "Create app/__init__.py containing __version__ = \"1.0.0\" and app/api.py with a function ping that returns the string pong.",
+      "difficulty": "hard",
+      "tags": ["python", "architecture"],
+      "checks": [
+        {"kind": "file_exists", "path": "app/__init__.py"},
+        {"kind": "file_contains", "path": "app/__init__.py", "contains": "__version__"},
+        {"kind": "file_exists", "path": "app/api.py"},
+        {"kind": "file_contains", "path": "app/api.py", "contains": "def ping"},
+        {"kind": "file_contains", "path": "app/api.py", "contains": "pong"},
+        {"kind": "python_parses", "path": "app/api.py"}
+      ]
+    },
+    {
+      "id": "hard-fix-clamp",
+      "name": "Fix clamp off-by-one",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
+      "difficulty": "hard",
+      "tags": ["localize", "patch"],
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n    assert clamp(-1, 0, 3) == 0\n"
+      },
+      "checks": [
+        {"kind": "file_contains", "path": "mathutil.py", "contains": "min(hi, x)"},
+        {"kind": "file_not_contains", "path": "mathutil.py", "contains": "x + 1"},
+        {"kind": "python_parses", "path": "mathutil.py"}
+      ]
+    },
+    {
+      "id": "hard-json-flag",
+      "name": "Enable feature flag in JSON",
+      "prompt": "Edit config/settings.json so the enabled field is true (boolean). Keep other keys.",
+      "difficulty": "medium",
+      "tags": ["json", "edit"],
+      "seed_files": {
+        "config/settings.json": "{\n  \"name\": \"demo\",\n  \"enabled\": false,\n  \"retries\": 3\n}\n"
+      },
+      "checks": [
+        {"kind": "file_contains", "path": "config/settings.json", "contains": "\"enabled\": true"},
+        {"kind": "file_not_contains", "path": "config/settings.json", "contains": "\"enabled\": false"},
+        {"kind": "file_contains", "path": "config/settings.json", "contains": "\"retries\": 3"}
+      ]
+    },
+    {
+      "id": "hard-verify-pair",
+      "name": "Verify script and checklist",
+      "prompt": "Create bin/check.sh that echoes PASS, and CHECKLIST.md that mentions bin/check.sh.",
+      "difficulty": "medium",
+      "tags": ["filesystem", "docs"],
+      "checks": [
+        {"kind": "file_exists", "path": "bin/check.sh"},
+        {"kind": "file_contains", "path": "bin/check.sh", "contains": "PASS"},
+        {"kind": "file_exists", "path": "CHECKLIST.md"},
+        {"kind": "file_contains", "path": "CHECKLIST.md", "contains": "bin/check.sh"}
+      ]
+    },
+    {
+      "id": "hard-two-modules",
+      "name": "Shared constant across modules",
+      "prompt": "Create lib/const.py defining NAME = \"sonec\" and lib/greet.py with a function hello that returns NAME from const (import it).",
+      "difficulty": "hard",
+      "tags": ["python", "imports"],
+      "checks": [
+        {"kind": "file_exists", "path": "lib/const.py"},
+        {"kind": "file_contains", "path": "lib/const.py", "contains": "NAME"},
+        {"kind": "file_contains", "path": "lib/const.py", "contains": "sonec"},
+        {"kind": "file_exists", "path": "lib/greet.py"},
+        {"kind": "file_contains", "path": "lib/greet.py", "contains": "def hello"},
+        {"kind": "file_contains", "path": "lib/greet.py", "contains": "const"},
+        {"kind": "python_parses", "path": "lib/const.py"},
+        {"kind": "python_parses", "path": "lib/greet.py"}
+      ]
+    },
+    {
+      "id": "hard-restraint",
+      "name": "Question only — no edits",
+      "prompt": "In one sentence, what is an integration test? Do not create or edit any files.",
+      "difficulty": "easy",
+      "tags": ["restraint"],
+      "checks": []
+    }
+  ]
+}

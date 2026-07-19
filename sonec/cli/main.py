@@ -648,6 +648,101 @@ def compare_cmd(
     console.print(f"Wrote {out / 'COMPARE_REPORT.json'} and COMPARE_REPORT.md")
 
 
+@app.command("leaderboard")
+def leaderboard_cmd(
+    suite: Path = typer.Option(
+        Path("examples/benchmarks/ab_agent_2b_hard.json"),
+        "--suite",
+        "-s",
+        exists=True,
+        help="Strict 2B discrimination suite (default)",
+    ),
+    arms: Path = typer.Option(
+        Path("configs/leaderboard/arms_2b.json"),
+        "--arms",
+        "-a",
+        exists=True,
+        help="Strict 2B-only OpenAI-compatible arms (no 1B/1.5B/3B+)",
+    ),
+    out: Path = typer.Option(Path("docs/results/leaderboard_2b"), "--out", "-o"),
+    resume: bool = typer.Option(
+        True,
+        "--resume/--fresh",
+        help="Reuse existing arm_*.json dumps (default); --fresh re-runs every arm",
+    ),
+) -> None:
+    """Multi-model agent leaderboard (2B-class rivals + specialized sonec)."""
+    from sonec.eval.leaderboard import load_arms, run_leaderboard_sync
+
+    data = json.loads(arms.read_text(encoding="utf-8"))
+    catalog = data.get("catalog") if isinstance(data, dict) else None
+    arm_list = load_arms(arms)
+    console.print(
+        Panel.fit(
+            f"suite={suite}\narms={len(arm_list)} from {arms}\nout={out}\nresume={resume}",
+            title="sonec leaderboard",
+            border_style="cyan",
+        )
+    )
+    summary = run_leaderboard_sync(
+        suite=suite,
+        arms=arm_list,
+        out_dir=out,
+        catalog={"entries": catalog} if catalog else None,
+        resume=resume,
+    )
+    for i, arm in enumerate(summary.arms, start=1):
+        color = "green" if arm["kind"] == "lora" else "white"
+        console.print(
+            f"[{color}]#{i} {arm['name']}[/]: {arm['pass_rate']:.0%} "
+            f"({arm['passed']}/{arm['total']}) {arm['mean_duration_s']:.1f}s"
+        )
+    console.print(f"winner={summary.winner}")
+    console.print(f"Wrote {out / 'LEADERBOARD.md'} + LEADERBOARD_CHART.html")
+
+
+@app.command("grpo")
+def grpo_cmd(
+    group_size: int = typer.Option(8, "--group-size", "-g"),
+    train_n: int = typer.Option(24, "--train-n"),
+    sft_iters: int = typer.Option(200, "--sft-iters"),
+    live: bool = typer.Option(True, "--live/--mock"),
+    mlx_model: str = typer.Option("mlx-community/Qwen3.5-2B-4bit", "--mlx-model"),
+) -> None:
+    """Real group-relative RL (GRPO-lite) → advantage-weighted LoRA SFT on MLX."""
+    from sonec.training.grpo_lite import run_grpo_lite
+    from sonec.training.weights import weight_status
+
+    status = weight_status()
+    if not status.ready:
+        console.print(f"[red]{status.detail}[/]")
+        console.print("Run sonec train --step first.")
+        raise typer.Exit(code=1)
+    console.print(
+        Panel.fit(
+            f"GRPO-lite G={group_size} train_n={train_n} sft_iters={sft_iters} live={live}",
+            title="sonec grpo",
+            border_style="magenta",
+        )
+    )
+    result = run_grpo_lite(
+        root=Path.cwd(),
+        group_size=group_size,
+        train_n=train_n,
+        sft_iters=sft_iters,
+        live=live,
+        mlx_model=mlx_model,
+    )
+    color = "green" if result.sft.ok else "red"
+    console.print(
+        f"prompts={result.prompts} rollouts={result.rollouts} "
+        f"pos_adv={result.positive_advantage} passers={result.absolute_passers} "
+        f"corpus={result.corpus_lines}"
+    )
+    console.print(f"[{color}]sft[/]: {result.sft.detail}")
+    console.print(f"stats: {result.stats_path}")
+
+
 @app.command("train")
 def train_cmd(
     export: bool = typer.Option(False, "--export", help="Export trainer shards from rollouts"),
@@ -677,6 +772,8 @@ def train_cmd(
         help="MLX base checkpoint for LoRA",
     ),
     rollout_group: int = typer.Option(8, "--rollout-group", help="Rollouts per TrainBench task"),
+    rl_group: int = typer.Option(4, "--rl-group", help="Rejection sampling group size"),
+    rl_limit: int = typer.Option(24, "--rl-limit", help="TrainBench tasks for rejection round"),
 ) -> None:
     """Specialize sonec via graded trajectories and LoRA."""
     if step or full:
@@ -687,6 +784,7 @@ def train_cmd(
             Panel.fit(
                 f"Specialize — live_fuel={live_fuel} SFT={sft_iters} "
                 f"gold={gold_n} train_n={train_n} group={rollout_group}\n"
+                f"rl_group={rl_group} rl_limit={rl_limit}\n"
                 f"mlx={mlx_model}\n"
                 "Retain the adapter only when sonec compare pass rate improves.",
                 title="sonec train",
@@ -706,6 +804,8 @@ def train_cmd(
             reset=reset,
             corpus_dir=corpus,
             rollout_group=rollout_group,
+            rl_group=rl_group,
+            rl_limit=rl_limit,
         )
         for r in reports:
             color = "green" if r.ok else "red"
@@ -866,12 +966,16 @@ def doctor_cmd() -> None:
         table.add_row(k, v)
     console.print(table)
     console.print(
-        "\nSpecialize (product weights):\n"
-        "1) sonec train --step\n"
+        "\nProduction path:\n"
+        "1) sonec train --step          # or ./scripts/overnight_specialize.sh\n"
         "2) sonec weights\n"
-        "3) sonec serve-llm   # OpenAI-compatible on :8080 with LoRA\n"
+        "3) sonec serve-llm             # LoRA on :8080\n"
         "4) SONEC_BASE_URL=http://127.0.0.1:8080/v1 sonec run \"…\"\n"
-        "Specialization requires LoRA *.safetensors (see sonec weights)."
+        "5) sonec compare               # LoRA vs base A/B\n"
+        "6) sonec grpo                  # group-relative RL densify\n"
+        "7) sonec leaderboard           # multi-model 2B board\n"
+        "   ./scripts/world_rl_leaderboard.sh\n"
+        "Product = LoRA *.safetensors (see sonec weights). Ollama Modelfile is a chat runner only."
     )
     if not status.ready:
         raise typer.Exit(code=1)

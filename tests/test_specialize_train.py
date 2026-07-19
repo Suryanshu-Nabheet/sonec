@@ -19,6 +19,23 @@ def test_trainbench_size() -> None:
     assert all(t.id.startswith("train-") for t in tasks)
 
 
+def test_trainbench_pyutil_pkggreet_kinds() -> None:
+    tasks = build_trainbench_tasks(n=100)
+    pyutil = [t for t in tasks if t.id.startswith("train-pyutil-")]
+    pkggreet = [t for t in tasks if t.id.startswith("train-pkggreet-")]
+    cli = [t for t in tasks if t.id.startswith("train-cli-")]
+    clamp = [t for t in tasks if t.id.startswith("train-clamp-")]
+    assert pyutil, "expected train-pyutil-* curriculum"
+    assert pkggreet, "expected train-pkggreet-* curriculum"
+    assert cli, "expected train-cli-* curriculum"
+    assert clamp, "expected train-clamp-* curriculum"
+    assert all(any(c.path == "src/util.py" for c in t.checks) for t in pyutil)
+    assert all(any(c.path == "pkg/core.py" for c in t.checks) for t in pkggreet)
+    # Must never collide with sealed A/B ids.
+    sealed = {"py-util-main", "pkg-greet", "hard-fix-clamp", "hard-py-cli"}
+    assert all(t.id not in sealed for t in tasks)
+
+
 def test_gold_curriculum_openai_tool_calls() -> None:
     gen = DatasetGenerator("t")
     n = generate_gold_agent_examples(gen, n=24)

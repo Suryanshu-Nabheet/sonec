@@ -18,11 +18,11 @@ from sonec.core.config import load_settings
 from sonec.eval.harness import BenchmarkReport, EvalHarness
 
 # Focused tool surface for 2B-class A/B (matches gold curriculum).
+# fs_list omitted on purpose — empty-workspace create tasks collapse into list loops.
 COMPARE_TOOL_ALLOWLIST = {
     "fs_write",
     "fs_read",
     "fs_edit",
-    "fs_list",
     "terminal_run",
 }
 
@@ -32,7 +32,9 @@ class ArmSpec:
     name: str
     base_url: str
     model: str
-    kind: str  # "lora" | "base"
+    kind: str = "external"  # lora | base | external
+    provider: str = "local"
+    api_key: str = "local"
 
 
 @dataclass
@@ -74,10 +76,10 @@ async def run_arm(
         ws.mkdir(parents=True, exist_ok=True)
         settings = load_settings(
             workspace=ws,
-            provider="local",
+            provider=arm.provider,
             base_url=arm.base_url.rstrip("/"),
             model=arm.model,
-            api_key="local",
+            api_key=arm.api_key,
         )
         harness = EvalHarness(workspace=ws)
 

@@ -6,20 +6,37 @@
 
 ## Pipeline
 
-1. TrainBench graded rollouts (training-only ids)
-2. Verified live trajectories (path-correct writes, verify, restraint)
+1. TrainBench graded rollouts (training-only ids) — includes py-util + pkg/greet curriculum
+2. Verified trajectories (path-correct writes, verify, restraint)
 3. MLX LoRA SFT
-4. Rejection sampling / group winners
-5. Serve with `sonec serve-llm`
+4. Rejection sampling → **second SFT (RFT)**
+5. Optional **GRPO-lite** (`sonec grpo`)
+6. Serve with `sonec serve-llm`
+7. Promote via `sonec compare` + multi-model `sonec leaderboard`
 
 ## Commands
 
 ```bash
-sonec train --step --live-fuel --sft-iters 300 --gold-n 0 --train-n 40
-sonec weights
-sonec serve-llm --port 8080
-python -m mlx_lm server --model mlx-community/Qwen3.5-2B-4bit --port 8081
+# Canonical overnight specialize + A/B
+./scripts/overnight_specialize.sh
+
+# Multi-model 2B board (+ optional GRPO)
+./scripts/world_rl_leaderboard.sh
+# SKIP_GRPO=1 ./scripts/world_rl_leaderboard.sh   # board only
+
+# Manual
+sonec train --step --mock-fuel --sft-iters 500 --gold-n 240 --train-n 100
+sonec weights && sonec serve-llm --port 8080
 sonec compare --out docs/results
+sonec grpo --live --group-size 8 --train-n 24
+sonec leaderboard -a configs/leaderboard/arms_2b.json -o docs/results/leaderboard_2b
 ```
 
-Promote an adapter only when `sonec compare` shows a higher pass rate without restraint regression.
+Promote an adapter only when pass rate holds or improves without restraint regression.
+
+## Strict 2B board
+
+- Catalog: **only** ~2B models (`configs/leaderboard/arms_2b.json`)
+- Decision suite: `examples/benchmarks/ab_agent_2b_hard.json`
+- Results: `docs/results/leaderboard_2b/LEADERBOARD.md`
+- GRPO-lite: `configs/rl/grpo_recipe.md` · `sonec grpo`

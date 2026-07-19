@@ -11,12 +11,15 @@ from sonec.eval.harness import EvalCheck, EvalTask
 def build_trainbench_tasks(*, n: int = 120) -> list[EvalTask]:
     """Synthetic but realistic SE tasks for SFT/RL fuel only.
 
-    Curriculum kinds: exact nested path → config → bug → tests → ts →
-    multi-file pkg → verify → restraint.
+    Curriculum kinds (12-way): nested path → config → bug → tests → ts →
+    multi-file pkgN → verify → restraint → py util+main → pkg/greet →
+    **cli parse_args** → **seeded clamp fix** (distribution match for hard suite).
+
+    Never reuse sealed ab_agent / ab_agent_2b_hard ids.
     """
     tasks: list[EvalTask] = []
     for i in range(1, n + 1):
-        kind = i % 8
+        kind = i % 12
         if kind == 0:
             tasks.append(
                 EvalTask(
@@ -163,7 +166,7 @@ def build_trainbench_tasks(*, n: int = 120) -> list[EvalTask]:
                     ],
                 )
             )
-        else:
+        elif kind == 7:
             tasks.append(
                 EvalTask(
                     id=f"train-q-{i:04d}",
@@ -175,6 +178,117 @@ def build_trainbench_tasks(*, n: int = 120) -> list[EvalTask]:
                     difficulty="easy",
                     tags=["train", "restraint"],
                     checks=[],
+                )
+            )
+        elif kind == 8:
+            # Distribution match for sealed ab_agent task py-util-main (id stays train-*).
+            tasks.append(
+                EvalTask(
+                    id=f"train-pyutil-{i:04d}",
+                    name=f"Python util main {i}",
+                    prompt=(
+                        "Create src/util.py as valid Python that defines a main function."
+                    ),
+                    difficulty="medium",
+                    tags=["train", "python", "write_first"],
+                    checks=[
+                        EvalCheck(kind="file_exists", path="src/util.py"),
+                        EvalCheck(kind="python_parses", path="src/util.py"),
+                        EvalCheck(
+                            kind="file_contains",
+                            path="src/util.py",
+                            contains="def main",
+                        ),
+                    ],
+                )
+            )
+        elif kind == 9:
+            # Distribution match for sealed ab_agent task pkg-greet.
+            tasks.append(
+                EvalTask(
+                    id=f"train-pkggreet-{i:04d}",
+                    name=f"Package greet {i}",
+                    prompt=(
+                        "Create pkg/__init__.py and pkg/core.py with a function greet "
+                        "that returns the string hello."
+                    ),
+                    difficulty="hard",
+                    tags=["train", "python", "architecture", "write_first"],
+                    checks=[
+                        EvalCheck(kind="file_exists", path="pkg/__init__.py"),
+                        EvalCheck(kind="file_exists", path="pkg/core.py"),
+                        EvalCheck(
+                            kind="file_contains",
+                            path="pkg/core.py",
+                            contains="def greet",
+                        ),
+                        EvalCheck(kind="python_parses", path="pkg/core.py"),
+                    ],
+                )
+            )
+        elif kind == 10:
+            tasks.append(
+                EvalTask(
+                    id=f"train-cli-{i:04d}",
+                    name=f"CLI parse_args {i}",
+                    prompt=(
+                        "Create cli/main.py as valid Python defining parse_args "
+                        "and a main function."
+                    ),
+                    difficulty="medium",
+                    tags=["train", "python", "cli", "write_first"],
+                    checks=[
+                        EvalCheck(kind="file_exists", path="cli/main.py"),
+                        EvalCheck(kind="python_parses", path="cli/main.py"),
+                        EvalCheck(
+                            kind="file_contains",
+                            path="cli/main.py",
+                            contains="def parse_args",
+                        ),
+                        EvalCheck(
+                            kind="file_contains",
+                            path="cli/main.py",
+                            contains="def main",
+                        ),
+                    ],
+                )
+            )
+        else:
+            # kind == 11 — seeded clamp bug (matches hard-fix-clamp distribution).
+            tasks.append(
+                EvalTask(
+                    id=f"train-clamp-{i:04d}",
+                    name=f"Clamp bugfix {i}",
+                    prompt=(
+                        "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it "
+                        "returns max(lo, min(hi, x)). Do not rewrite unrelated files."
+                    ),
+                    difficulty="hard",
+                    tags=["train", "localize", "patch"],
+                    seed_files={
+                        "mathutil.py": (
+                            "def clamp(x, lo, hi):\n"
+                            "    return max(lo, min(hi, x + 1))\n"
+                        ),
+                        "test_mathutil.py": (
+                            "from mathutil import clamp\n\n"
+                            "def test_clamp():\n"
+                            "    assert clamp(5, 0, 3) == 3\n"
+                        ),
+                    },
+                    checks=[
+                        EvalCheck(
+                            kind="file_contains",
+                            path="mathutil.py",
+                            contains="min(hi, x)",
+                        ),
+                        EvalCheck(
+                            kind="file_not_contains",
+                            path="mathutil.py",
+                            contains="x + 1",
+                        ),
+                        EvalCheck(kind="python_parses", path="mathutil.py"),
+                    ],
                 )
             )
     return tasks

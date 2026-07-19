@@ -7,9 +7,16 @@ CLI / MCP / HTTP
   → thin identity + tools
   → AgentRuntime (frozen)
     → evidence graders
-  → TrainBench rollouts → SFT (MLX) → RL rejection → product weights (sonec)
+  → TrainBench → SFT (MLX) → RFT → optional GRPO-lite → product LoRA (sonec)
+  → compare (LoRA vs base) · leaderboard (multi-model, resume-safe)
 ```
 
-- **Decision metrics:** sealed SonecBench and WorldBench (never training fuel)
-- **Training fuel:** TrainBench and verified live trajectories
-- **Inference:** OpenAI-compatible `/v1` (`SONEC_BASE_URL`)
+| Layer | Canonical entry |
+| --- | --- |
+| Specialize overnight | `./scripts/overnight_specialize.sh` |
+| Multi-model board | `./scripts/world_rl_leaderboard.sh` |
+| Decision metrics | sealed SonecBench / WorldBench (never training fuel) |
+| Training fuel | TrainBench + verified live trajectories |
+| Inference | OpenAI-compatible `/v1` via `sonec serve-llm` |
+
+Scripts under `scripts/` are the only long-running entrypoints. One-off helpers were removed.

@@ -30,15 +30,20 @@ Product sonec = base Qwen 3.5 2B + LoRA via `sonec serve-llm`.
 # Needs LoRA on :8080 and unmodified base on :8081
 python -m mlx_lm server --model mlx-community/Qwen3.5-2B-4bit --port 8081
 sonec compare --out docs/results
+
+# Multi-model 2B board (Ollama peers + sonec)
+./scripts/world_rl_leaderboard.sh
 ```
 
-See [TRAIN_PROOF.md](results/TRAIN_PROOF.md) and [COMPARE_REPORT.md](results/COMPARE_REPORT.md).
+See [TRAIN_PROOF.md](results/TRAIN_PROOF.md), [COMPARE_REPORT.md](results/COMPARE_REPORT.md), and [leaderboard_2b/LEADERBOARD.md](results/leaderboard_2b/LEADERBOARD.md).
 
 ## Surfaces
 
 ```bash
 sonec serve     # harness gateway (:8787) — point SONEC_BASE_URL at serve-llm
 sonec mcp
+sonec grpo      # group-relative RL densify
+sonec leaderboard
 ```
 
 ## Licensing

@@ -1,0 +1,610 @@
+{
+  "generated_at": "2026-07-19T03:55:54Z",
+  "summary": {
+    "suite": "examples/benchmarks/ab_agent_v1.json",
+    "arms": [
+      {
+        "name": "sonec",
+        "kind": "lora",
+        "base_url": "http://127.0.0.1:8080/v1",
+        "model": "mlx-community/Qwen3.5-2B-4bit",
+        "pass_rate": 1.0,
+        "passed": 6,
+        "total": 6,
+        "mean_score": 1.0,
+        "mean_duration_s": 10.614012291664645,
+        "by_difficulty": {
+          "easy": 1.0,
+          "hard": 1.0,
+          "medium": 1.0
+        },
+        "by_tag": {
+          "architecture": 1.0,
+          "docs": 1.0,
+          "filesystem": 1.0,
+          "localize": 1.0,
+          "patch": 1.0,
+          "paths": 1.0,
+          "python": 1.0,
+          "restraint": 1.0,
+          "verify": 1.0
+        }
+      },
+      {
+        "name": "qwen3.5-2b",
+        "kind": "base",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "qwen3.5:2b",
+        "pass_rate": 1.0,
+        "passed": 6,
+        "total": 6,
+        "mean_score": 1.0,
+        "mean_duration_s": 8.372894110999672,
+        "by_difficulty": {
+          "easy": 1.0,
+          "hard": 1.0,
+          "medium": 1.0
+        },
+        "by_tag": {
+          "architecture": 1.0,
+          "docs": 1.0,
+          "filesystem": 1.0,
+          "localize": 1.0,
+          "patch": 1.0,
+          "paths": 1.0,
+          "python": 1.0,
+          "restraint": 1.0,
+          "verify": 1.0
+        }
+      },
+      {
+        "name": "llama3.2-3b",
+        "kind": "external",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "llama3.2:3b",
+        "pass_rate": 0.6666666666666666,
+        "passed": 4,
+        "total": 6,
+        "mean_score": 0.75,
+        "mean_duration_s": 3.003995583336897,
+        "by_difficulty": {
+          "easy": 1.0,
+          "hard": 0.5,
+          "medium": 0.5
+        },
+        "by_tag": {
+          "architecture": 0.0,
+          "docs": 0.0,
+          "filesystem": 0.5,
+          "localize": 1.0,
+          "patch": 1.0,
+          "paths": 1.0,
+          "python": 0.5,
+          "restraint": 1.0,
+          "verify": 1.0
+        }
+      },
+      {
+        "name": "llama3.2-1b",
+        "kind": "external",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "llama3.2:1b",
+        "pass_rate": 0.16666666666666666,
+        "passed": 1,
+        "total": 6,
+        "mean_score": 0.2222222222222222,
+        "mean_duration_s": 1.1994140276680507,
+        "by_difficulty": {
+          "easy": 0.5,
+          "hard": 0.0,
+          "medium": 0.0
+        },
+        "by_tag": {
+          "architecture": 0.0,
+          "docs": 0.0,
+          "filesystem": 0.0,
+          "localize": 0.0,
+          "patch": 0.0,
+          "paths": 0.0,
+          "python": 0.0,
+          "restraint": 1.0,
+          "verify": 0.0
+        }
+      },
+      {
+        "name": "qwen2.5-coder-1.5b",
+        "kind": "external",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "qwen2.5-coder:1.5b",
+        "pass_rate": 0.16666666666666666,
+        "passed": 1,
+        "total": 6,
+        "mean_score": 0.2222222222222222,
+        "mean_duration_s": 1.2310743541650784,
+        "by_difficulty": {
+          "easy": 0.5,
+          "hard": 0.0,
+          "medium": 0.0
+        },
+        "by_tag": {
+          "architecture": 0.0,
+          "docs": 0.0,
+          "filesystem": 0.0,
+          "localize": 0.0,
+          "patch": 0.0,
+          "paths": 0.0,
+          "python": 0.0,
+          "restraint": 1.0,
+          "verify": 0.0
+        }
+      },
+      {
+        "name": "qwen2.5-1.5b",
+        "kind": "external",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "qwen2.5:1.5b",
+        "pass_rate": 0.16666666666666666,
+        "passed": 1,
+        "total": 6,
+        "mean_score": 0.2222222222222222,
+        "mean_duration_s": 2.242499604336141,
+        "by_difficulty": {
+          "easy": 0.5,
+          "hard": 0.0,
+          "medium": 0.0
+        },
+        "by_tag": {
+          "architecture": 0.0,
+          "docs": 0.0,
+          "filesystem": 0.0,
+          "localize": 0.0,
+          "patch": 0.0,
+          "paths": 0.0,
+          "python": 0.0,
+          "restraint": 1.0,
+          "verify": 0.0
+        }
+      },
+      {
+        "name": "gemma2-2b",
+        "kind": "external",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "gemma2:2b",
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 6,
+        "mean_score": 0.0,
+        "mean_duration_s": 0.0,
+        "by_difficulty": {
+          "easy": 0.0,
+          "hard": 0.0,
+          "medium": 0.0
+        },
+        "by_tag": {
+          "architecture": 0.0,
+          "docs": 0.0,
+          "filesystem": 0.0,
+          "localize": 0.0,
+          "patch": 0.0,
+          "paths": 0.0,
+          "python": 0.0,
+          "restraint": 0.0,
+          "verify": 0.0
+        }
+      },
+      {
+        "name": "phi3-mini",
+        "kind": "external",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "phi3:mini",
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 6,
+        "mean_score": 0.0,
+        "mean_duration_s": 0.0,
+        "by_difficulty": {
+          "easy": 0.0,
+          "hard": 0.0,
+          "medium": 0.0
+        },
+        "by_tag": {
+          "architecture": 0.0,
+          "docs": 0.0,
+          "filesystem": 0.0,
+          "localize": 0.0,
+          "patch": 0.0,
+          "paths": 0.0,
+          "python": 0.0,
+          "restraint": 0.0,
+          "verify": 0.0
+        }
+      },
+      {
+        "name": "deepseek-coder-1.3b",
+        "kind": "external",
+        "base_url": "http://127.0.0.1:11434/v1",
+        "model": "deepseek-coder:1.3b",
+        "pass_rate": 0.0,
+        "passed": 0,
+        "total": 6,
+        "mean_score": 0.0,
+        "mean_duration_s": 0.0,
+        "by_difficulty": {
+          "easy": 0.0,
+          "hard": 0.0,
+          "medium": 0.0
+        },
+        "by_tag": {
+          "architecture": 0.0,
+          "docs": 0.0,
+          "filesystem": 0.0,
+          "localize": 0.0,
+          "patch": 0.0,
+          "paths": 0.0,
+          "python": 0.0,
+          "restraint": 0.0,
+          "verify": 0.0
+        }
+      }
+    ],
+    "winner": "sonec",
+    "note": "Ranked by pass_rate, then mean_score, then speed. Same frozen harness."
+  },
+  "catalog": {
+    "entries": [
+      {
+        "id": "sonec",
+        "params": "2B + LoRA",
+        "family": "Qwen3.5 specialized",
+        "license": "Apache-2.0",
+        "source": "local mlx_lm serve-llm"
+      },
+      {
+        "id": "qwen3.5:2b",
+        "params": "2B",
+        "family": "Qwen3.5",
+        "license": "Apache-2.0",
+        "source": "ollama"
+      },
+      {
+        "id": "qwen2.5:1.5b",
+        "params": "1.5B",
+        "family": "Qwen2.5",
+        "license": "Apache-2.0",
+        "source": "ollama"
+      },
+      {
+        "id": "qwen2.5-coder:1.5b",
+        "params": "1.5B",
+        "family": "Qwen2.5-Coder",
+        "license": "Apache-2.0",
+        "source": "ollama"
+      },
+      {
+        "id": "gemma2:2b",
+        "params": "2B",
+        "family": "Gemma 2",
+        "license": "Gemma",
+        "source": "ollama"
+      },
+      {
+        "id": "llama3.2:1b",
+        "params": "1B",
+        "family": "Llama 3.2",
+        "license": "Llama",
+        "source": "ollama"
+      },
+      {
+        "id": "llama3.2:3b",
+        "params": "3B",
+        "family": "Llama 3.2",
+        "license": "Llama",
+        "source": "ollama"
+      },
+      {
+        "id": "phi3:mini",
+        "params": "3.8B",
+        "family": "Phi-3",
+        "license": "MIT",
+        "source": "ollama"
+      },
+      {
+        "id": "deepseek-coder:1.3b",
+        "params": "1.3B",
+        "family": "DeepSeek-Coder",
+        "license": "DeepSeek",
+        "source": "ollama"
+      }
+    ]
+  },
+  "per_arm_task_ids": {
+    "sonec": [
+      {
+        "task_id": "fs-nested-note",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "py-util-main",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "pkg-greet",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "fix-seeded-bug",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "verify-script",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "restraint-q",
+        "passed": true,
+        "score": 1.0
+      }
+    ],
+    "qwen3.5-2b": [
+      {
+        "task_id": "fs-nested-note",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "py-util-main",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "pkg-greet",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "fix-seeded-bug",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "verify-script",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "restraint-q",
+        "passed": true,
+        "score": 1.0
+      }
+    ],
+    "qwen2.5-1.5b": [
+      {
+        "task_id": "fs-nested-note",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "py-util-main",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "pkg-greet",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "fix-seeded-bug",
+        "passed": false,
+        "score": 0.3333333333333333
+      },
+      {
+        "task_id": "verify-script",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "restraint-q",
+        "passed": true,
+        "score": 1.0
+      }
+    ],
+    "qwen2.5-coder-1.5b": [
+      {
+        "task_id": "fs-nested-note",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "py-util-main",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "pkg-greet",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "fix-seeded-bug",
+        "passed": false,
+        "score": 0.3333333333333333
+      },
+      {
+        "task_id": "verify-script",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "restraint-q",
+        "passed": true,
+        "score": 1.0
+      }
+    ],
+    "gemma2-2b": [
+      {
+        "task_id": "fs-nested-note",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "py-util-main",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "pkg-greet",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "fix-seeded-bug",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "verify-script",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "restraint-q",
+        "passed": false,
+        "score": 0.0
+      }
+    ],
+    "llama3.2-1b": [
+      {
+        "task_id": "fs-nested-note",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "py-util-main",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "pkg-greet",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "fix-seeded-bug",
+        "passed": false,
+        "score": 0.3333333333333333
+      },
+      {
+        "task_id": "verify-script",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "restraint-q",
+        "passed": true,
+        "score": 1.0
+      }
+    ],
+    "llama3.2-3b": [
+      {
+        "task_id": "fs-nested-note",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "py-util-main",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "pkg-greet",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "fix-seeded-bug",
+        "passed": true,
+        "score": 1.0
+      },
+      {
+        "task_id": "verify-script",
+        "passed": false,
+        "score": 0.5
+      },
+      {
+        "task_id": "restraint-q",
+        "passed": true,
+        "score": 1.0
+      }
+    ],
+    "phi3-mini": [
+      {
+        "task_id": "fs-nested-note",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "py-util-main",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "pkg-greet",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "fix-seeded-bug",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "verify-script",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "restraint-q",
+        "passed": false,
+        "score": 0.0
+      }
+    ],
+    "deepseek-coder-1.3b": [
+      {
+        "task_id": "fs-nested-note",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "py-util-main",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "pkg-greet",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "fix-seeded-bug",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "verify-script",
+        "passed": false,
+        "score": 0.0
+      },
+      {
+        "task_id": "restraint-q",
+        "passed": false,
+        "score": 0.0
+      }
+    ]
+  }
+}

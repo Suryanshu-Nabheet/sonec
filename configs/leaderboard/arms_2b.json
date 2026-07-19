@@ -1,0 +1,65 @@
+{
+  "name": "2b-only-agent-leaderboard",
+  "description": "Strict 2B-parameter agent leaderboard. No 1B/1.5B/3B+ peers.",
+  "notes": [
+    "Only models advertised as ~2B parameters.",
+    "All arms use the same frozen sonec harness and graders.",
+    "Decision suite: examples/benchmarks/ab_agent_2b_hard.json (not training fuel)."
+  ],
+  "catalog": [
+    {
+      "id": "sonec",
+      "params": "2B + LoRA",
+      "family": "Qwen3.5 specialized",
+      "license": "Apache-2.0",
+      "source": "local mlx_lm serve-llm"
+    },
+    {
+      "id": "qwen3.5:2b",
+      "params": "2B",
+      "family": "Qwen3.5",
+      "license": "Apache-2.0",
+      "source": "ollama"
+    },
+    {
+      "id": "gemma2:2b",
+      "params": "2B",
+      "family": "Gemma 2",
+      "license": "Gemma",
+      "source": "ollama"
+    },
+    {
+      "id": "codegemma:2b",
+      "params": "2B",
+      "family": "CodeGemma",
+      "license": "Gemma",
+      "source": "ollama"
+    }
+  ],
+  "arms": [
+    {
+      "name": "sonec",
+      "kind": "lora",
+      "base_url": "http://127.0.0.1:8080/v1",
+      "model": "mlx-community/Qwen3.5-2B-4bit"
+    },
+    {
+      "name": "qwen3.5-2b",
+      "kind": "base",
+      "base_url": "http://127.0.0.1:11434/v1",
+      "model": "qwen3.5:2b"
+    },
+    {
+      "name": "gemma2-2b",
+      "kind": "external",
+      "base_url": "http://127.0.0.1:11434/v1",
+      "model": "gemma2:2b"
+    },
+    {
+      "name": "codegemma-2b",
+      "kind": "external",
+      "base_url": "http://127.0.0.1:11434/v1",
+      "model": "codegemma:2b"
+    }
+  ]
+}

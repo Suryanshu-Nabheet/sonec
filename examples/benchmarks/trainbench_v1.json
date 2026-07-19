@@ -4,7 +4,7 @@
   "sealed": false,
   "training_only": true,
   "description": "Training-only fuel. Do not use as decision eval.",
-  "task_count": 24,
+  "task_count": 120,
   "tasks": [
     {
       "id": "train-feat-0001",
@@ -223,21 +223,184 @@
       "seed_files": {}
     },
     {
-      "id": "train-path-0008",
-      "name": "Exact path write 8",
-      "prompt": "Create notes/hello_8.txt containing exactly: hello sonec 8",
+      "id": "train-pyutil-0008",
+      "name": "Python util main 8",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "notes/hello_8.txt",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "src/util.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "notes/hello_8.txt",
-          "contains": "hello sonec 8",
+          "path": "src/util.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkggreet-0009",
+      "name": "Package greet 9",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg/core.py",
+          "contains": "def greet",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "architecture",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "train-cli-0010",
+      "name": "CLI parse_args 10",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def parse_args",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "cli",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-clamp-0011",
+      "name": "Clamp bugfix 11",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "mathutil.py",
+          "contains": "min(hi, x)",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "mathutil.py",
+          "contains": "x + 1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "mathutil.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "localize",
+        "patch"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n"
+      }
+    },
+    {
+      "id": "train-path-0012",
+      "name": "Exact path write 12",
+      "prompt": "Create notes/hello_12.txt containing exactly: hello sonec 12",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_12.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_12.txt",
+          "contains": "hello sonec 12",
           "command_exit_zero": null,
           "pattern": null
         }
@@ -251,20 +414,20 @@
       "seed_files": {}
     },
     {
-      "id": "train-feat-0009",
-      "name": "Feature flag 9",
-      "prompt": "Create config/flag_9.json with \"enabled\": true.",
+      "id": "train-feat-0013",
+      "name": "Feature flag 13",
+      "prompt": "Create config/flag_13.json with \"enabled\": true.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "config/flag_9.json",
+          "path": "config/flag_13.json",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "config/flag_9.json",
+          "path": "config/flag_13.json",
           "contains": "\"enabled\": true",
           "command_exit_zero": null,
           "pattern": null
@@ -279,27 +442,27 @@
       "seed_files": {}
     },
     {
-      "id": "train-bug-0010",
-      "name": "Bug fix 10",
-      "prompt": "Create fix_10.py with def answer() returning 10.",
+      "id": "train-bug-0014",
+      "name": "Bug fix 14",
+      "prompt": "Create fix_14.py with def answer() returning 14.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "fix_10.py",
+          "path": "fix_14.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "fix_10.py",
+          "path": "fix_14.py",
           "contains": "def answer",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "python_parses",
-          "path": "fix_10.py",
+          "path": "fix_14.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -314,27 +477,27 @@
       "seed_files": {}
     },
     {
-      "id": "train-test-0011",
-      "name": "Add test 11",
-      "prompt": "Create tests/test_t11.py with def test_ok asserting True.",
+      "id": "train-test-0015",
+      "name": "Add test 15",
+      "prompt": "Create tests/test_t15.py with def test_ok asserting True.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "tests/test_t11.py",
+          "path": "tests/test_t15.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "tests/test_t11.py",
+          "path": "tests/test_t15.py",
           "contains": "def test_ok",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "python_parses",
-          "path": "tests/test_t11.py",
+          "path": "tests/test_t15.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -349,21 +512,21 @@
       "seed_files": {}
     },
     {
-      "id": "train-ts-0012",
-      "name": "TS util 12",
-      "prompt": "Create src/util_12.ts exporting function util12(): number returning 12.",
+      "id": "train-ts-0016",
+      "name": "TS util 16",
+      "prompt": "Create src/util_16.ts exporting function util16(): number returning 16.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "src/util_12.ts",
+          "path": "src/util_16.ts",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "src/util_12.ts",
-          "contains": "util12",
+          "path": "src/util_16.ts",
+          "contains": "util16",
           "command_exit_zero": null,
           "pattern": null
         }
@@ -377,34 +540,34 @@
       "seed_files": {}
     },
     {
-      "id": "train-pkg-0013",
-      "name": "Package scaffold 13",
-      "prompt": "Create pkg13/__init__.py and pkg13/core.py with def helper_13() returning 13.",
+      "id": "train-pkg-0017",
+      "name": "Package scaffold 17",
+      "prompt": "Create pkg17/__init__.py and pkg17/core.py with def helper_17() returning 17.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "pkg13/__init__.py",
+          "path": "pkg17/__init__.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_exists",
-          "path": "pkg13/core.py",
+          "path": "pkg17/core.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "pkg13/core.py",
-          "contains": "def helper_13",
+          "path": "pkg17/core.py",
+          "contains": "def helper_17",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "python_parses",
-          "path": "pkg13/core.py",
+          "path": "pkg17/core.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -419,28 +582,28 @@
       "seed_files": {}
     },
     {
-      "id": "train-verify-0014",
-      "name": "Verify script 14",
-      "prompt": "Create scripts/check_14.sh echoing PASS_14 and VERIFY_14.md referencing ./scripts/check_14.sh",
+      "id": "train-verify-0018",
+      "name": "Verify script 18",
+      "prompt": "Create scripts/check_18.sh echoing PASS_18 and VERIFY_18.md referencing ./scripts/check_18.sh",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "scripts/check_14.sh",
+          "path": "scripts/check_18.sh",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "scripts/check_14.sh",
-          "contains": "PASS_14",
+          "path": "scripts/check_18.sh",
+          "contains": "PASS_18",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "VERIFY_14.md",
-          "contains": "./scripts/check_14.sh",
+          "path": "VERIFY_18.md",
+          "contains": "./scripts/check_18.sh",
           "command_exit_zero": null,
           "pattern": null
         }
@@ -454,9 +617,9 @@
       "seed_files": {}
     },
     {
-      "id": "train-q-0015",
-      "name": "Restraint 15",
-      "prompt": "In one sentence, what is continuous integration? (q15; do not edit files)",
+      "id": "train-q-0019",
+      "name": "Restraint 19",
+      "prompt": "In one sentence, what is continuous integration? (q19; do not edit files)",
       "checks": [],
       "tags": [
         "train",
@@ -467,118 +630,70 @@
       "seed_files": {}
     },
     {
-      "id": "train-path-0016",
-      "name": "Exact path write 16",
-      "prompt": "Create notes/hello_16.txt containing exactly: hello sonec 16",
+      "id": "train-pyutil-0020",
+      "name": "Python util main 20",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "notes/hello_16.txt",
+          "path": "src/util.py",
           "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "notes/hello_16.txt",
-          "contains": "hello sonec 16",
-          "command_exit_zero": null,
-          "pattern": null
-        }
-      ],
-      "tags": [
-        "train",
-        "exact_path"
-      ],
-      "timeout_s": 300.0,
-      "difficulty": "easy",
-      "seed_files": {}
-    },
-    {
-      "id": "train-feat-0017",
-      "name": "Feature flag 17",
-      "prompt": "Create config/flag_17.json with \"enabled\": true.",
-      "checks": [
-        {
-          "kind": "file_exists",
-          "path": "config/flag_17.json",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "config/flag_17.json",
-          "contains": "\"enabled\": true",
-          "command_exit_zero": null,
-          "pattern": null
-        }
-      ],
-      "tags": [
-        "train",
-        "feature"
-      ],
-      "timeout_s": 300.0,
-      "difficulty": "easy",
-      "seed_files": {}
-    },
-    {
-      "id": "train-bug-0018",
-      "name": "Bug fix 18",
-      "prompt": "Create fix_18.py with def answer() returning 18.",
-      "checks": [
-        {
-          "kind": "file_exists",
-          "path": "fix_18.py",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "fix_18.py",
-          "contains": "def answer",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "python_parses",
-          "path": "fix_18.py",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        }
-      ],
-      "tags": [
-        "train",
-        "bugfix"
-      ],
-      "timeout_s": 300.0,
-      "difficulty": "medium",
-      "seed_files": {}
-    },
-    {
-      "id": "train-test-0019",
-      "name": "Add test 19",
-      "prompt": "Create tests/test_t19.py with def test_ok asserting True.",
-      "checks": [
-        {
-          "kind": "file_exists",
-          "path": "tests/test_t19.py",
+          "path": "src/util.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "file_contains",
-          "path": "tests/test_t19.py",
-          "contains": "def test_ok",
+          "path": "src/util.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkggreet-0021",
+      "name": "Package greet 21",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg/core.py",
+          "contains": "def greet",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "python_parses",
-          "path": "tests/test_t19.py",
+          "path": "pkg/core.py",
           "contains": null,
           "command_exit_zero": null,
           "pattern": null
@@ -586,129 +701,96 @@
       ],
       "tags": [
         "train",
-        "tests"
+        "python",
+        "architecture",
+        "write_first"
       ],
       "timeout_s": 300.0,
-      "difficulty": "medium",
+      "difficulty": "hard",
       "seed_files": {}
     },
     {
-      "id": "train-ts-0020",
-      "name": "TS util 20",
-      "prompt": "Create src/util_20.ts exporting function util20(): number returning 20.",
+      "id": "train-cli-0022",
+      "name": "CLI parse_args 22",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
       "checks": [
         {
           "kind": "file_exists",
-          "path": "src/util_20.ts",
+          "path": "cli/main.py",
           "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "src/util_20.ts",
-          "contains": "util20",
-          "command_exit_zero": null,
-          "pattern": null
-        }
-      ],
-      "tags": [
-        "train",
-        "typescript"
-      ],
-      "timeout_s": 300.0,
-      "difficulty": "medium",
-      "seed_files": {}
-    },
-    {
-      "id": "train-pkg-0021",
-      "name": "Package scaffold 21",
-      "prompt": "Create pkg21/__init__.py and pkg21/core.py with def helper_21() returning 21.",
-      "checks": [
-        {
-          "kind": "file_exists",
-          "path": "pkg21/__init__.py",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_exists",
-          "path": "pkg21/core.py",
-          "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "pkg21/core.py",
-          "contains": "def helper_21",
           "command_exit_zero": null,
           "pattern": null
         },
         {
           "kind": "python_parses",
-          "path": "pkg21/core.py",
+          "path": "cli/main.py",
           "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def parse_args",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def main",
           "command_exit_zero": null,
           "pattern": null
         }
       ],
       "tags": [
         "train",
-        "multifile"
+        "python",
+        "cli",
+        "write_first"
       ],
       "timeout_s": 300.0,
       "difficulty": "medium",
       "seed_files": {}
     },
     {
-      "id": "train-verify-0022",
-      "name": "Verify script 22",
-      "prompt": "Create scripts/check_22.sh echoing PASS_22 and VERIFY_22.md referencing ./scripts/check_22.sh",
+      "id": "train-clamp-0023",
+      "name": "Clamp bugfix 23",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
       "checks": [
         {
-          "kind": "file_exists",
-          "path": "scripts/check_22.sh",
+          "kind": "file_contains",
+          "path": "mathutil.py",
+          "contains": "min(hi, x)",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "mathutil.py",
+          "contains": "x + 1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "mathutil.py",
           "contains": null,
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "scripts/check_22.sh",
-          "contains": "PASS_22",
-          "command_exit_zero": null,
-          "pattern": null
-        },
-        {
-          "kind": "file_contains",
-          "path": "VERIFY_22.md",
-          "contains": "./scripts/check_22.sh",
           "command_exit_zero": null,
           "pattern": null
         }
       ],
       "tags": [
         "train",
-        "verify"
+        "localize",
+        "patch"
       ],
       "timeout_s": 300.0,
-      "difficulty": "medium",
-      "seed_files": {}
-    },
-    {
-      "id": "train-q-0023",
-      "name": "Restraint 23",
-      "prompt": "In one sentence, what is continuous integration? (q23; do not edit files)",
-      "checks": [],
-      "tags": [
-        "train",
-        "restraint"
-      ],
-      "timeout_s": 300.0,
-      "difficulty": "easy",
-      "seed_files": {}
+      "difficulty": "hard",
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n"
+      }
     },
     {
       "id": "train-path-0024",
@@ -726,6 +808,3262 @@
           "kind": "file_contains",
           "path": "notes/hello_24.txt",
           "contains": "hello sonec 24",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-feat-0025",
+      "name": "Feature flag 25",
+      "prompt": "Create config/flag_25.json with \"enabled\": true.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/flag_25.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/flag_25.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "feature"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-bug-0026",
+      "name": "Bug fix 26",
+      "prompt": "Create fix_26.py with def answer() returning 26.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_26.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_26.py",
+          "contains": "def answer",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_26.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-test-0027",
+      "name": "Add test 27",
+      "prompt": "Create tests/test_t27.py with def test_ok asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_t27.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_t27.py",
+          "contains": "def test_ok",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_t27.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-ts-0028",
+      "name": "TS util 28",
+      "prompt": "Create src/util_28.ts exporting function util28(): number returning 28.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util_28.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util_28.ts",
+          "contains": "util28",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkg-0029",
+      "name": "Package scaffold 29",
+      "prompt": "Create pkg29/__init__.py and pkg29/core.py with def helper_29() returning 29.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg29/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg29/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg29/core.py",
+          "contains": "def helper_29",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg29/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0030",
+      "name": "Verify script 30",
+      "prompt": "Create scripts/check_30.sh echoing PASS_30 and VERIFY_30.md referencing ./scripts/check_30.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_30.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/check_30.sh",
+          "contains": "PASS_30",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_30.md",
+          "contains": "./scripts/check_30.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "verify"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-q-0031",
+      "name": "Restraint 31",
+      "prompt": "In one sentence, what is continuous integration? (q31; do not edit files)",
+      "checks": [],
+      "tags": [
+        "train",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pyutil-0032",
+      "name": "Python util main 32",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkggreet-0033",
+      "name": "Package greet 33",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg/core.py",
+          "contains": "def greet",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "architecture",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "train-cli-0034",
+      "name": "CLI parse_args 34",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def parse_args",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "cli",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-clamp-0035",
+      "name": "Clamp bugfix 35",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "mathutil.py",
+          "contains": "min(hi, x)",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "mathutil.py",
+          "contains": "x + 1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "mathutil.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "localize",
+        "patch"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n"
+      }
+    },
+    {
+      "id": "train-path-0036",
+      "name": "Exact path write 36",
+      "prompt": "Create notes/hello_36.txt containing exactly: hello sonec 36",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_36.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_36.txt",
+          "contains": "hello sonec 36",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-feat-0037",
+      "name": "Feature flag 37",
+      "prompt": "Create config/flag_37.json with \"enabled\": true.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/flag_37.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/flag_37.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "feature"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-bug-0038",
+      "name": "Bug fix 38",
+      "prompt": "Create fix_38.py with def answer() returning 38.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_38.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_38.py",
+          "contains": "def answer",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_38.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-test-0039",
+      "name": "Add test 39",
+      "prompt": "Create tests/test_t39.py with def test_ok asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_t39.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_t39.py",
+          "contains": "def test_ok",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_t39.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-ts-0040",
+      "name": "TS util 40",
+      "prompt": "Create src/util_40.ts exporting function util40(): number returning 40.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util_40.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util_40.ts",
+          "contains": "util40",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkg-0041",
+      "name": "Package scaffold 41",
+      "prompt": "Create pkg41/__init__.py and pkg41/core.py with def helper_41() returning 41.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg41/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg41/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg41/core.py",
+          "contains": "def helper_41",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg41/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0042",
+      "name": "Verify script 42",
+      "prompt": "Create scripts/check_42.sh echoing PASS_42 and VERIFY_42.md referencing ./scripts/check_42.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_42.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/check_42.sh",
+          "contains": "PASS_42",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_42.md",
+          "contains": "./scripts/check_42.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "verify"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-q-0043",
+      "name": "Restraint 43",
+      "prompt": "In one sentence, what is continuous integration? (q43; do not edit files)",
+      "checks": [],
+      "tags": [
+        "train",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pyutil-0044",
+      "name": "Python util main 44",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkggreet-0045",
+      "name": "Package greet 45",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg/core.py",
+          "contains": "def greet",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "architecture",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "train-cli-0046",
+      "name": "CLI parse_args 46",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def parse_args",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "cli",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-clamp-0047",
+      "name": "Clamp bugfix 47",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "mathutil.py",
+          "contains": "min(hi, x)",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "mathutil.py",
+          "contains": "x + 1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "mathutil.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "localize",
+        "patch"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n"
+      }
+    },
+    {
+      "id": "train-path-0048",
+      "name": "Exact path write 48",
+      "prompt": "Create notes/hello_48.txt containing exactly: hello sonec 48",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_48.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_48.txt",
+          "contains": "hello sonec 48",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-feat-0049",
+      "name": "Feature flag 49",
+      "prompt": "Create config/flag_49.json with \"enabled\": true.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/flag_49.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/flag_49.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "feature"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-bug-0050",
+      "name": "Bug fix 50",
+      "prompt": "Create fix_50.py with def answer() returning 50.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_50.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_50.py",
+          "contains": "def answer",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_50.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-test-0051",
+      "name": "Add test 51",
+      "prompt": "Create tests/test_t51.py with def test_ok asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_t51.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_t51.py",
+          "contains": "def test_ok",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_t51.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-ts-0052",
+      "name": "TS util 52",
+      "prompt": "Create src/util_52.ts exporting function util52(): number returning 52.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util_52.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util_52.ts",
+          "contains": "util52",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkg-0053",
+      "name": "Package scaffold 53",
+      "prompt": "Create pkg53/__init__.py and pkg53/core.py with def helper_53() returning 53.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg53/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg53/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg53/core.py",
+          "contains": "def helper_53",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg53/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0054",
+      "name": "Verify script 54",
+      "prompt": "Create scripts/check_54.sh echoing PASS_54 and VERIFY_54.md referencing ./scripts/check_54.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_54.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/check_54.sh",
+          "contains": "PASS_54",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_54.md",
+          "contains": "./scripts/check_54.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "verify"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-q-0055",
+      "name": "Restraint 55",
+      "prompt": "In one sentence, what is continuous integration? (q55; do not edit files)",
+      "checks": [],
+      "tags": [
+        "train",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pyutil-0056",
+      "name": "Python util main 56",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkggreet-0057",
+      "name": "Package greet 57",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg/core.py",
+          "contains": "def greet",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "architecture",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "train-cli-0058",
+      "name": "CLI parse_args 58",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def parse_args",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "cli",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-clamp-0059",
+      "name": "Clamp bugfix 59",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "mathutil.py",
+          "contains": "min(hi, x)",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "mathutil.py",
+          "contains": "x + 1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "mathutil.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "localize",
+        "patch"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n"
+      }
+    },
+    {
+      "id": "train-path-0060",
+      "name": "Exact path write 60",
+      "prompt": "Create notes/hello_60.txt containing exactly: hello sonec 60",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_60.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_60.txt",
+          "contains": "hello sonec 60",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-feat-0061",
+      "name": "Feature flag 61",
+      "prompt": "Create config/flag_61.json with \"enabled\": true.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/flag_61.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/flag_61.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "feature"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-bug-0062",
+      "name": "Bug fix 62",
+      "prompt": "Create fix_62.py with def answer() returning 62.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_62.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_62.py",
+          "contains": "def answer",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_62.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-test-0063",
+      "name": "Add test 63",
+      "prompt": "Create tests/test_t63.py with def test_ok asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_t63.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_t63.py",
+          "contains": "def test_ok",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_t63.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-ts-0064",
+      "name": "TS util 64",
+      "prompt": "Create src/util_64.ts exporting function util64(): number returning 64.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util_64.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util_64.ts",
+          "contains": "util64",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkg-0065",
+      "name": "Package scaffold 65",
+      "prompt": "Create pkg65/__init__.py and pkg65/core.py with def helper_65() returning 65.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg65/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg65/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg65/core.py",
+          "contains": "def helper_65",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg65/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0066",
+      "name": "Verify script 66",
+      "prompt": "Create scripts/check_66.sh echoing PASS_66 and VERIFY_66.md referencing ./scripts/check_66.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_66.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/check_66.sh",
+          "contains": "PASS_66",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_66.md",
+          "contains": "./scripts/check_66.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "verify"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-q-0067",
+      "name": "Restraint 67",
+      "prompt": "In one sentence, what is continuous integration? (q67; do not edit files)",
+      "checks": [],
+      "tags": [
+        "train",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pyutil-0068",
+      "name": "Python util main 68",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkggreet-0069",
+      "name": "Package greet 69",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg/core.py",
+          "contains": "def greet",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "architecture",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "train-cli-0070",
+      "name": "CLI parse_args 70",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def parse_args",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "cli",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-clamp-0071",
+      "name": "Clamp bugfix 71",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "mathutil.py",
+          "contains": "min(hi, x)",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "mathutil.py",
+          "contains": "x + 1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "mathutil.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "localize",
+        "patch"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n"
+      }
+    },
+    {
+      "id": "train-path-0072",
+      "name": "Exact path write 72",
+      "prompt": "Create notes/hello_72.txt containing exactly: hello sonec 72",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_72.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_72.txt",
+          "contains": "hello sonec 72",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-feat-0073",
+      "name": "Feature flag 73",
+      "prompt": "Create config/flag_73.json with \"enabled\": true.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/flag_73.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/flag_73.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "feature"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-bug-0074",
+      "name": "Bug fix 74",
+      "prompt": "Create fix_74.py with def answer() returning 74.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_74.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_74.py",
+          "contains": "def answer",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_74.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-test-0075",
+      "name": "Add test 75",
+      "prompt": "Create tests/test_t75.py with def test_ok asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_t75.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_t75.py",
+          "contains": "def test_ok",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_t75.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-ts-0076",
+      "name": "TS util 76",
+      "prompt": "Create src/util_76.ts exporting function util76(): number returning 76.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util_76.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util_76.ts",
+          "contains": "util76",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkg-0077",
+      "name": "Package scaffold 77",
+      "prompt": "Create pkg77/__init__.py and pkg77/core.py with def helper_77() returning 77.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg77/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg77/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg77/core.py",
+          "contains": "def helper_77",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg77/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0078",
+      "name": "Verify script 78",
+      "prompt": "Create scripts/check_78.sh echoing PASS_78 and VERIFY_78.md referencing ./scripts/check_78.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_78.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/check_78.sh",
+          "contains": "PASS_78",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_78.md",
+          "contains": "./scripts/check_78.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "verify"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-q-0079",
+      "name": "Restraint 79",
+      "prompt": "In one sentence, what is continuous integration? (q79; do not edit files)",
+      "checks": [],
+      "tags": [
+        "train",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pyutil-0080",
+      "name": "Python util main 80",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkggreet-0081",
+      "name": "Package greet 81",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg/core.py",
+          "contains": "def greet",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "architecture",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "train-cli-0082",
+      "name": "CLI parse_args 82",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def parse_args",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "cli",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-clamp-0083",
+      "name": "Clamp bugfix 83",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "mathutil.py",
+          "contains": "min(hi, x)",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "mathutil.py",
+          "contains": "x + 1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "mathutil.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "localize",
+        "patch"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n"
+      }
+    },
+    {
+      "id": "train-path-0084",
+      "name": "Exact path write 84",
+      "prompt": "Create notes/hello_84.txt containing exactly: hello sonec 84",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_84.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_84.txt",
+          "contains": "hello sonec 84",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-feat-0085",
+      "name": "Feature flag 85",
+      "prompt": "Create config/flag_85.json with \"enabled\": true.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/flag_85.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/flag_85.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "feature"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-bug-0086",
+      "name": "Bug fix 86",
+      "prompt": "Create fix_86.py with def answer() returning 86.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_86.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_86.py",
+          "contains": "def answer",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_86.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-test-0087",
+      "name": "Add test 87",
+      "prompt": "Create tests/test_t87.py with def test_ok asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_t87.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_t87.py",
+          "contains": "def test_ok",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_t87.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-ts-0088",
+      "name": "TS util 88",
+      "prompt": "Create src/util_88.ts exporting function util88(): number returning 88.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util_88.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util_88.ts",
+          "contains": "util88",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkg-0089",
+      "name": "Package scaffold 89",
+      "prompt": "Create pkg89/__init__.py and pkg89/core.py with def helper_89() returning 89.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg89/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg89/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg89/core.py",
+          "contains": "def helper_89",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg89/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0090",
+      "name": "Verify script 90",
+      "prompt": "Create scripts/check_90.sh echoing PASS_90 and VERIFY_90.md referencing ./scripts/check_90.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_90.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/check_90.sh",
+          "contains": "PASS_90",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_90.md",
+          "contains": "./scripts/check_90.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "verify"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-q-0091",
+      "name": "Restraint 91",
+      "prompt": "In one sentence, what is continuous integration? (q91; do not edit files)",
+      "checks": [],
+      "tags": [
+        "train",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pyutil-0092",
+      "name": "Python util main 92",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkggreet-0093",
+      "name": "Package greet 93",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg/core.py",
+          "contains": "def greet",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "architecture",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "train-cli-0094",
+      "name": "CLI parse_args 94",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def parse_args",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "cli",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-clamp-0095",
+      "name": "Clamp bugfix 95",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "mathutil.py",
+          "contains": "min(hi, x)",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "mathutil.py",
+          "contains": "x + 1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "mathutil.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "localize",
+        "patch"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n"
+      }
+    },
+    {
+      "id": "train-path-0096",
+      "name": "Exact path write 96",
+      "prompt": "Create notes/hello_96.txt containing exactly: hello sonec 96",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_96.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_96.txt",
+          "contains": "hello sonec 96",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-feat-0097",
+      "name": "Feature flag 97",
+      "prompt": "Create config/flag_97.json with \"enabled\": true.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/flag_97.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/flag_97.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "feature"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-bug-0098",
+      "name": "Bug fix 98",
+      "prompt": "Create fix_98.py with def answer() returning 98.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_98.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_98.py",
+          "contains": "def answer",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_98.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-test-0099",
+      "name": "Add test 99",
+      "prompt": "Create tests/test_t99.py with def test_ok asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_t99.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_t99.py",
+          "contains": "def test_ok",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_t99.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-ts-0100",
+      "name": "TS util 100",
+      "prompt": "Create src/util_100.ts exporting function util100(): number returning 100.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util_100.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util_100.ts",
+          "contains": "util100",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkg-0101",
+      "name": "Package scaffold 101",
+      "prompt": "Create pkg101/__init__.py and pkg101/core.py with def helper_101() returning 101.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg101/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg101/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg101/core.py",
+          "contains": "def helper_101",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg101/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0102",
+      "name": "Verify script 102",
+      "prompt": "Create scripts/check_102.sh echoing PASS_102 and VERIFY_102.md referencing ./scripts/check_102.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_102.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/check_102.sh",
+          "contains": "PASS_102",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_102.md",
+          "contains": "./scripts/check_102.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "verify"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-q-0103",
+      "name": "Restraint 103",
+      "prompt": "In one sentence, what is continuous integration? (q103; do not edit files)",
+      "checks": [],
+      "tags": [
+        "train",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pyutil-0104",
+      "name": "Python util main 104",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkggreet-0105",
+      "name": "Package greet 105",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg/core.py",
+          "contains": "def greet",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "architecture",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "train-cli-0106",
+      "name": "CLI parse_args 106",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def parse_args",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "cli",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-clamp-0107",
+      "name": "Clamp bugfix 107",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "mathutil.py",
+          "contains": "min(hi, x)",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "mathutil.py",
+          "contains": "x + 1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "mathutil.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "localize",
+        "patch"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n"
+      }
+    },
+    {
+      "id": "train-path-0108",
+      "name": "Exact path write 108",
+      "prompt": "Create notes/hello_108.txt containing exactly: hello sonec 108",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_108.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_108.txt",
+          "contains": "hello sonec 108",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "exact_path"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-feat-0109",
+      "name": "Feature flag 109",
+      "prompt": "Create config/flag_109.json with \"enabled\": true.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "config/flag_109.json",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "config/flag_109.json",
+          "contains": "\"enabled\": true",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "feature"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-bug-0110",
+      "name": "Bug fix 110",
+      "prompt": "Create fix_110.py with def answer() returning 110.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "fix_110.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "fix_110.py",
+          "contains": "def answer",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "fix_110.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "bugfix"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-test-0111",
+      "name": "Add test 111",
+      "prompt": "Create tests/test_t111.py with def test_ok asserting True.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "tests/test_t111.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "tests/test_t111.py",
+          "contains": "def test_ok",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "tests/test_t111.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "tests"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-ts-0112",
+      "name": "TS util 112",
+      "prompt": "Create src/util_112.ts exporting function util112(): number returning 112.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util_112.ts",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util_112.ts",
+          "contains": "util112",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "typescript"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkg-0113",
+      "name": "Package scaffold 113",
+      "prompt": "Create pkg113/__init__.py and pkg113/core.py with def helper_113() returning 113.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg113/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg113/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg113/core.py",
+          "contains": "def helper_113",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg113/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "multifile"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-verify-0114",
+      "name": "Verify script 114",
+      "prompt": "Create scripts/check_114.sh echoing PASS_114 and VERIFY_114.md referencing ./scripts/check_114.sh",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "scripts/check_114.sh",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "scripts/check_114.sh",
+          "contains": "PASS_114",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "VERIFY_114.md",
+          "contains": "./scripts/check_114.sh",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "verify"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-q-0115",
+      "name": "Restraint 115",
+      "prompt": "In one sentence, what is continuous integration? (q115; do not edit files)",
+      "checks": [],
+      "tags": [
+        "train",
+        "restraint"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "easy",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pyutil-0116",
+      "name": "Python util main 116",
+      "prompt": "Create src/util.py as valid Python that defines a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "src/util.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "src/util.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-pkggreet-0117",
+      "name": "Package greet 117",
+      "prompt": "Create pkg/__init__.py and pkg/core.py with a function greet that returns the string hello.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "pkg/__init__.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_exists",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "pkg/core.py",
+          "contains": "def greet",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "pkg/core.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "architecture",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {}
+    },
+    {
+      "id": "train-cli-0118",
+      "name": "CLI parse_args 118",
+      "prompt": "Create cli/main.py as valid Python defining parse_args and a main function.",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "cli/main.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def parse_args",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "cli/main.py",
+          "contains": "def main",
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "python",
+        "cli",
+        "write_first"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "medium",
+      "seed_files": {}
+    },
+    {
+      "id": "train-clamp-0119",
+      "name": "Clamp bugfix 119",
+      "prompt": "mathutil.py has a bug in clamp. Fix clamp(x, lo, hi) so it returns max(lo, min(hi, x)). Do not rewrite unrelated files.",
+      "checks": [
+        {
+          "kind": "file_contains",
+          "path": "mathutil.py",
+          "contains": "min(hi, x)",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_not_contains",
+          "path": "mathutil.py",
+          "contains": "x + 1",
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "python_parses",
+          "path": "mathutil.py",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        }
+      ],
+      "tags": [
+        "train",
+        "localize",
+        "patch"
+      ],
+      "timeout_s": 300.0,
+      "difficulty": "hard",
+      "seed_files": {
+        "mathutil.py": "def clamp(x, lo, hi):\n    return max(lo, min(hi, x + 1))\n",
+        "test_mathutil.py": "from mathutil import clamp\n\ndef test_clamp():\n    assert clamp(5, 0, 3) == 3\n"
+      }
+    },
+    {
+      "id": "train-path-0120",
+      "name": "Exact path write 120",
+      "prompt": "Create notes/hello_120.txt containing exactly: hello sonec 120",
+      "checks": [
+        {
+          "kind": "file_exists",
+          "path": "notes/hello_120.txt",
+          "contains": null,
+          "command_exit_zero": null,
+          "pattern": null
+        },
+        {
+          "kind": "file_contains",
+          "path": "notes/hello_120.txt",
+          "contains": "hello sonec 120",
           "command_exit_zero": null,
           "pattern": null
         }

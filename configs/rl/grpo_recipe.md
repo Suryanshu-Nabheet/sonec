@@ -1,40 +1,33 @@
-# sonec RL — GRPO-family recipe
+# sonec RL — GRPO-lite (Apple Silicon / MLX)
 
-## Goal
-
-Train a coding-model policy inside the frozen sonec harness. Rewards come from
-environment graders (WorldBench / private tasks), not model self-report.
-
-## Algorithm
-
-- Prefer GRPO / Dr.GRPO-style group relative policy gradient
-- Group size G = 8–16 independent rollouts per prompt (`sonec rollout -g 8`)
-- Prefer single-epoch prompts
-- Avoid length-std / group-std pathologies that collapse tool use
-
-## Data
+## What ships
 
 ```bash
-sonec rollout --live -m sonec \
-  --suite examples/benchmarks/smoke.json -g 8 --limit 20 \
-  --out artifacts/rollouts/live
+# Group-relative rollouts → advantage-weighted LoRA SFT
+sonec grpo --group-size 8 --train-n 24 --sft-iters 200 --live
+# Needs: sonec serve-llm on :8080 and ready adapters (`sonec weights`)
 
-sonec train --export -r artifacts/rollouts/live/rollouts.jsonl -o artifacts/train
-# Use artifacts/train/grpo_prompts.jsonl as the prompt pool
+# Offline densify (oracle tool_calls) when live inference is unavailable:
+sonec grpo --mock --group-size 6 --train-n 16 --sft-iters 150
 ```
 
-## Reward
+Implementation: `sonec/training/grpo_lite.py`
 
-Primary: `reward = 1.0 if graded.passed else 0.0` (file and command checks)
+- Sample G rollouts per TrainBench prompt (same harness / graders)
+- Advantage = reward − group mean (Dr.GRPO-style; no length-std)
+- Densify positive-advantage trajectories → continue MLX LoRA
 
-Optional penalties:
-- skipped verification
-- catastrophic tool misuse
-- nonlinear length (lighter on easy tasks; allow tools on hard ones)
+This is **not** CUDA TRL/verl policy-gradient GRPO. It is the same *relative* training signal on MLX. For full GRPO on GPU clusters, see the external stacks below — keep sonec as the rollout env.
 
-Final reward applies to all model tokens, including self-summaries.
+## Data export (optional)
 
-## External stacks
+```bash
+sonec rollout --live -g 8 --limit 20 --out artifacts/rollouts/live
+sonec train --export -r artifacts/rollouts/live/rollouts.jsonl -o artifacts/train
+# artifacts/train/grpo_prompts.jsonl
+```
+
+## External stacks (CUDA)
 
 | Stack | Notes |
 | --- | --- |
@@ -42,22 +35,18 @@ Final reward applies to all model tokens, including self-summaries.
 | [OpenRLHF](https://github.com/OpenRLHF/OpenRLHF) | Ray + vLLM rollouts |
 | [TRL GRPO](https://huggingface.co/docs/trl) | Smaller local experiments |
 
-sonec remains the source of truth for harness, graders, and trajectory format.
-Do not fork a second agent loop inside the trainer.
-
 ## Pinning
 
-Every RL run must record:
-- `harness_version`
-- `tool_schema_hash`
-- base model id
-- WorldBench / SonecBench suite versions
+Every RL run records in `artifacts/train/grpo_lite/grpo_stats.json`:
+
+- group size, prompt count, passers, corpus lines
+- base mlx model id, live vs mock
+- SFT report
 
 Harness or tool-schema change requires a migration eval before new training.
 
 ## Collapse watches
 
-- Terminal-only loops
-- Comment-only reasoning without tools
+- Terminal-only / list-only loops
 - Entropy death (identical rollouts)
-- pass@1 up but pass@k flat (coverage not improving)
+- pass@1 up but pass@k flat

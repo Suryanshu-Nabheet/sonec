@@ -4,12 +4,12 @@ Suite: `examples/benchmarks/ab_agent_v1.json`
 
 | Arm | Kind | Pass rate | Passed | Mean score | Mean duration |
 | --- | --- | --- | --- | --- | --- |
-| sonec_lora | lora | 67% | 4/6 | 0.67 | 19.8s |
-| qwen35_2b_base | base | 50% | 3/6 | 0.50 | 21.6s |
+| sonec_lora | lora | 100% | 6/6 | 1.00 | 7.5s |
+| qwen35_2b_base | base | 100% | 6/6 | 1.00 | 12.1s |
 
-**Winner:** sonec_lora
-**Delta pass_rate (lora − base):** +17%
+**Winner:** tie
+**Delta pass_rate (lora − base):** +0%
 
-Same frozen harness; arms differ only by weights/endpoint.
+Same frozen harness; arms differ only by weights/endpoint. Tie on pass_rate — inspect mean_score / per-task diffs.
 
 Product sonec = LoRA adapter served via sonec serve-llm.
