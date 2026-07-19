@@ -2,7 +2,7 @@
 
 **Product:** LoRA adapter `sonec` by Suryanshu Nabheet — coding model  
 **Weights:** `artifacts/train/checkpoints/sonec-sft-mlx`  
-**Code:** MIT — LICENSE · lineage — NOTICE
+**License:** Apache-2.0 — LICENSE · lineage — NOTICE
 
 ## Pipeline
 

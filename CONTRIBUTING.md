@@ -2,6 +2,9 @@
 
 Thank you for contributing to sonec.
 
+By contributing, you agree that your contributions are licensed under the
+**Apache License 2.0** (see [LICENSE](LICENSE) and [NOTICE](NOTICE)).
+
 ## Principles
 
 - Ship production-ready changes — no placeholders or fake backends

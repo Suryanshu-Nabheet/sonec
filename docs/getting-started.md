@@ -43,4 +43,4 @@ sonec mcp
 
 ## Licensing
 
-MIT for sonec code. Weight lineage: [NOTICE](../NOTICE).
+Apache-2.0 for sonec code, adapters, and Qwen weight lineage. See [LICENSE](../LICENSE) and [NOTICE](../NOTICE).

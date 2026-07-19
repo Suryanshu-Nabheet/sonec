@@ -1,37 +1,41 @@
-# NOTICE — third-party licenses (day one)
+# NOTICE
 
-sonec itself is MIT Licensed (see LICENSE). Copyright (c) 2026 Suryanshu Nabheet.
+sonec — coding agent model and tooling  
+Copyright 2026 Suryanshu Nabheet
+
+This project is licensed under the Apache License, Version 2.0.
+See the LICENSE file in the project root.
 
 ## Base model — Qwen 3.5
 
 Training and serving start from Alibaba Qwen 3.5 weights (2B class), typically:
 
 - Hugging Face: `Qwen/Qwen3.5-2B`
+- MLX: `mlx-community/Qwen3.5-2B-4bit`
 - Local tags such as `qwen3.5:2b` from compatible runners
 
-Qwen model weights and accompanying materials are distributed under the
-**Apache License 2.0** by Alibaba Cloud / Qwen. You must retain Apache-2.0
-notices when redistributing model weights or derivatives. See the license
-files shipped with the Qwen release you download.
+Qwen 3.5 model weights are distributed under the **Apache License 2.0** by
+Alibaba Cloud / Qwen. Retain Apache-2.0 notices when redistributing base
+weights or derivatives. See the license files shipped with the Qwen release
+you download.
 
 ## Derived adapters (sonec LoRA / checkpoints)
 
-Adapters produced by `sonec train` are derivatives of the Qwen base under
-Apache-2.0 obligations for the weight lineage, plus MIT for sonec tooling
-source. When you publish a specialized checkpoint, include:
+Adapters produced by `sonec train` are derivatives of the Qwen base and remain
+under **Apache-2.0** obligations for the weight lineage. When you publish a
+specialized checkpoint, include:
 
 1. This NOTICE
-2. LICENSE (MIT for sonec code)
-3. The Apache-2.0 license text from the Qwen release you used
-4. Weight-lineage attribution in redistributions (Apache-2.0 base); product name remains **sonec by Suryanshu Nabheet**
-
+2. LICENSE (Apache-2.0)
+3. The Apache-2.0 license text from the Qwen release you used (if redistributing base weights)
+4. Attribution: product name **sonec by Suryanshu Nabheet**; base **Qwen 3.5** (Alibaba Cloud / Qwen)
 
 ## Optional local runners / toolchains
 
-Inference may use any OpenAI-compatible server (local or remote), MLX, llama.cpp,
-vLLM, etc. Those tools have their own licenses — not bundled here.
+Inference may use OpenAI-compatible servers (local or remote), MLX, llama.cpp,
+vLLM, Ollama, etc. Those tools have their own licenses — not bundled here.
 
 ## Eval corpora
 
-Cloned OSS trees under `corpora/` keep their upstream licenses (e.g. MIT for
-VS Code samples). Do not relicense upstream code.
+Cloned OSS trees under `corpora/` keep their upstream licenses. Do not relicense
+upstream code.
