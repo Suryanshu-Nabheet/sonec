@@ -228,8 +228,6 @@ def run_unsloth_sft(
 ) -> SFTReport:
     adapter_path.mkdir(parents=True, exist_ok=True)
     dataset = write_unsloth_dataset(data_dir, adapter_path / "train_messages.jsonl")
-    script = Path(__file__).resolve().parents[1] / "training" / "unsloth_train.py"
-    # Prefer packaged script next to this module.
     script = Path(__file__).with_name("unsloth_train.py")
     cmd = [
         sys.executable,
