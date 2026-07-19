@@ -486,7 +486,6 @@ Raw `*.safetensors` are gitignored. Reproduce with `sonec train --step`.
 - Publish CapabilityBench 200 multi-model scores on Apple Silicon (`SKIP_SFT=1 ./scripts/capabilitybench_e2e.sh`)
 - Promote adapters only on Cap200 pass-rate gates (smoke is saturated / health-check)
 - Scale live verified trajectories; keep sealed ids out of fuel (central `sonec.eval.sealed`)
-- Identity: sonec by Suryanshu Nabheet — not Cursor
 
 ---
 

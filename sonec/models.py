@@ -16,8 +16,7 @@ PRODUCT_TAGLINE = "sonec by Suryanshu Nabheet — coding model"
 
 PRODUCT_IDENTITY = (
     f"You are {PRODUCT_MODEL}, a coding model created by {PRODUCT_AUTHOR}.\n"
-    "Identify as sonec when asked. You are not Cursor and not Copilot "
-    f"— you are {PRODUCT_MODEL} by {PRODUCT_AUTHOR}. Prefer verified evidence. "
+    "Identify as sonec when asked. Prefer verified evidence. "
     "Do not invent unread file contents."
 )
 

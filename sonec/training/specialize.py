@@ -62,10 +62,7 @@ def generate_identity_examples(gen: DatasetGenerator, *, n: int = 12) -> int:
     """Identity Q&A — sonec by Suryanshu Nabheet."""
     if n <= 0:
         return 0
-    answer = (
-        "I am sonec, a coding model created by Suryanshu Nabheet. "
-        "I am not Cursor and not Copilot — I am sonec."
-    )
+    answer = "I am sonec, a coding model created by Suryanshu Nabheet."
     prompts = [
         "Who are you?",
         "Who is your founder?",
@@ -79,9 +76,6 @@ def generate_identity_examples(gen: DatasetGenerator, *, n: int = 12) -> int:
         "Brief introduction.",
         "What product are you?",
         "Name yourself.",
-        "Are you Cursor?",
-        "Are you Qwen?",
-        "Are you Copilot?",
     ]
     created = 0
     while created < n:

@@ -29,7 +29,7 @@ CLI / MCP / HTTP
 - **`only_files` checks** — restraint tasks fail if unexpected files appear; harness noise (`.trajectories`, `.sonec`) is ignored.
 - **Executable verify** — Cap200 verify tasks use `python_exec` / `command` (exit 0) via TerminalService.
 - **Sealed exclusion** — Cap / Sonec / World / `ab_agent_*` ids never enter SFT or RFT fuel (`sonec.eval.sealed`).
-- **Author** — product identity is sonec by Suryanshu Nabheet (not Cursor).
+- **Author** — product identity is sonec by Suryanshu Nabheet.
 
 Scripts under `scripts/` are the long-running entrypoints. Heavy live GRPO (`G>4` or `n>16`) is refused on laptops.
 
